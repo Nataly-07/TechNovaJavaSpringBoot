@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Reportes - Technova</title>
+    <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" th:href="@{/frontend/css/estilodas.css}">
+    <link rel="stylesheet" th:href="@{/frontend/css/color-palette.css}">
+    <style>
+        .reportes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .reporte-tarjeta {
+            background: white;
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .reporte-tarjeta:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.2);
+            border-color: #667eea;
+        }
+
+        .tarjeta-icono {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            font-size: 2rem;
+            color: white;
+        }
+
+        .tarjeta-contenido h3 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+
+        .tarjeta-metrica {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .tarjeta-metrica .numero {
+            display: block;
+            font-size: 2.5rem;
+            font-weight: bold;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+        }
+
+        .tarjeta-metrica .texto {
+            color: #666;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .tarjeta-boton {
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .tarjeta-boton:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        #contenedor-formularios {
+            display: none;
+            visibility: hidden;
+            opacity: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        #contenedor-formularios.mostrar {
+            display: block !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+            max-height: 2000px !important;
+        }
+
+        .formulario-reporte {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            margin-top: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e0e0e0;
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .reporte-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .reporte-header i {
+            font-size: 2.5em;
+            color: #667eea;
+        }
+
+        .reporte-header h2 {
+            color: #333;
+            margin: 0;
+            font-size: 1.8rem;
+        }
+
+        .info-text {
+            background: linear-gradient(135deg, #e3f2fd, #f0f8ff);
+            padding: 15px 20px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            border-left: 4px solid #667eea;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-text i {
+            color: #667eea;
+            font-size: 1.3rem;
+        }
+
+        .filtros-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 25px;
+        }
+
+        .filtro-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .filtro-group label {
+            font-weight: 600;
+            color: #333;
+            font-size: 0.95rem;
+        }
+
+        .filtro-group select,
+        .filtro-group input {
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .filtro-group select:focus,
+        .filtro-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .botones-accion {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        .btn-preview,
+        .btn-generar {
+            flex: 1;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn-preview {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-generar {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-preview:hover,
+        .btn-generar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .reporte-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+  <header class="header">
+    <div class="logo" style="cursor: default;">
+      <img th:src="@{/frontend/imagenes/logo technova.png}" alt="Logo">
+      <span>TECHNOVA</span>
+    </div>
+
+    <div class="acciones-usuario">
+      <a th:href="@{/admin/perfil}" class="account"><i class='bx bx-user-circle'></i> <span>Perfil</span></a>
+      <a th:href="@{/logout}" class="account"><i class='bx bx-log-out'></i> <span>Cerrar Sesión</span></a>
+    </div>
+  </header>
+
+  <div class="dashboard-wrapper">
+    <div th:replace="~{frontend/layouts/sidebar-admin :: sidebar}"></div>
+
+    <main class="main-content">
+      <div class="page-header">
+        <h1>📊 Sistema de Reportes</h1>
+      </div>
+
+      <div class="content-wrapper">
+        <div class="reporte-card" style="background: linear-gradient(135deg, #e3f2fd, #f0f8ff); border-left: 5px solid #667eea;">
+          <div class="reporte-header">
+            <i class="bx bx-info-circle"></i>
+            <h2>¿Cómo usar el Sistema de Reportes?</h2>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-top: 20px;">
+            <div style="background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+              <h4 style="color: #667eea !important; margin: 0 0 10px 0;"><i class="bx bx-filter-alt"></i> 1. Configurar Filtros</h4>
+              <p style="margin: 0; color: #333 !important; font-size: 0.9em;">Selecciona los criterios que deseas aplicar para filtrar los datos.</p>
+            </div>
+            
+            <div style="background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+              <h4 style="color: #667eea !important; margin: 0 0 10px 0;"><i class="bx bx-show"></i> 2. Vista Previa</h4>
+              <p style="margin: 0; color: #333 !important; font-size: 0.9em;">Haz clic en "Vista Previa" para ver los resultados antes de generar el PDF o Excel.</p>
+            </div>
+            
+            <div style="background: white; padding: 15px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+              <h4 style="color: #667eea !important; margin: 0 0 10px 0;"><i class="bx bx-download"></i> 3. Generar Reporte</h4>
+              <p style="margin: 0; color: #333 !important; font-size: 0.9em;">Genera PDF o Excel del reporte completo con los filtros aplicados.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="reportes-grid">
+          <div class="reporte-tarjeta" onclick="mostrarFormulario('productos')">
+            <div class="tarjeta-icono">
+              <i class="bx bx-package"></i>
+            </div>
+            <div class="tarjeta-contenido">
+              <h3>📦 Reporte de Productos</h3>
+              <div class="tarjeta-metrica">
+                <span class="numero" th:text="${productosCount}">0</span>
+                <span class="texto">PRODUCTOS EN INVENTARIO</span>
+              </div>
+            </div>
+            <button class="tarjeta-boton">→ Generar Reporte</button>
+          </div>
+
+          <div class="reporte-tarjeta" onclick="mostrarFormulario('usuarios')">
+            <div class="tarjeta-icono">
+              <i class="bx bx-user"></i>
+            </div>
+            <div class="tarjeta-contenido">
+              <h3>👥 Reporte de Usuarios</h3>
+              <div class="tarjeta-metrica">
+                <span class="numero" th:text="${usuariosCount}">0</span>
+                <span class="texto">USUARIOS REGISTRADOS</span>
+              </div>
+            </div>
+            <button class="tarjeta-boton">→ Generar Reporte</button>
+          </div>
+
+          <div class="reporte-tarjeta" onclick="mostrarFormulario('ventas')">
+            <div class="tarjeta-icono">
+              <i class="bx bx-chart-line"></i>
+            </div>
+            <div class="tarjeta-contenido">
+              <h3>📊 Reporte de Ventas</h3>
+              <div class="tarjeta-metrica">
+                <span class="numero" th:text="${ventasCount}">0</span>
+                <span class="texto">VENTAS REGISTRADAS</span>
+              </div>
+            </div>
+            <button class="tarjeta-boton">→ Generar Reporte</button>
+          </div>
+        </div>
+
+        <div id="contenedor-formularios"></div>
+      </div>
+    </main>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 Technova</p>
+  </footer>
+
+  <script th:inline="javascript">
+    const baseUrl = /*[[@{/}]]*/ '';
+    
+    function mostrarFormulario(tipo) {
+      const contenedor = document.getElementById('contenedor-formularios');
+      contenedor.innerHTML = '';
+      contenedor.classList.remove('mostrar');
+      
+      let formularioHTML = '';
+      
+      switch(tipo) {
+        case 'productos':
+          formularioHTML = `
+            <div class="formulario-reporte">
+              <div class="reporte-header">
+                <i class="bx bx-package"></i>
+                <h2>📦 Reporte de Productos</h2>
+              </div>
+              <div class="info-text">
+                <i class="bx bx-info-circle"></i>
+                Genera reportes detallados de inventario con filtros por categoría, marca, precio y stock.
+              </div>
+              <form id="formProductos" method="GET">
+                <div class="filtros-grid">
+                  <div class="filtro-group">
+                    <label>Categoría</label>
+                    <select name="categoria" id="categoria">
+                      <option value="">Todas las categorías</option>
+                    </select>
+                  </div>
+                  <div class="filtro-group">
+                    <label>Marca</label>
+                    <select name="marca" id="marca">
+                      <option value="">Todas las marcas</option>
+                    </select>
+                  </div>
+                  <div class="filtro-group">
+                    <label>Precio Mínimo</label>
+                    <input type="number" name="precioMin" placeholder="0" min="0" step="0.01">
+                  </div>
+                  <div class="filtro-group">
+                    <label>Precio Máximo</label>
+                    <input type="number" name="precioMax" placeholder="1000000" min="0" step="0.01">
+                  </div>
+                </div>
+                <div class="botones-accion">
+                  <button type="button" class="btn-preview" onclick="previewReporte('productos')">
+                    <i class="bx bx-show"></i> Vista Previa
+                  </button>
+                  <button type="button" class="btn-generar" onclick="generarPdf('productos')">
+                    <i class="bx bx-download"></i> Generar PDF
+                  </button>
+                  <button type="button" class="btn-generar" onclick="generarExcel('productos')">
+                    <i class="bx bx-file-blank"></i> Generar Excel
+                  </button>
+                </div>
+              </form>
+            </div>
+          `;
+          break;
+          
+        case 'usuarios':
+          formularioHTML = `
+            <div class="formulario-reporte">
+              <div class="reporte-header">
+                <i class="bx bx-user"></i>
+                <h2>👥 Reporte de Usuarios</h2>
+              </div>
+              <div class="info-text">
+                <i class="bx bx-info-circle"></i>
+                Analiza usuarios registrados con filtros por rol, fecha de registro y actividad.
+              </div>
+              <form id="formUsuarios" method="GET">
+                <div class="filtros-grid">
+                  <div class="filtro-group">
+                    <label>Rol de Usuario</label>
+                    <select name="rol" id="rol">
+                      <option value="">Todos los roles</option>
+                      <option value="admin">Admin</option>
+                      <option value="cliente">Cliente</option>
+                      <option value="empleado">Empleado</option>
+                    </select>
+                  </div>
+                  <div class="filtro-group">
+                    <label>Buscar</label>
+                    <input type="text" name="busqueda" placeholder="Nombre, email o documento">
+                  </div>
+                </div>
+                <div class="botones-accion">
+                  <button type="button" class="btn-preview" onclick="previewReporte('usuarios')">
+                    <i class="bx bx-show"></i> Vista Previa
+                  </button>
+                  <button type="button" class="btn-generar" onclick="generarPdf('usuarios')">
+                    <i class="bx bx-download"></i> Generar PDF
+                  </button>
+                  <button type="button" class="btn-generar" onclick="generarExcel('usuarios')">
+                    <i class="bx bx-file-blank"></i> Generar Excel
+                  </button>
+                </div>
+              </form>
+            </div>
+          `;
+          break;
+          
+        case 'ventas':
+          formularioHTML = `
+            <div class="formulario-reporte">
+              <div class="reporte-header">
+                <i class="bx bx-chart-line"></i>
+                <h2>📊 Reporte de Ventas</h2>
+              </div>
+              <div class="info-text">
+                <i class="bx bx-info-circle"></i>
+                Genera reportes detallados de ventas con estadísticas, gráficos y análisis de rendimiento.
+              </div>
+              <form id="formVentas" method="GET">
+                <div class="filtros-grid">
+                  <div class="filtro-group">
+                    <label>Categoría</label>
+                    <select name="categoria" id="categoria">
+                      <option value="">Todas las categorías</option>
+                    </select>
+                  </div>
+                  <div class="filtro-group">
+                    <label>Marca</label>
+                    <select name="marca" id="marca">
+                      <option value="">Todas las marcas</option>
+                    </select>
+                  </div>
+                  <div class="filtro-group">
+                    <label>Estado</label>
+                    <select name="estado">
+                      <option value="">Todos los estados</option>
+                      <option value="completada">Completada</option>
+                      <option value="pendiente">Pendiente</option>
+                      <option value="procesando">Procesando</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="botones-accion">
+                  <button type="button" class="btn-preview" onclick="previewReporte('ventas')">
+                    <i class="bx bx-show"></i> Vista Previa
+                  </button>
+                  <button type="button" class="btn-generar" onclick="generarPdf('ventas')">
+                    <i class="bx bx-download"></i> Generar PDF
+                  </button>
+                  <button type="button" class="btn-generar" onclick="generarExcel('ventas')">
+                    <i class="bx bx-file-blank"></i> Generar Excel
+                  </button>
+                </div>
+              </form>
+            </div>
+          `;
+          break;
+      }
+      
+      contenedor.innerHTML = formularioHTML;
+      
+      setTimeout(() => {
+        contenedor.classList.add('mostrar');
+        contenedor.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        cargarFiltros(tipo);
+      }, 200);
+    }
+    
+    function previewReporte(tipo) {
+      const form = document.getElementById(`form${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`);
+      if (!form) return;
+      
+      const formData = new FormData(form);
+      const params = new URLSearchParams(formData);
+      const url = baseUrl + 'admin/reportes/preview-' + tipo + '?' + params.toString();
+      window.open(url, '_blank');
+    }
+    
+    function generarPdf(tipo) {
+      const form = document.getElementById(`form${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`);
+      if (!form) return;
+      
+      const formData = new FormData(form);
+      const params = new URLSearchParams(formData);
+      const url = baseUrl + 'admin/reportes/' + tipo + '/pdf?' + params.toString();
+      window.location.href = url;
+    }
+    
+    function generarExcel(tipo) {
+      const form = document.getElementById(`form${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`);
+      if (!form) return;
+      
+      const formData = new FormData(form);
+      const params = new URLSearchParams(formData);
+      const url = baseUrl + 'admin/reportes/' + tipo + '/excel?' + params.toString();
+      window.location.href = url;
+    }
+    
+    function cargarFiltros(tipo) {
+      // Cargar categorías y marcas desde los productos disponibles
+      fetch(baseUrl + 'api/productos')
+        .then(response => response.json())
+        .then(data => {
+          const categorias = [...new Set(data.map(p => p.caracteristica?.categoria).filter(Boolean))];
+          const marcas = [...new Set(data.map(p => p.caracteristica?.marca).filter(Boolean))];
+          
+          categorias.forEach(cat => {
+            document.querySelectorAll('select[name="categoria"]').forEach(select => {
+              const option = document.createElement('option');
+              option.value = cat;
+              option.textContent = cat;
+              select.appendChild(option);
+            });
+          });
+          
+          marcas.forEach(marca => {
+            document.querySelectorAll('select[name="marca"]').forEach(select => {
+              const option = document.createElement('option');
+              option.value = marca;
+              option.textContent = marca;
+              select.appendChild(option);
+            });
+          });
+        })
+        .catch(err => console.error('Error cargando filtros:', err));
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ofertas | Technova</title>
+  <link rel="stylesheet" th:href="@{/frontend/css/stilotech.css}" />
+  <link rel="stylesheet" th:href="@{/frontend/css/producto.css}" />
+</head>
+<body>
+  <header class="header">
+    <a th:href="@{/}" class="logo">
+      <img th:src="@{/frontend/imagenes/logo technova.png}" alt="Logo" />
+      <span>TECHNOVA</span>
+    </a>
+    <div class="acciones-usuario">
+      <a th:href="@{/login}" class="account"><span>Iniciar Sesión</span></a>
+      <a th:href="@{/registro}" class="account"><span>Crear Cuenta</span></a>
+    </div>
+  </header>
+
+  <nav class="menu-principal">
+    <ul>
+      <li><a th:href="@{/}">Inicio</a></li>
+      <li class="submenu">
+        <a href="#">Categorías ▾</a>
+        <ul class="submenu-lista">
+          <li><a th:href="@{/categoria/celulares}">📱 Celulares</a></li>
+          <li><a th:href="@{/categoria/portatiles}">💻 Portátiles</a></li>
+        </ul>
+      </li>
+      <li class="submenu">
+        <a href="#">Marcas ▾</a>
+        <ul class="submenu-lista">
+          <li><a th:href="@{/marca/apple}">🍎 Apple</a></li>
+          <li><a th:href="@{/marca/samsung}">📱 Samsung</a></li>
+          <li><a th:href="@{/marca/motorola}">📞 Motorola</a></li>
+          <li><a th:href="@{/marca/xiaomi}">🧡 Xiaomi</a></li>
+          <li><a th:href="@{/marca/oppo}">📲 OPPO</a></li>
+          <li><a th:href="@{/marca/lenovo}">💻 Lenovo</a></li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <main class="main-content">
+    <section class="productos">
+      <h2>🔥 Ofertas Especiales</h2>
+      <div th:if="${productos != null && !productos.isEmpty()}" class="productos-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; padding: 15px;">
+        <div class="producto" th:each="producto : ${productos}">
+          <img th:if="${producto.imagen != null && !producto.imagen.isEmpty()}" 
+               th:src="${producto.imagen.startsWith('http') ? producto.imagen : '/frontend/imagenes/' + producto.imagen}" 
+               th:alt="${producto.nombre}" />
+          <h3 th:text="${producto.nombre}">Producto</h3>
+          <p th:if="${producto.caracteristica != null && producto.caracteristica.descripcion != null}" th:text="${producto.caracteristica.descripcion}"></p>
+          <th:block th:if="${producto.precioOriginal != null && producto.precioDescuento != null}">
+            <p class="precio-original" style="text-decoration: line-through; color: gray; margin: 8px 0; font-size: 0.9em;">
+              $<span th:text="${#numbers.formatDecimal(producto.precioOriginal, 0, 'COMMA', '.')}">0</span>
+            </p>
+            <p class="precio-descuento" style="color: #006600; font-weight: bold; margin: 8px 0; font-size: 1.1em;">
+              $<span th:text="${#numbers.formatDecimal(producto.precioDescuento, 0, 'COMMA', '.')}">0</span>
+              <span class="descuento" style="background-color: #cce5cc; color: #006600; padding: 2px 6px; border-radius: 6px; font-size: 0.8em; margin-left: 6px;">-5%</span>
+            </p>
+          </th:block>
+          <p>Stock: <span th:text="${producto.stock != null ? producto.stock : 0}">0</span></p>
+        </div>
+      </div>
+      <p th:if="${productos == null || productos.isEmpty()}">No hay productos disponibles en esta categoría.</p>
+    </section>
+
+    <section class="navegacion-categorias">
+      <h2>Explora otras categorías</h2>
+      <div class="categorias-grid">
+        <a th:href="@{/categoria/celulares}" class="categoria-item">📱 Celulares</a>
+        <a th:href="@{/categoria/portatiles}" class="categoria-item">💻 Portátiles</a>
+      </div>
+    </section>
+
+    <section class="navegacion-marcas">
+      <h2>Busca por Marca</h2>
+      <div class="marcas-grid">
+        <a th:href="@{/marca/apple}" class="marca-item">🍎 Apple</a>
+        <a th:href="@{/marca/samsung}" class="marca-item">📱 Samsung</a>
+        <a th:href="@{/marca/xiaomi}" class="marca-item">🧡 Xiaomi</a>
+        <a th:href="@{/marca/motorola}" class="marca-item">📞 Motorola</a>
+        <a th:href="@{/marca/oppo}" class="marca-item">📲 OPPO</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>© 2025 TECHNOVA. Todos los derechos reservados.</p>
+  </footer>
+</body>
+</html>
+

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Carrito de Compras | Technova</title>
+  <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+  <link rel="stylesheet" th:href="@{/frontend/css/stilotech.css}" />
+  <link rel="stylesheet" th:href="@{/frontend/css/producto.css}" />
+  <link rel="stylesheet" th:href="@{/frontend/css/color-palette.css}" />
+  <style>
+    .carrito-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .carrito-header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .carrito-header h1 {
+      background: var(--gradient-primary);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-size: 2.5em;
+      margin-bottom: 10px;
+    }
+
+    .carrito-content {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 30px;
+      margin-top: 20px;
+    }
+
+    .productos-carrito {
+      background: var(--janna-light);
+      border-radius: 15px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      padding: 20px;
+    }
+
+    .producto-item {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 15px 0;
+      border-bottom: 1px solid #eee;
+    }
+
+    .producto-item:last-child {
+      border-bottom: none;
+    }
+
+    .producto-imagen {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 10px;
+    }
+
+    .producto-info {
+      flex: 1;
+    }
+
+    .producto-nombre {
+      font-weight: bold;
+      margin-bottom: 5px;
+    }
+
+    .producto-precio {
+      color: var(--bondi-blue);
+      font-weight: bold;
+    }
+
+    .cantidad-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .cantidad-btn {
+      background: var(--gradient-primary);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      cursor: pointer;
+    }
+
+    .cantidad-input {
+      width: 50px;
+      text-align: center;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      padding: 5px;
+    }
+
+    .eliminar-btn {
+      background: var(--danger);
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 8px 12px;
+      cursor: pointer;
+    }
+
+    .resumen-carrito {
+      background: var(--janna-light);
+      border-radius: 15px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      padding: 20px;
+      height: fit-content;
+    }
+
+    .resumen-total {
+      font-size: 1.5em;
+      font-weight: bold;
+      color: var(--bondi-blue);
+      margin-bottom: 20px;
+    }
+
+    .btn-proceder {
+      background: var(--gradient-primary);
+      color: white;
+      border: none;
+      border-radius: 25px;
+      padding: 15px 30px;
+      font-size: 1.1em;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    .btn-vaciar {
+      background: var(--danger);
+      color: white;
+      border: none;
+      border-radius: 25px;
+      padding: 10px 20px;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    .carrito-vacio {
+      text-align: center;
+      padding: 60px 20px;
+      color: #666;
+    }
+
+    .carrito-vacio h2 {
+      color: #999;
+      margin-bottom: 20px;
+    }
+
+    .carrito-vacio a {
+      display: inline-block;
+      background: var(--gradient-primary);
+      color: white;
+      padding: 12px 24px;
+      text-decoration: none;
+      border-radius: 25px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <a th:href="@{/}" class="logo">
+      <img th:src="@{/frontend/imagenes/logo technova.png}" alt="Logo" />
+      <span>TECHNOVA</span>
+    </a>
+
+    <div class="acciones-usuario" th:if="${usuario == null}">
+      <a th:href="@{/login}" class="account">
+        <span>Iniciar Sesión</span>
+      </a>
+      <a th:href="@{/registro}" class="account">
+        <span>Crear Cuenta</span>
+      </a>
+    </div>
+    <div class="acciones-usuario" th:if="${usuario != null}">
+      <a th:href="@{/cliente/perfil}" class="account">
+        <span>Perfil</span>
+      </a>
+      <a th:href="@{/favoritos}" class="account">
+        <span>Favoritos</span>
+      </a>
+      <a th:href="@{/carrito}" class="account">
+        <span>Carrito</span>
+      </a>
+      <form method="POST" th:action="@{/logout}" style="display:inline;">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        <button type="submit" style="background:none;border:none;color:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:5px;" class="account">
+          <span>Cerrar Sesión</span>
+        </button>
+      </form>
+    </div>
+  </header>
+
+  <div class="dashboard-wrapper" th:if="${usuario != null}">
+    <div th:replace="~{frontend/layouts/sidebar-cliente :: sidebar}"></div>
+    <main class="main-content">
+      <div class="carrito-container">
+        <div class="carrito-header">
+          <h1>🛒 Mi Carrito de Compras</h1>
+          <p>Revisa tus productos antes de proceder al pago</p>
+        </div>
+
+    <div th:if="${productos != null && !productos.isEmpty()}">
+      <div class="carrito-content">
+        <div class="productos-carrito">
+          <h3>Productos en tu carrito</h3>
+          <div class="producto-item" th:each="detalle : ${productos}">
+            <img th:src="${detalle.producto != null && detalle.producto.imagen != null && !detalle.producto.imagen.isEmpty() ? (detalle.producto.imagen.startsWith('http') ? detalle.producto.imagen : '/frontend/imagenes/' + detalle.producto.imagen) : '/frontend/imagenes/foto perfil.webp'}"
+                 th:alt="${detalle.producto != null ? detalle.producto.nombre : 'Producto'}" class="producto-imagen">
+            
+            <div class="producto-info">
+              <div class="producto-nombre" th:text="${detalle.producto != null ? detalle.producto.nombre : 'Producto'}">Producto</div>
+              <div class="producto-precio" th:if="${detalle.producto != null && detalle.producto.caracteristica != null && detalle.producto.caracteristica.precioVenta != null}">
+                $<span th:text="${detalle.producto.caracteristica.precioVenta}">0</span>
+              </div>
+            </div>
+            
+            <div class="cantidad-controls">
+              <button class="cantidad-btn" th:onclick="'actualizarCantidad(' + ${detalle.id} + ', -1)'">-</button>
+              <input type="number" class="cantidad-input" th:value="${detalle.cantidad != null ? detalle.cantidad : 1}" min="1" th:onchange="'actualizarCantidad(' + ${detalle.id} + ', this.value)'">
+              <button class="cantidad-btn" th:onclick="'actualizarCantidad(' + ${detalle.id} + ', 1)'">+</button>
+            </div>
+            
+            <button class="eliminar-btn" th:onclick="'eliminarProducto(' + ${detalle.id} + ')'">
+              <i class='bx bx-trash'></i>
+            </button>
+          </div>
+        </div>
+        
+        <div class="resumen-carrito">
+          <h3>Resumen del pedido</h3>
+          <div class="resumen-total" th:if="${total != null}">
+            Total: $<span th:text="${total}">0</span>
+          </div>
+          
+          <button class="btn-proceder" onclick="procederPago()">
+            Proceder al Pago
+          </button>
+          
+          <button class="btn-vaciar" onclick="vaciarCarrito()">
+            Vaciar Carrito
+          </button>
+        </div>
+      </div>
+    </div>
+
+        <div th:if="${productos == null || productos.isEmpty()}" class="carrito-vacio">
+          <h2>Tu carrito está vacío</h2>
+          <p>Agrega algunos productos para comenzar tu compra</p>
+          <a th:href="@{/}">Continuar Comprando</a>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <nav class="menu-principal" th:if="${usuario == null}">
+    <ul>
+      <li><a th:href="@{/}">Inicio</a></li>
+      <li class="submenu">
+        <a href="#">Categorías ▾</a>
+        <ul class="submenu-lista">
+          <li><a th:href="@{/categoria/celulares}">📱 Celulares</a></li>
+          <li><a th:href="@{/categoria/portatiles}">💻 Portátiles</a></li>
+        </ul>
+      </li>
+      <li class="submenu">
+        <a href="#">Marcas ▾</a>
+        <ul class="submenu-lista">
+          <li><a th:href="@{/marca/apple}">🍎 Apple</a></li>
+          <li><a th:href="@{/marca/samsung}">📱 Samsung</a></li>
+          <li><a th:href="@{/marca/motorola}">📞 Motorola</a></li>
+          <li><a th:href="@{/marca/xiaomi}">🧡 Xiaomi</a></li>
+          <li><a th:href="@{/marca/oppo}">📲 OPPO</a></li>
+          <li><a th:href="@{/marca/lenovo}">💻 Lenovo</a></li>
+        </ul>
+      </li>
+    </ul>
+  </nav>
+
+  <div class="carrito-container" th:if="${usuario == null}">
+    <div class="carrito-vacio">
+      <h2>Debes iniciar sesión para ver tu carrito</h2>
+      <p>Inicia sesión o crea una cuenta para agregar productos a tu carrito</p>
+      <a th:href="@{/login}">Iniciar Sesión</a>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2025 TECHNOVA. Todos los derechos reservados.</p>
+  </footer>
+
+  <script th:inline="javascript">
+    /*<![CDATA[*/
+    const usuarioId = /*[[${usuario != null ? usuario.id : null}]]*/ null;
+    
+    function actualizarCantidad(detalleId, cantidad) {
+      if (!usuarioId) {
+        window.location.href = '/login';
+        return;
+      }
+      
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/api/carrito/' + usuarioId + '/actualizar';
+      
+      const csrfToken = document.querySelector('input[name="_csrf"]');
+      if (csrfToken) {
+        const csrfInput = document.createElement('input');
+        csrfInput.type = 'hidden';
+        csrfInput.name = csrfToken.name;
+        csrfInput.value = csrfToken.value;
+        form.appendChild(csrfInput);
+      }
+      
+      const detalleInput = document.createElement('input');
+      detalleInput.type = 'hidden';
+      detalleInput.name = 'detalleId';
+      detalleInput.value = detalleId;
+      form.appendChild(detalleInput);
+      
+      const cantidadInput = document.createElement('input');
+      cantidadInput.type = 'hidden';
+      cantidadInput.name = 'cantidad';
+      cantidadInput.value = cantidad;
+      form.appendChild(cantidadInput);
+      
+      document.body.appendChild(form);
+      form.submit();
+    }
+
+    function eliminarProducto(detalleId) {
+      if (!usuarioId) {
+        window.location.href = '/login';
+        return;
+      }
+      
+      if (confirm('¿Estás seguro de que deseas eliminar este producto del carrito?')) {
+        window.location.href = '/api/carrito/' + usuarioId + '/eliminar/' + detalleId;
+      }
+    }
+
+    function vaciarCarrito() {
+      if (confirm('¿Estás seguro de que deseas vaciar el carrito?')) {
+        window.location.href = '/carrito';
+      }
+    }
+
+    function procederPago() {
+      window.location.href = '/checkout/informacion';
+    }
+    /*]]>*/
+  </script>
+</body>
+</html>
+

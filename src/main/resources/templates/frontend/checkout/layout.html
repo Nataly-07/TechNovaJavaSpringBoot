@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Technova | Checkout</title>
+  <link rel="stylesheet" th:href="@{/frontend/css/stilotech.css}">
+  <link rel="stylesheet" th:href="@{/frontend/css/color-palette.css}">
+  <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--gradient-primary);
+      padding: 10px 20px;
+      border-radius: 0 0 30px 30px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 24px;
+      font-weight: bold;
+      color: black;
+      text-decoration: none;
+    }
+
+    .logo img {
+      height: 50px;
+    }
+
+    .acciones-usuario {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .account, .cart {
+      display: flex;
+      align-items: center;
+      background: var(--gradient-secondary);
+      padding: 5px 15px;
+      border-radius: 50px;
+      color: white;
+      font-weight: bold;
+      gap: 10px;
+      text-decoration: none;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 20px auto;
+      border: 2px solid var(--bondi-blue);
+      border-radius: 15px;
+      background: var(--janna-light);
+      padding-bottom: 10px;
+    }
+
+    .steps {
+      display: flex;
+      justify-content: space-around;
+      padding: 10px;
+      background: #f5f5f5;
+      border-radius: 15px 15px 0 0;
+    }
+
+    .step {
+      padding: 8px 12px;
+      color: #666;
+    }
+
+    .step.active {
+      background: var(--gradient-primary);
+      color: white;
+      border-radius: 10px;
+    }
+
+    .content {
+      display: flex;
+      justify-content: space-between;
+      padding: 20px;
+      gap: 20px;
+    }
+
+    .form-section {
+      flex: 1;
+      background: white;
+      border-radius: 15px;
+      padding: 15px;
+      border: 2px solid var(--bondi-blue);
+    }
+
+    .section-title {
+      background: var(--gradient-primary);
+      color: white;
+      padding: 8px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .form-group.full {
+      flex-direction: column;
+    }
+
+    .form-group input,
+    .form-group select {
+      flex: 1;
+      padding: 12px 16px;
+      border: 2px solid var(--sinbad);
+      border-radius: 12px;
+      font-size: 14px;
+    }
+
+    .cart-section {
+      flex: 1;
+      background: var(--sinbad-light);
+      border-radius: 15px;
+      padding: 15px;
+    }
+
+    .cart-title {
+      background: var(--gradient-primary);
+      color: white;
+      padding: 8px;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      text-align: center;
+    }
+
+    .cart-product {
+      display: flex;
+      margin-top: 10px;
+      background: white;
+      border-radius: 10px;
+      padding: 10px;
+      align-items: center;
+    }
+
+    .cart-product img {
+      width: 80px;
+      height: auto;
+      margin-right: 10px;
+      border-radius: 10px;
+    }
+
+    .footer-msg {
+      background: var(--gradient-primary);
+      color: white;
+      text-align: center;
+      padding: 10px;
+      border-radius: 0 0 15px 15px;
+      font-weight: bold;
+    }
+
+    .info-box {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+    }
+
+    .info-box h3 {
+      margin-top: 0;
+      color: var(--bondi-blue);
+    }
+
+    button.account {
+      background: var(--gradient-primary);
+      color: white;
+      padding: 12px 24px;
+      border: none;
+      border-radius: 12px;
+      width: 100%;
+      cursor: pointer;
+      font-size: 16px;
+      font-weight: 600;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <a th:href="@{/}" class="logo">
+      <img th:src="@{/frontend/imagenes/logo technova.png}" alt="Logo">
+      <span>TECHNOVA</span>
+    </a>
+
+    <div class="acciones-usuario">
+      <a th:href="@{/login}" class="account"><i class='bx bx-user-circle'></i> <span>Perfil</span></a>
+      <a th:href="@{/login}" class="account"><i class='bx bx-log-out'></i> <span>Cerrar Sesión</span></a>
+      <a th:href="@{/carrito}" class="cart"><i class='bx bx-cart'></i> <span>Carrito</span></a>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="steps">
+      <div class="step" th:classappend="${step == 'informacion'} ? 'active' : ''">Informacion</div>
+      <div class="step" th:classappend="${step == 'direccion'} ? 'active' : ''">Direccion</div>
+      <div class="step" th:classappend="${step == 'envio'} ? 'active' : ''">Metodo de envio</div>
+      <div class="step" th:classappend="${step == 'pago'} ? 'active' : ''">Forma de pago</div>
+      <div class="step" th:classappend="${step == 'revision'} ? 'active' : ''">Revision</div>
+    </div>
+
+    <div class="content">
+      <div class="form-section" th:if="${step != null}">
+        <th:block th:switch="${step}">
+          <div th:case="'informacion'" th:replace="~{frontend/checkout/informacion :: content}"></div>
+          <div th:case="'direccion'" th:replace="~{frontend/checkout/direccion :: content}"></div>
+          <div th:case="'envio'" th:replace="~{frontend/checkout/envio :: content}"></div>
+          <div th:case="'pago'" th:replace="~{frontend/checkout/pago :: content}"></div>
+          <div th:case="'revision'" th:replace="~{frontend/checkout/revision :: content}"></div>
+        </th:block>
+      </div>
+
+      <div class="cart-section">
+        <h2 class="cart-title">Mi Carrito</h2>
+        <div class="cart-products">
+          <th:block th:if="${productos != null && !productos.isEmpty()}">
+            <div class="cart-product" th:each="detalle : ${productos}">
+              <img th:src="${detalle.producto != null && detalle.producto.imagen != null && !detalle.producto.imagen.isEmpty() ? (detalle.producto.imagen.startsWith('http') ? detalle.producto.imagen : '/frontend/imagenes/' + detalle.producto.imagen) : '/frontend/imagenes/foto perfil.webp'}"
+                   th:alt="${detalle.producto != null ? detalle.producto.nombre : 'Producto'}" />
+              <div class="product-details">
+                <p><strong th:text="${detalle.producto != null ? detalle.producto.nombre : 'Producto'}">Producto</strong></p>
+                <p>Cantidad: <span th:text="${detalle.cantidad != null ? detalle.cantidad : 1}">1</span></p>
+                <th:block th:if="${detalle.producto != null && detalle.producto.caracteristica != null && detalle.producto.caracteristica.precioVenta != null}">
+                  <p style="text-decoration: line-through; color: #999; font-size: 0.9rem; margin: 4px 0;">
+                    Antes: $<span th:text="${#numbers.formatDecimal(detalle.producto.caracteristica.precioVenta.doubleValue() * 1.05, 0, 'COMMA', '.')}">0</span>
+                  </p>
+                  <p style="color: #27ae60; font-weight: bold; font-size: 1rem; margin: 4px 0;">
+                    Valor: $<span th:text="${#numbers.formatDecimal(detalle.producto.caracteristica.precioVenta, 0, 'COMMA', '.')}">0</span>
+                    <span style="background-color: #cce5cc; color: #006600; padding: 2px 6px; border-radius: 6px; font-size: 0.8rem; margin-left: 6px;">-5%</span>
+                  </p>
+                </th:block>
+              </div>
+            </div>
+          </th:block>
+          <p th:if="${productos == null || productos.isEmpty()}">No hay productos en el carrito</p>
+        </div>
+        <div class="cart-summary">
+          <p><strong>Total:</strong> $<span th:text="${#numbers.formatDecimal(total != null ? total : 0, 0, 'COMMA', '.')}">0</span></p>
+        </div>
+        
+        <div style="background: linear-gradient(135deg, #e3f2fd 0%, #f3e5f5 100%); border: 2px solid #00d4ff; border-radius: 10px; padding: 15px; margin-top: 15px; text-align: center;">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-bottom: 8px;">
+            <i class='bx bx-info-circle' style="color: #00d4ff; font-size: 20px;"></i>
+            <strong style="color: #333; font-size: 14px;">Información Importante</strong>
+          </div>
+          <p style="color: #555; font-size: 13px; margin: 0; line-height: 1.4;">
+            Completa todos los datos requeridos en cada paso para continuar con tu compra de forma segura.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-msg">
+      ¡ No te preocupes ! Tu compra es 100% segura
+    </div>
+  </div>
+</body>
+</html>

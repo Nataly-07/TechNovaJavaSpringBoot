@@ -1,0 +1,51 @@
+<div th:fragment="content" xmlns:th="http://www.thymeleaf.org">
+  <h2 class="section-title">Forma de pago</h2>
+  <th:block th:if="${session.error != null}">
+    <div class="info-box" style="background:#ffecec;color:#b00020;margin-bottom:10px;" th:text="${session.error}">Error</div>
+  </th:block>
+  <form method="POST" th:action="@{/checkout/pago}">
+    <div class="form-group full">
+      <label>Método de pago</label>
+      <select name="metodoPago" id="metodo_pago" required>
+        <option th:each="metodo : ${metodosDisponibles}" th:value="${metodo.value}" th:text="${metodo.label}">Método</option>
+      </select>
+    </div>
+    <div class="form-group full" id="tarjeta_campos" style="display:none; flex-wrap: wrap; gap: 10px;">
+      <input type="text" name="datosPago[numero]" placeholder="Número de tarjeta" />
+      <input type="text" name="datosPago[nombre]" placeholder="Nombre" />
+      <input type="text" name="datosPago[apellido]" placeholder="Apellido" />
+      <input type="text" name="datosPago[expMes]" placeholder="MM" style="max-width:80px;" />
+      <input type="text" name="datosPago[expAnio]" placeholder="AAAA" style="max-width:100px;" />
+      <input type="text" name="datosPago[cvc]" placeholder="CVC/CVV" style="max-width:120px;" />
+      <input type="email" name="datosPago[email]" placeholder="Correo" />
+      <input type="text" name="datosPago[telefono]" placeholder="Telefono" />
+      <select name="datosPago[cuotas]">
+        <option value="1">1 cuota</option>
+        <option value="3">3 cuotas</option>
+        <option value="6">6 cuotas</option>
+        <option value="12">12 cuotas</option>
+      </select>
+    </div>
+    <button type="submit" class="account">Continuar</button>
+  </form>
+  <script>
+    document.addEventListener('DOMContentLoaded', function(){
+      var selector = document.getElementById('metodo_pago');
+      var tarjetaCampos = document.getElementById('tarjeta_campos');
+      
+      function toggle(){
+        var v = selector.value;
+        var usingCard = (v === 'tarjeta_credito' || v === 'tarjeta_debito');
+        
+        if(usingCard){
+          tarjetaCampos.style.display = 'flex';
+        } else {
+          tarjetaCampos.style.display = 'none';
+        }
+      }
+      
+      selector.addEventListener('change', toggle);
+      toggle();
+    });
+  </script>
+</div>

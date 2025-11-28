@@ -1,0 +1,40 @@
+<div th:fragment="content" xmlns:th="http://www.thymeleaf.org">
+  <h2 class="section-title">Revisión</h2>
+  <th:block th:if="${session.error != null}">
+    <div class="info-box" style="background:#ffecec;color:#b00020;margin-bottom:10px;" th:text="${session.error}">Error</div>
+  </th:block>
+  
+  <div class="info-box">
+    <h3>Datos personales</h3>
+    <div th:text="${usuario != null ? usuario.firstName + ' ' + usuario.lastName : 'N/A'}">Nombre</div>
+    <div th:text="${usuario != null ? usuario.email + ' | ' + usuario.phone : 'N/A'}">Email | Teléfono</div>
+    <div th:text="${usuario != null ? usuario.documentType + ': ' + usuario.documentNumber : 'N/A'}">Documento</div>
+  </div>
+  
+  <th:block th:if="${direccion != null}">
+    <div class="info-box">
+      <h3>Dirección</h3>
+      <div th:text="${direccion.direccion} + ' - ' + ${direccion.barrio}">Dirección</div>
+      <div th:text="${direccion.ciudad} + ' (' + ${direccion.departamento} + ')'">Ciudad (Departamento)</div>
+    </div>
+  </th:block>
+  
+  <th:block th:if="${envio != null}">
+    <div class="info-box">
+      <h3>Envío</h3>
+      <div th:text="'Transportadora: ' + ${envio.transportadora}">Transportadora</div>
+      <div th:text="'Fecha: ' + ${envio.fechaEnvio}">Fecha</div>
+    </div>
+  </th:block>
+  
+  <th:block th:if="${pago != null}">
+    <div class="info-box">
+      <h3>Pago</h3>
+      <div th:text="'Método: ' + ${pagoResumen != null ? pagoResumen : pago.metodoPago}">Método de pago</div>
+    </div>
+  </th:block>
+
+  <form method="POST" th:action="@{/checkout/finalizar}">
+    <button type="submit" class="account">Finalizar compra</button>
+  </form>
+</div>

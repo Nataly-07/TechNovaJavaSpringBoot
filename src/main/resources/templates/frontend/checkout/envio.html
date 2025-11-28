@@ -1,0 +1,21 @@
+<div th:fragment="content" xmlns:th="http://www.thymeleaf.org">
+  <h2 class="section-title">Método de envío</h2>
+  <th:block th:if="${direccion != null}">
+    <div class="info-box" style="margin-bottom:15px;">
+      <strong>Enviar a:</strong>
+      <div th:text="${direccion.direccion} + ', ' + ${direccion.barrio}">Dirección</div>
+      <div th:text="${direccion.ciudad} + ' - ' + ${direccion.departamento}">Ciudad - Departamento</div>
+    </div>
+  </th:block>
+  <form method="POST" th:action="@{/checkout/envio}">
+    <div class="form-group">
+      <select name="transportadora" required>
+        <option value="Servientrega">Servientrega</option>
+        <option value="Coordinadora">Coordinadora</option>
+        <option value="Interrapidisimo">Interrapidísimo</option>
+      </select>
+      <input type="date" name="fechaEnvio" th:value="${fechaEnvio}" required />
+    </div>
+    <button type="submit" class="account">Continuar</button>
+  </form>
+</div>

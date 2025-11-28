@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${producto.nombre} + ' - Technova'">Producto - Technova</title>
+    <link rel="stylesheet" th:href="@{/frontend/css/stilotech.css}">
+    <link rel="stylesheet" th:href="@{/frontend/css/producto.css}">
+    <link rel="stylesheet" th:href="@{/frontend/css/color-palette.css}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/boxicons/2.1.0/css/boxicons.min.css" rel="stylesheet">
+    <style>
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%);
+            padding: 12px 20px;
+            border-radius: 25px;
+            margin: 20px 0;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .breadcrumb a {
+            color: #2c3e50;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(240, 248, 255, 0.8) 100%);
+            border: 1px solid rgba(52, 152, 219, 0.3);
+            font-weight: 600;
+        }
+
+        .breadcrumb a:hover {
+            color: white;
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            transform: translateY(-2px);
+        }
+
+        .breadcrumb span {
+            color: white;
+            font-weight: 700;
+            padding: 8px 16px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        }
+
+        .producto-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 25px;
+            align-items: start;
+        }
+
+        .producto-imagen {
+            text-align: center;
+        }
+
+        .producto-imagen img {
+            max-width: 90%;
+            height: auto;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .producto-info h1 {
+            font-size: 2rem;
+            color: #333;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .producto-marca {
+            display: inline-block;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .precio-actual {
+            font-size: 2rem;
+            color: #27ae60;
+            font-weight: 700;
+        }
+
+        .stock-disponible {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .stock-disponible.alto {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .stock-disponible.medio {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .stock-disponible.bajo {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .stock-disponible.agotado {
+            background: #f5c6cb;
+            color: #721c24;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        @media (max-width: 768px) {
+            .producto-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <a th:href="@{/}" class="logo">
+            <img th:src="@{/frontend/imagenes/logo technova.png}" alt="Logo" style="cursor:pointer;">
+            <span>TECHNOVA</span>
+        </a>
+
+        <div class="acciones-usuario">
+            <a th:href="@{/login}" class="account">
+                <span>Iniciar Sesión</span>
+            </a>
+            <a th:href="@{/registro}" class="account">
+                <span>Crear Cuenta</span>
+            </a>
+        </div>
+    </header>
+
+    <nav class="menu-principal">
+        <ul>
+            <li><a th:href="@{/}">Inicio</a></li>
+            <li class="submenu">
+                <a href="#">Categorías ▾</a>
+                <ul class="submenu-lista">
+                    <li><a th:href="@{/categoria/celulares}">📱 Celulares</a></li>
+                    <li><a th:href="@{/categoria/portatiles}">💻 Portátiles</a></li>
+                </ul>
+            </li>
+            <li class="submenu">
+                <a href="#">Marcas ▾</a>
+                <ul class="submenu-lista">
+                    <li><a th:href="@{/marca/apple}">🍎 Apple</a></li>
+                    <li><a th:href="@{/marca/samsung}">📱 Samsung</a></li>
+                    <li><a th:href="@{/marca/motorola}">📞 Motorola</a></li>
+                    <li><a th:href="@{/marca/xiaomi}">🧡 Xiaomi</a></li>
+                    <li><a th:href="@{/marca/oppo}">📲 OPPO</a></li>
+                    <li><a th:href="@{/marca/lenovo}">💻 Lenovo</a></li>
+                </ul>
+            </li>
+        </ul>
+    </nav>
+
+    <div class="container" th:if="${producto != null}">
+        <div class="breadcrumb">
+            <a th:href="@{/}">Inicio</a>
+            <i class='bx bx-chevron-right'></i>
+            <a th:href="@{/categoria/{cat}(cat=${producto.caracteristica.categoria != null ? #strings.toLowerCase(producto.caracteristica.categoria) : 'productos'})}" 
+               th:text="${producto.caracteristica.categoria != null ? producto.caracteristica.categoria : 'Productos'}">Productos</a>
+            <i class='bx bx-chevron-right'></i>
+            <span th:text="${producto.nombre}">Producto</span>
+        </div>
+
+        <div class="producto-container">
+            <div class="producto-imagen">
+                <img th:src="${producto.imagen != null && !producto.imagen.isEmpty() ? (producto.imagen.startsWith('http') ? producto.imagen : '/frontend/imagenes/' + producto.imagen) : '/frontend/imagenes/foto perfil.webp'}"
+                     th:alt="${producto.nombre}">
+            </div>
+
+            <div class="producto-info">
+                <h1 th:text="${producto.nombre}">Producto</h1>
+                
+                <div class="producto-marca" th:text="${producto.caracteristica != null && producto.caracteristica.marca != null ? producto.caracteristica.marca : 'Sin marca'}">Marca</div>
+                <span class="producto-categoria" th:text="${producto.caracteristica != null && producto.caracteristica.categoria != null ? producto.caracteristica.categoria : 'Sin categoría'}">Categoría</span>
+
+                <div class="rating">
+                    <div class="stars">★★★★★</div>
+                    <span class="rating-text">4.8 (127 reseñas)</span>
+                </div>
+
+                <div class="precio-container">
+                    <div class="precio-actual" th:if="${producto.caracteristica != null && producto.caracteristica.precioVenta != null}">
+                        $<span th:text="${#numbers.formatDecimal(producto.caracteristica.precioVenta, 0, 'COMMA', '.')}">0</span>
+                    </div>
+                </div>
+
+                <div class="stock-info">
+                    <th:block th:with="stock=${producto.stock != null ? producto.stock : 0}">
+                        <div th:if="${stock > 20}" class="stock-disponible alto">
+                            <i class='bx bx-check-circle'></i>
+                            <span>En stock (<span th:text="${stock}">0</span> unidades)</span>
+                        </div>
+                        <div th:if="${stock > 10 && stock <= 20}" class="stock-disponible medio">
+                            <i class='bx bx-time-five'></i>
+                            <span>Stock limitado (<span th:text="${stock}">0</span> unidades)</span>
+                        </div>
+                        <div th:if="${stock > 0 && stock <= 10}" class="stock-disponible bajo">
+                            <i class='bx bx-error-circle'></i>
+                            <span>Pocas unidades (<span th:text="${stock}">0</span> disponibles)</span>
+                        </div>
+                        <div th:if="${stock == 0}" class="stock-disponible agotado">
+                            <i class='bx bx-x-circle'></i>
+                            <span>Agotado</span>
+                        </div>
+                    </th:block>
+                </div>
+
+                <div class="caracteristicas">
+                    <h3>Características</h3>
+                    <div class="caracteristica-item">
+                        <span>Marca:</span>
+                        <span th:text="${producto.caracteristica != null && producto.caracteristica.marca != null ? producto.caracteristica.marca : 'No especificada'}">Marca</span>
+                    </div>
+                    <div class="caracteristica-item">
+                        <span>Categoría:</span>
+                        <span th:text="${producto.caracteristica != null && producto.caracteristica.categoria != null ? producto.caracteristica.categoria : 'No especificada'}">Categoría</span>
+                    </div>
+                </div>
+
+                <div class="acciones">
+                    <th:block th:with="stock=${producto.stock != null ? producto.stock : 0}">
+                        <button th:if="${stock > 0}" class="btn btn-primary" onclick="agregarAlCarrito([[${producto.id}]])">
+                            <i class='bx bx-cart-add'></i> Agregar al Carrito
+                        </button>
+                        <button th:if="${stock == 0}" class="btn btn-primary" disabled>
+                            <i class='bx bx-x'></i> Producto Agotado
+                        </button>
+                    </th:block>
+                    <a th:href="@{/login}" class="btn btn-primary">Iniciar Sesión para Comprar</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2025 TECHNOVA. Todos los derechos reservados.</p>
+    </footer>
+
+    <script>
+        function agregarAlCarrito(productoId) {
+            window.location.href = '/login';
+        }
+    </script>
+</body>
+</html>
+

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <title>Vista Previa - Reporte de Usuarios</title>
+    <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" th:href="@{/frontend/css/stilotech.css}">
+    <style>
+        body {
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-weight: 600;
+        }
+        tr:hover {
+            background: #f5f5f5;
+        }
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+        .btn:hover {
+            background: #764ba2;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>👥 Vista Previa - Reporte de Usuarios</h1>
+        
+        <p th:if="${rol != null}">Filtro: Rol = <strong th:text="${rol}"></strong></p>
+        <p th:if="${busqueda != null}">Filtro: Búsqueda = <strong th:text="${busqueda}"></strong></p>
+        
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Email</th>
+                    <th>Rol</th>
+                    <th>Tipo Documento</th>
+                    <th>Número Documento</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="usuario : ${usuarios}">
+                    <td th:text="${usuario.id}"></td>
+                    <td th:text="${usuario.name}"></td>
+                    <td th:text="${usuario.email}"></td>
+                    <td th:text="${usuario.role}"></td>
+                    <td th:text="${usuario.documentType ?: 'N/A'}"></td>
+                    <td th:text="${usuario.documentNumber ?: 'N/A'}"></td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <p th:if="${usuarios == null || usuarios.isEmpty()}">No se encontraron usuarios con los filtros seleccionados.</p>
+        <p><strong>Total de registros:</strong> <span th:text="${usuarios != null ? usuarios.size() : 0}"></span></p>
+        
+        <a th:href="@{/admin/reportes}" class="btn">Volver a Reportes</a>
+    </div>
+</body>
+</html>

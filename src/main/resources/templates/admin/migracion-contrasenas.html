@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Migración de Contraseñas - TechNova</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 30px;
+            color: #856404;
+        }
+        
+        .warning-box strong {
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+        }
+        
+        input[type="email"] {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        input[type="email"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+        }
+        
+        .divider {
+            text-align: center;
+            margin: 30px 0;
+            color: #999;
+            position: relative;
+        }
+        
+        .divider::before,
+        .divider::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 40%;
+            height: 1px;
+            background: #ddd;
+        }
+        
+        .divider::before {
+            left: 0;
+        }
+        
+        .divider::after {
+            right: 0;
+        }
+        
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .back-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Migración de Contraseñas</h1>
+        <p class="subtitle">Codificar contraseñas de texto plano a BCrypt</p>
+        
+        <div class="warning-box">
+            <strong>⚠️ IMPORTANTE:</strong>
+            <p>Este proceso migrará todas las contraseñas de texto plano a BCrypt. 
+            Asegúrate de hacer una copia de seguridad de la base de datos antes de continuar.</p>
+        </div>
+        
+        <!-- Mensajes de éxito/error -->
+        <div th:if="${mensaje}" 
+             th:classappend="${tipoMensaje == 'success' ? 'alert-success' : (tipoMensaje == 'error' ? 'alert-error' : 'alert-warning')}"
+             class="alert">
+            <span th:text="${mensaje}"></span>
+        </div>
+        
+        <!-- Migrar todas las contraseñas -->
+        <form th:action="@{/admin/migrar-contrasenas/todas}" method="POST">
+            <div class="form-group">
+                <h3 style="margin-bottom: 15px; color: #333;">Migrar Todas las Contraseñas</h3>
+                <p style="color: #666; margin-bottom: 15px; font-size: 14px;">
+                    Esto migrará todas las contraseñas de todos los usuarios de una vez.
+                </p>
+                <button type="submit" class="btn btn-danger">
+                    Migrar Todas las Contraseñas
+                </button>
+            </div>
+        </form>
+        
+        <div class="divider">O</div>
+        
+        <!-- Migrar una contraseña específica -->
+        <form th:action="@{/admin/migrar-contrasenas/por-email}" method="POST">
+            <div class="form-group">
+                <h3 style="margin-bottom: 15px; color: #333;">Migrar Contraseña Específica</h3>
+                <label for="email">Email del usuario:</label>
+                <input type="email" id="email" name="email" required 
+                       placeholder="usuario@ejemplo.com">
+                <button type="submit" class="btn btn-primary" style="margin-top: 10px;">
+                    Migrar Contraseña
+                </button>
+            </div>
+        </form>
+        
+        <a th:href="@{/admin/perfil}" class="back-link">← Volver al perfil</a>
+    </div>
+</body>
+</html>
+
+
+
+

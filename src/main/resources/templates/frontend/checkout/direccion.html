@@ -1,0 +1,17 @@
+<div th:fragment="content" xmlns:th="http://www.thymeleaf.org">
+  <h2 class="section-title">Direccion de envío</h2>
+  <form method="POST" th:action="@{/checkout/direccion}">
+    <div class="form-group">
+      <input type="text" name="departamento" th:value="${direccion != null ? direccion.departamento : ''}" placeholder="Departamento" required />
+      <input type="text" name="ciudad" th:value="${direccion != null ? direccion.ciudad : ''}" placeholder="Ciudad" required />
+    </div>
+    <div class="form-group full">
+      <input type="text" name="direccion" th:value="${direccion != null ? direccion.direccion : ''}" placeholder="Direccion" required />
+    </div>
+    <div class="form-group">
+      <input type="text" name="localidad" th:value="${direccion != null ? direccion.localidad : ''}" placeholder="Localidad" />
+      <input type="text" name="barrio" th:value="${direccion != null ? direccion.barrio : ''}" placeholder="Barrio" />
+    </div>
+    <button type="submit" class="account">Continuar</button>
+  </form>
+</div>

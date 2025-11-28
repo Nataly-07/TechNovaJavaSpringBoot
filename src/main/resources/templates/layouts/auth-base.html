@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org" th:fragment="layout(pageTitle, bodyFragment)">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${pageTitle} ?: 'Technova - Accesos'">Technova - Accesos</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/frontend/css/auth.css}">
+</head>
+<body>
+<div class="d-flex auth-wrapper" id="wrapper">
+    <nav id="sidebar-wrapper" class="bg-dark border-end">
+        <div class="sidebar-heading text-center py-4 text-white fs-4 fw-bold">
+            <i class="bi bi-lightning-charge-fill me-2"></i>Technova
+        </div>
+        <div class="list-group list-group-flush">
+            <a th:href="@{/}" class="list-group-item list-group-item-action bg-dark text-white">
+                <i class="bi bi-house-door-fill me-2"></i>Inicio
+            </a>
+            <a th:href="@{/login}" class="list-group-item list-group-item-action bg-dark text-white">
+                <i class="bi bi-box-arrow-in-right me-2"></i>Iniciar sesión
+            </a>
+            <a th:href="@{/registro}" class="list-group-item list-group-item-action bg-dark text-white">
+                <i class="bi bi-person-plus-fill me-2"></i>Crear cuenta
+            </a>
+           
+        </div>
+    </nav>
+
+    <div id="page-content-wrapper" class="w-100">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light border-bottom">
+            <div class="container-fluid">
+                <button class="btn btn-primary" id="menu-toggle" type="button">
+                    <i class="bi bi-list"></i>
+                </button>
+                <span class="navbar-text ms-3 text-muted text-uppercase fw-semibold" th:text="${pageTitle} ?: 'Acceso'">
+                    Acceso
+                </span>
+            </div>
+        </nav>
+
+        <div class="container-fluid mt-4">
+            <div th:insert="${bodyFragment}"></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    const toggleButton = document.getElementById('menu-toggle');
+    if (toggleButton) {
+        toggleButton.addEventListener('click', function (e) {
+            e.preventDefault();
+            document.getElementById('wrapper').classList.toggle('toggled');
+        });
+    }
+</script>
+</body>
+</html>
+
+

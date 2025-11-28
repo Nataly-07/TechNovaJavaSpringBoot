@@ -1,0 +1,22 @@
+<div th:fragment="content" xmlns:th="http://www.thymeleaf.org">
+  <h2 class="section-title">Información personal</h2>
+  <form method="POST" th:action="@{/checkout/informacion}">
+    <div class="form-group">
+      <input type="text" name="firstName" th:value="${usuario != null ? usuario.firstName : ''}" placeholder="Nombres" required />
+      <input type="text" name="lastName" th:value="${usuario != null ? usuario.lastName : ''}" placeholder="Apellidos" required />
+    </div>
+    <div class="form-group">
+      <input type="email" name="email" th:value="${usuario != null ? usuario.email : ''}" placeholder="Correo" required />
+      <input type="text" name="phone" th:value="${usuario != null ? usuario.phone : ''}" placeholder="Telefono" required />
+    </div>
+    <div class="form-group">
+      <select name="documentType" required>
+        <option value="CC" th:selected="${usuario != null && usuario.documentType == 'CC'}">CC</option>
+        <option value="CE" th:selected="${usuario != null && usuario.documentType == 'CE'}">CE</option>
+        <option value="PAS" th:selected="${usuario != null && usuario.documentType == 'PAS'}">Pasaporte</option>
+      </select>
+      <input type="text" name="documentNumber" th:value="${usuario != null ? usuario.documentNumber : ''}" placeholder="Numero de identidad" required />
+    </div>
+    <button type="submit" class="account">Continuar</button>
+  </form>
+</div>

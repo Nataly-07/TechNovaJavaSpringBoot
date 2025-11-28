@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title th:text="'Detalle de Compra #' + ${compra.id} + ' - Technova'">Detalle de Compra - Technova</title>
+
+    <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" th:href="@{/frontend/css/estilodas.css}">
+    <link rel="stylesheet" th:href="@{/frontend/css/stilotech.css}">
+    <link rel="stylesheet" th:href="@{/frontend/css/color-palette.css}">
+</head>
+<body>
+  <header class="header">
+    <a th:href="@{/}" class="logo">
+      <img th:src="@{/frontend/imagenes/logo technova.png}" alt="Logo">
+      <span>TECHNOVA</span>
+    </a>
+
+    <div class="acciones-usuario">
+      <a th:href="@{/login}" class="account"><i class='bx bx-user-circle'></i> <span>Perfil</span></a>
+      <a th:href="@{/login}" class="account"><i class='bx bx-log-out'></i> <span>Cerrar Sesión</span></a>
+    </div>
+  </header>
+
+  <div class="dashboard-wrapper">
+    <div th:replace="~{frontend/layouts/sidebar-cliente :: sidebar}"></div>
+
+    <main class="main-content" th:if="${compra != null}">
+      <div class="welcome-section">
+        <div class="header-actions">
+          <a th:href="@{/cliente/mis-compras}" class="btn btn-secondary">
+            <i class='bx bx-arrow-back'></i> Volver a Mis Compras
+          </a>
+        </div>
+        <h1 th:text="'Detalle de Compra #' + ${compra.id}">Detalle de Compra</h1>
+        <p>Información completa de tu compra</p>
+      </div>
+
+      <div th:if="${session.success != null}" class="alert alert-success">
+        <i class='bx bx-check-circle'></i>
+        <span th:text="${session.success}">Éxito</span>
+      </div>
+
+      <div th:if="${session.error != null}" class="alert alert-error">
+        <i class='bx bx-error-circle'></i>
+        <span th:text="${session.error}">Error</span>
+      </div>
+
+      <div class="detalle-grid">
+        <div class="info-section">
+          <div class="section-header">
+            <h2><i class='bx bx-info-circle'></i> Información de la Compra</h2>
+          </div>
+          <div class="info-card">
+            <div class="info-row">
+              <span class="label"><i class='bx bx-receipt'></i> Número de Compra:</span>
+              <span class="value">#<span th:text="${compra.id}">0</span></span>
+            </div>
+            <div class="info-row">
+              <span class="label"><i class='bx bx-calendar'></i> Fecha de Compra:</span>
+              <span class="value" th:text="${compra.fechaCompra}">Fecha</span>
+            </div>
+            <div class="info-row">
+              <span class="label"><i class='bx bx-check-circle'></i> Estado:</span>
+              <span th:classappend="'status-' + ${#strings.toLowerCase(compra.estado)}" class="status-badge">
+                <th:block th:switch="${compra.estado}">
+                  <i th:case="'procesado'" class='bx bx-time-five'></i> Procesando
+                  <i th:case="'enviado'" class='bx bx-truck'></i> Enviado
+                  <i th:case="'entregado'" class='bx bx-check-circle'></i> Entregado
+                  <i th:case="*" class='bx bx-x-circle'></i> <span th:text="${compra.estado}">Estado</span>
+                </th:block>
+              </span>
+            </div>
+            <div class="info-row">
+              <span class="label"><i class='bx bx-time'></i> Entrega Estimada:</span>
+              <span class="value" th:text="${compra.tiempoDeEntrega}">Fecha</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-section">
+          <div class="section-header">
+            <h2><i class='bx bx-package'></i> Productos Comprados</h2>
+          </div>
+          <div class="productos-list" th:if="${compra.detalles != null}">
+            <div class="producto-item" th:each="detalle : ${compra.detalles}">
+              <div class="producto-info">
+                <h3 th:text="${detalle.producto != null ? detalle.producto.nombre : 'Producto no disponible'}">Producto</h3>
+                <p class="producto-descripcion" th:if="${detalle.producto != null && detalle.producto.caracteristica != null && detalle.producto.caracteristica.descripcion != null}" 
+                   th:text="${detalle.producto.caracteristica.descripcion}">Descripción</p>
+              </div>
+              <div class="producto-details">
+                <div class="detail-row">
+                  <span><i class='bx bx-hash'></i> Cantidad:</span>
+                  <span class="quantity" th:text="${detalle.cantidad}">1</span>
+                </div>
+                <div class="detail-row">
+                  <span><i class='bx bx-money'></i> Precio Unitario:</span>
+                  <div class="price-container">
+                    <div class="precio-original" style="text-decoration: line-through; color: #999; font-size: 0.9rem; margin-bottom: 4px;">
+                      Antes: $<span th:text="${#numbers.formatDecimal(detalle.precio * 1.05, 0, 'COMMA', '.')}">0</span>
+                    </div>
+                    <span class="price" style="color: #27ae60; font-weight: bold;">
+                      $<span th:text="${#numbers.formatDecimal(detalle.precio, 0, 'COMMA', '.')}">0</span>
+                      <span class="descuento" style="background-color: #cce5cc; color: #006600; padding: 2px 6px; border-radius: 6px; font-size: 0.8rem; margin-left: 6px;">-5%</span>
+                    </span>
+                  </div>
+                </div>
+                <div class="detail-row total">
+                  <span><i class='bx bx-calculator'></i> Subtotal:</span>
+                  <span class="subtotal">$<span th:text="${#numbers.formatDecimal(detalle.precio * detalle.cantidad, 0, 'COMMA', '.')}">0</span></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-section">
+          <div class="section-header">
+            <h2><i class='bx bx-credit-card'></i> Resumen de Pago</h2>
+          </div>
+          <div class="pago-resumen">
+            <div class="resumen-row">
+              <span><i class='bx bx-money'></i> Subtotal:</span>
+              <span>$<span th:text="${#numbers.formatDecimal(compra.total, 0, 'COMMA', '.')}">0</span></span>
+            </div>
+            <div class="resumen-row">
+              <span><i class='bx bx-truck'></i> Envío:</span>
+              <span>Gratis</span>
+            </div>
+            <div class="resumen-row">
+              <span><i class='bx bx-receipt'></i> Impuestos:</span>
+              <span>Incluidos</span>
+            </div>
+            <div class="resumen-row total">
+              <span><i class='bx bx-wallet'></i> Total Pagado:</span>
+              <span class="total-amount">$<span th:text="${#numbers.formatDecimal(compra.total, 0, 'COMMA', '.')}">0</span></span>
+            </div>
+          </div>
+
+          <div class="metodo-pago" th:if="${compra.medioPago != null}">
+            <h3><i class='bx bx-credit-card'></i> Método de Pago</h3>
+            <div class="pago-info">
+              <span class="metodo" th:text="${compra.medioPago.metodoPago}">Método</span>
+              <span class="fecha-pago" th:if="${compra.medioPago.fechaCompra != null}">
+                <i class='bx bx-time'></i> Pagado el <span th:text="${compra.medioPago.fechaCompra}">Fecha</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-section">
+          <div class="section-header">
+            <h2><i class='bx bx-trending-up'></i> Seguimiento del Pedido</h2>
+          </div>
+          <div class="seguimiento">
+            <div class="timeline">
+              <div class="timeline-item completed">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                  <h4><i class='bx bx-check-circle'></i> Compra Realizada</h4>
+                  <p th:text="${compra.fechaCompra}">Fecha</p>
+                </div>
+              </div>
+              
+              <th:block th:switch="${compra.estado}">
+                <div th:case="'procesado'" class="timeline-item active">
+                  <div class="timeline-marker"></div>
+                  <div class="timeline-content">
+                    <h4><i class='bx bx-time-five'></i> Procesando</h4>
+                    <p>Preparando tu pedido</p>
+                  </div>
+                </div>
+                <div th:case="'procesado'" class="timeline-item">
+                  <div class="timeline-marker"></div>
+                  <div class="timeline-content">
+                    <h4><i class='bx bx-truck'></i> Enviado</h4>
+                    <p>Tu pedido está en camino</p>
+                  </div>
+                </div>
+                <div th:case="'procesado'" class="timeline-item">
+                  <div class="timeline-marker"></div>
+                  <div class="timeline-content">
+                    <h4><i class='bx bx-home'></i> Entregado</h4>
+                    <p>Pedido entregado</p>
+                  </div>
+                </div>
+                
+                <div th:case="'enviado'" class="timeline-item completed">
+                  <div class="timeline-marker"></div>
+                  <div class="timeline-content">
+                    <h4><i class='bx bx-time-five'></i> Procesando</h4>
+                    <p>Pedido procesado</p>
+                  </div>
+                </div>
+                <div th:case="'enviado'" class="timeline-item active">
+                  <div class="timeline-marker"></div>
+                  <div class="timeline-content">
+                    <h4><i class='bx bx-truck'></i> Enviado</h4>
+                    <p>Tu pedido está en camino</p>
+                  </div>
+                </div>
+                <div th:case="'enviado'" class="timeline-item">
+                  <div class="timeline-marker"></div>
+                  <div class="timeline-content">
+                    <h4><i class='bx bx-home'></i> Entregado</h4>
+                    <p>Pedido entregado</p>
+                  </div>
+                </div>
+                
+                <div th:case="'entregado'" class="timeline-item completed">
+                  <div class="timeline-marker"></div>
+                  <div class="timeline-content">
+                    <h4><i class='bx bx-time-five'></i> Procesando</h4>
+                    <p>Pedido procesado</p>
+                  </div>
+                </div>
+                <div th:case="'entregado'" class="timeline-item completed">
+                  <div class="timeline-marker"></div>
+                  <div class="timeline-content">
+                    <h4><i class='bx bx-truck'></i> Enviado</h4>
+                    <p>Pedido enviado</p>
+                  </div>
+                </div>
+                <div th:case="'entregado'" class="timeline-item completed">
+                  <div class="timeline-marker"></div>
+                  <div class="timeline-content">
+                    <h4><i class='bx bx-home'></i> Entregado</h4>
+                    <p>Pedido entregado exitosamente</p>
+                  </div>
+                </div>
+              </th:block>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 Technova</p>
+  </footer>
+
+  <style>
+    .header-actions { margin-bottom: 20px; }
+    .detalle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 20px; }
+    .info-section { background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); overflow: hidden; }
+    .section-header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 20px; color: white; }
+    .section-header h2 { margin: 0; font-size: 1.3rem; display: flex; align-items: center; gap: 10px; }
+    .info-card { padding: 20px; }
+    .info-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+    .info-row:last-child { border-bottom: none; }
+    .label { color: var(--text-secondary); font-weight: 500; display: flex; align-items: center; gap: 8px; }
+    .value { color: var(--text-primary); font-weight: 600; }
+    .status-badge { padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; text-transform: uppercase; display: flex; align-items: center; gap: 5px; }
+    .status-procesado { background: #e3f2fd; color: #1976d2; }
+    .status-enviado { background: #fff3e0; color: #f57c00; }
+    .status-entregado { background: #e8f5e8; color: #388e3c; }
+    .status-cancelado { background: #ffebee; color: #d32f2f; }
+    .productos-list { padding: 20px; }
+    .producto-item { display: flex; justify-content: space-between; padding: 20px 0; border-bottom: 1px solid #f0f0f0; }
+    .producto-item:last-child { border-bottom: none; }
+    .producto-info { flex: 1; }
+    .producto-info h3 { margin: 0 0 8px 0; color: var(--text-primary); font-size: 1.1rem; }
+    .producto-descripcion { margin: 0; color: var(--text-secondary); font-size: 0.9rem; }
+    .producto-details { text-align: right; min-width: 200px; }
+    .detail-row { display: flex; justify-content: space-between; margin-bottom: 5px; align-items: center; }
+    .detail-row.total { font-weight: 600; color: var(--primary-color); border-top: 1px solid #e0e0e0; padding-top: 8px; margin-top: 8px; }
+    .detail-row span:first-child { display: flex; align-items: center; gap: 5px; }
+    .quantity { color: var(--text-secondary); }
+    .price { color: var(--text-primary); }
+    .subtotal { color: var(--primary-color); font-weight: 600; }
+    .pago-resumen { padding: 20px; }
+    .resumen-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f0f0f0; align-items: center; }
+    .resumen-row:last-child { border-bottom: none; }
+    .resumen-row span:first-child { display: flex; align-items: center; gap: 8px; }
+    .resumen-row.total { font-weight: 700; font-size: 1.1rem; color: var(--primary-color); border-top: 2px solid var(--primary-color); margin-top: 10px; padding-top: 15px; }
+    .total-amount { color: var(--primary-color); }
+    .metodo-pago { margin-top: 20px; padding: 20px; background: #f8f9fa; border-radius: 8px; }
+    .metodo-pago h3 { margin: 0 0 15px 0; color: var(--text-primary); display: flex; align-items: center; gap: 8px; }
+    .pago-info { display: flex; flex-direction: column; gap: 5px; }
+    .metodo { font-weight: 600; color: var(--primary-color); }
+    .fecha-pago { color: var(--text-secondary); font-size: 0.9rem; display: flex; align-items: center; gap: 5px; }
+    .seguimiento { padding: 20px; }
+    .timeline { position: relative; padding-left: 30px; }
+    .timeline::before { content: ''; position: absolute; left: 15px; top: 0; bottom: 0; width: 2px; background: #e0e0e0; }
+    .timeline-item { position: relative; margin-bottom: 30px; }
+    .timeline-marker { position: absolute; left: -22px; top: 5px; width: 12px; height: 12px; border-radius: 50%; background: #e0e0e0; border: 3px solid white; box-shadow: 0 0 0 2px #e0e0e0; }
+    .timeline-item.completed .timeline-marker { background: var(--primary-color); box-shadow: 0 0 0 2px var(--primary-color); }
+    .timeline-item.active .timeline-marker { background: var(--primary-color); box-shadow: 0 0 0 2px var(--primary-color); animation: pulse 2s infinite; }
+    .timeline-content h4 { margin: 0 0 5px 0; color: var(--text-primary); font-size: 1rem; display: flex; align-items: center; gap: 8px; }
+    .timeline-content p { margin: 0; color: var(--text-secondary); font-size: 0.9rem; }
+    .timeline-item.completed .timeline-content h4 { color: var(--primary-color); }
+    .timeline-item.active .timeline-content h4 { color: var(--primary-color); font-weight: 600; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 2px var(--primary-color); } 50% { box-shadow: 0 0 0 6px rgba(0, 212, 255, 0.3); } 100% { box-shadow: 0 0 0 2px var(--primary-color); } }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600; transition: all 0.3s ease; border: none; cursor: pointer; }
+    .btn-primary { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+    .btn-secondary { background: #6c757d; color: white; }
+    .btn:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); }
+    .alert { padding: 15px; border-radius: 6px; margin-bottom: 20px; display: flex; align-items: center; gap: 10px; }
+    .alert-success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    @media (max-width: 768px) { .detalle-grid { grid-template-columns: 1fr; gap: 20px; } .producto-item { flex-direction: column; gap: 15px; } .producto-details { text-align: left; } .info-row { flex-direction: column; align-items: flex-start; gap: 5px; } .resumen-row { flex-direction: column; gap: 5px; } }
+  </style>
+</body>
+</html>
+
