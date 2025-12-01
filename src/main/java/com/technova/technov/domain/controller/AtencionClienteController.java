@@ -51,12 +51,18 @@ public class AtencionClienteController {
     }
 
     @PostMapping
-    public ResponseEntity<AtencionClienteDto> crearTicket(
+    public ResponseEntity<?> crearTicket(
             @RequestParam Integer usuarioId,
             @RequestParam String tema,
             @RequestParam String descripcion) {
-        AtencionClienteDto creado = atencionClienteService.crearTicket(usuarioId, tema, descripcion);
-        return ResponseEntity.ok(creado);
+        try {
+            AtencionClienteDto creado = atencionClienteService.crearTicket(usuarioId, tema, descripcion);
+            return ResponseEntity.ok(creado);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error interno del servidor: " + e.getMessage());
+        }
     }
 
     

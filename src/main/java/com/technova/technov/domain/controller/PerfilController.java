@@ -5,11 +5,14 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 
 import com.technova.technov.domain.dto.UsuarioDto;
+import com.technova.technov.domain.service.AtencionClienteService;
 import com.technova.technov.domain.service.CarritoService;
 import com.technova.technov.domain.service.ComprasService;
 import com.technova.technov.domain.service.FavoritoService;
+import com.technova.technov.domain.service.NotificacionService;
 import com.technova.technov.domain.service.ProductoService;
 import com.technova.technov.domain.service.UsuarioService;
+import com.technova.technov.domain.service.VentaService;
 
 import com.technova.technov.util.SecurityUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +29,9 @@ public class PerfilController {
     private final ComprasService comprasService;
     private final UsuarioService usuarioService;
     private final ProductoService productoService;
+    private final AtencionClienteService atencionClienteService;
+    private final NotificacionService notificacionService;
+    private final VentaService ventaService;
     
     @Autowired
     private SecurityUtil securityUtil;
@@ -35,12 +41,18 @@ public class PerfilController {
             CarritoService carritoService,
             ComprasService comprasService,
             UsuarioService usuarioService,
-            ProductoService productoService) {
+            ProductoService productoService,
+            AtencionClienteService atencionClienteService,
+            NotificacionService notificacionService,
+            VentaService ventaService) {
         this.favoritoService = favoritoService;
         this.carritoService = carritoService;
         this.comprasService = comprasService;
         this.usuarioService = usuarioService;
         this.productoService = productoService;
+        this.atencionClienteService = atencionClienteService;
+        this.notificacionService = notificacionService;
+        this.ventaService = ventaService;
     }
 
     @GetMapping("/cliente/perfil")
@@ -61,11 +73,19 @@ public class PerfilController {
                 .filter(c -> c.getUsuarioId() != null && c.getUsuarioId().equals(usuarioId.intValue()))
                 .count();
         
+        int pedidosCount = 0;
+        try {
+            List<com.technova.technov.domain.dto.VentaDto> pedidos = ventaService.porUsuario(usuarioId.intValue());
+            pedidosCount = pedidos != null ? pedidos.size() : 0;
+        } catch (Exception e) {
+            pedidosCount = 0;
+        }
+        
         model.addAttribute("usuario", usuario);
         model.addAttribute("favoritosCount", favoritosCount);
         model.addAttribute("carritoCount", carritoCount);
         model.addAttribute("comprasCount", comprasCount);
-        model.addAttribute("pedidosCount", comprasCount);
+        model.addAttribute("pedidosCount", pedidosCount);
         model.addAttribute("notificacionesCount", 0);
         model.addAttribute("mediosPagoCount", 0);
         
@@ -105,5 +125,51 @@ public class PerfilController {
         model.addAttribute("proveedoresCount", proveedoresCount);
         
         return "frontend/admin/perfil";
+    }
+
+    @GetMapping("/cliente/atencion-cliente")
+    public String atencionCliente(Model model) {
+        UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
+        
+        if (usuario == null || !"cliente".equalsIgnoreCase(usuario.getRole())) {
+            return "redirect:/login";
+        }
+        
+        List<com.technova.technov.domain.dto.AtencionClienteDto> tickets = new java.util.ArrayList<>();
+        
+        try {
+            if (usuario.getId() != null) {
+                tickets = atencionClienteService.listarPorUsuario(usuario.getId().intValue());
+            }
+        } catch (Exception e) {
+            tickets = new java.util.ArrayList<>();
+        }
+        
+        model.addAttribute("usuario", usuario);
+        model.addAttribute("tickets", tickets);
+        return "frontend/cliente/atencion-cliente";
+    }
+
+    @GetMapping("/cliente/notificaciones")
+    public String notificaciones(Model model) {
+        UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
+        
+        if (usuario == null || !"cliente".equalsIgnoreCase(usuario.getRole())) {
+            return "redirect:/login";
+        }
+        
+        List<com.technova.technov.domain.dto.NotificacionDto> notificaciones = new java.util.ArrayList<>();
+        
+        try {
+            if (usuario.getId() != null) {
+                notificaciones = notificacionService.listarPorUsuario(usuario.getId());
+            }
+        } catch (Exception e) {
+            notificaciones = new java.util.ArrayList<>();
+        }
+        
+        model.addAttribute("usuario", usuario);
+        model.addAttribute("notificaciones", notificaciones);
+        return "frontend/cliente/notificaciones";
     }
 }

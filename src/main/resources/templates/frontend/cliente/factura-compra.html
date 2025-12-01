@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title th:text="'Factura de Compra #' + ${compra.compraId} + ' - Technova'">Factura - Technova</title>
+
+    <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" th:href="@{/frontend/css/color-palette.css}">
+    <link rel="stylesheet" th:href="@{/frontend/css/stilotech.css}">
+    <link rel="stylesheet" th:href="@{/frontend/css/estilodas.css}">
+</head>
+<body>
+  <header class="header">
+    <a th:href="@{/}" class="logo">
+      <img th:src="@{/frontend/imagenes/logo technova.png}" alt="Logo">
+      <span>TECHNOVA</span>
+    </a>
+
+    <div class="acciones-usuario">
+      <a th:href="@{/cliente/perfil}" class="account"><i class='bx bx-user-circle'></i> <span>Perfil</span></a>
+      <form method="POST" th:action="@{/logout}" style="display:inline;">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        <button type="submit" style="background:none;border:none;color:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:5px;" class="account">
+          <i class='bx bx-log-out'></i> <span>Cerrar Sesión</span>
+        </button>
+      </form>
+    </div>
+  </header>
+
+  <div class="dashboard-wrapper">
+    <div th:replace="~{frontend/layouts/sidebar-cliente :: sidebar}"></div>
+
+    <main class="main-content">
+      <div class="factura-container">
+        <div class="factura-header">
+          <div class="header-actions-factura">
+            <a th:href="@{/cliente/mis-compras/{id}(id=${compra.compraId})}" class="btn btn-secondary">
+              <i class='bx bx-arrow-back'></i> Volver al Detalle
+            </a>
+            <a th:href="@{/cliente/mis-compras/{id}/factura/pdf(id=${compra.compraId})}" class="btn btn-primary" target="_blank" style="background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);">
+              <i class='bx bx-download'></i> Generar PDF
+            </a>
+          </div>
+        </div>
+
+        <div class="factura-paper">
+          <!-- Encabezado de la factura -->
+          <div class="factura-encabezado" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 12px 12px 0 0; color: white; margin-bottom: 30px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;">
+              <div>
+                <h1 style="margin: 0; font-size: 2.5em; font-weight: bold; display: flex; align-items: center; gap: 10px;">
+                  <i class='bx bx-receipt' style="font-size: 1.2em;"></i> FACTURA DE COMPRA
+                </h1>
+                <p style="margin: 10px 0 0 0; opacity: 0.9; font-size: 1.1em;">TECHNOVA - Sistema de Gestión de Inventario</p>
+              </div>
+              <div style="text-align: right;">
+                <div style="background: rgba(255, 255, 255, 0.2); padding: 15px 25px; border-radius: 8px; backdrop-filter: blur(10px);">
+                  <p style="margin: 0; font-size: 0.9em; opacity: 0.9;">Número de Factura</p>
+                  <p style="margin: 5px 0 0 0; font-size: 1.5em; font-weight: bold;">#<span th:text="${compra.compraId}">0</span></p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Información del cliente y compra -->
+          <div class="factura-info-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
+            <div class="info-box" style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #667eea;">
+              <h3 style="margin: 0 0 15px 0; color: #667eea; font-size: 1.2em; display: flex; align-items: center; gap: 8px;">
+                <i class='bx bx-user'></i> Información del Cliente
+              </h3>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                <p style="margin: 0; color: #333;"><strong>Nombre:</strong> <span th:text="${usuario != null && usuario.getName() != null ? usuario.getName() : 'N/A'}">N/A</span></p>
+                <p style="margin: 0; color: #333;"><strong>Email:</strong> <span th:text="${usuario != null && usuario.getEmail() != null ? usuario.getEmail() : 'N/A'}">N/A</span></p>
+                <p th:if="${usuario != null && usuario.getPhone() != null}" style="margin: 0; color: #333;"><strong>Teléfono:</strong> <span th:text="${usuario.phone}">N/A</span></p>
+              </div>
+            </div>
+
+            <div class="info-box" style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #764ba2;">
+              <h3 style="margin: 0 0 15px 0; color: #764ba2; font-size: 1.2em; display: flex; align-items: center; gap: 8px;">
+                <i class='bx bx-info-circle'></i> Información de la Compra
+              </h3>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                <p style="margin: 0; color: #333;"><strong>Fecha:</strong> <span th:text="${compra.fechaCompra != null ? #temporals.format(compra.fechaCompra, 'dd/MM/yyyy HH:mm') : 'N/A'}">N/A</span></p>
+                <p style="margin: 0; color: #333;"><strong>Estado:</strong> 
+                  <span th:if="${compra.estado == 'procesado'}" style="color: #1976d2; font-weight: 600;">Procesando</span>
+                  <span th:if="${compra.estado == 'enviado'}" style="color: #f57c00; font-weight: 600;">Enviado</span>
+                  <span th:if="${compra.estado == 'entregado'}" style="color: #388e3c; font-weight: 600;">Entregado</span>
+                  <span th:if="${compra.estado != null && compra.estado != 'procesado' && compra.estado != 'enviado' && compra.estado != 'entregado'}" th:text="${compra.estado}">Estado</span>
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tabla de productos -->
+          <div class="factura-productos" style="margin-bottom: 30px;">
+            <h3 style="margin: 0 0 20px 0; color: #333; font-size: 1.3em; display: flex; align-items: center; gap: 10px;">
+              <i class='bx bx-package' style="color: #667eea;"></i> Productos Comprados
+            </h3>
+            <div style="overflow-x: auto;">
+              <table class="factura-table" style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <thead>
+                  <tr style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                    <th style="padding: 15px; text-align: left; font-weight: 600;">Producto</th>
+                    <th style="padding: 15px; text-align: center; font-weight: 600;">Cantidad</th>
+                    <th style="padding: 15px; text-align: right; font-weight: 600;">Precio Unitario</th>
+                    <th style="padding: 15px; text-align: right; font-weight: 600;">Subtotal</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr th:if="${compra.items == null || compra.items.isEmpty()}">
+                    <td colspan="4" style="padding: 20px; text-align: center; color: #999;">No hay productos en esta compra</td>
+                  </tr>
+                  <tr th:each="detalle, iterStat : ${compra.items}" th:classappend="${iterStat.odd} ? 'row-odd' : 'row-even'" style="border-bottom: 1px solid #f0f0f0;">
+                    <td style="padding: 15px; color: #333; font-weight: 500;" th:text="${detalle.nombreProducto != null ? detalle.nombreProducto : 'Producto no disponible'}">Producto</td>
+                    <td style="padding: 15px; text-align: center; color: #666;" th:text="${detalle.cantidad != null ? detalle.cantidad : 0}">1</td>
+                    <td style="padding: 15px; text-align: right; color: #333; font-weight: 600;">$<span th:text="${detalle.precio != null ? #numbers.formatDecimal(detalle.precio, 0, 0) : '0'}">0</span></td>
+                    <td style="padding: 15px; text-align: right; color: #27ae60; font-weight: 600;">$<span th:text="${detalle.precio != null && detalle.cantidad != null ? #numbers.formatDecimal(detalle.precio * detalle.cantidad, 0, 0) : '0'}">0</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Resumen total -->
+          <div class="factura-total" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); padding: 25px; border-radius: 8px; border: 2px solid #667eea;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <div>
+                <h3 style="margin: 0; color: #333; font-size: 1.5em; display: flex; align-items: center; gap: 10px;">
+                  <i class='bx bx-wallet' style="color: #667eea;"></i> Total a Pagar
+                </h3>
+                <p style="margin: 10px 0 0 0; color: #666; font-size: 0.9em;">Incluye todos los productos y servicios</p>
+              </div>
+              <div style="text-align: right;">
+                <div style="background: white; padding: 20px 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                  <p style="margin: 0; color: #666; font-size: 0.9em; text-transform: uppercase; letter-spacing: 1px;">Total</p>
+                  <p style="margin: 10px 0 0 0; color: #667eea; font-size: 2.5em; font-weight: bold; line-height: 1;">
+                    $<span th:text="${compra.total != null ? #numbers.formatDecimal(compra.total, 0, 0) : '0'}">0</span>
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pie de página -->
+          <div class="factura-footer" style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #e0e0e0; text-align: center; color: #999;">
+            <p style="margin: 0; font-size: 0.9em;">
+              <i class='bx bx-check-circle' style="color: #27ae60;"></i> Gracias por su compra!
+            </p>
+            <p style="margin: 10px 0 0 0; font-size: 0.8em;">
+              Factura generada el <span th:text="${#temporals.format(#temporals.createNow(), 'dd/MM/yyyy HH:mm')}">Fecha</span>
+            </p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 Technova</p>
+  </footer>
+
+  <style>
+    .factura-container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .header-actions-factura {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .factura-paper {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      padding: 40px;
+      margin-top: 20px;
+    }
+
+    .factura-table tbody tr.row-odd {
+      background: #f8f9fa;
+    }
+
+    .factura-table tbody tr.row-even {
+      background: white;
+    }
+
+    .factura-table tbody tr:hover {
+      background: #e3f2fd;
+      transition: background 0.2s ease;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 12px 24px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: #6c757d;
+      color: white;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    @media print {
+      .header-actions-factura {
+        display: none;
+      }
+      .header, .dashboard-wrapper > div:first-child, footer {
+        display: none;
+      }
+      .factura-paper {
+        box-shadow: none;
+        padding: 20px;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .factura-info-grid {
+        grid-template-columns: 1fr !important;
+      }
+      .factura-paper {
+        padding: 20px;
+      }
+      .header-actions-factura {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+</body>
+</html>
+

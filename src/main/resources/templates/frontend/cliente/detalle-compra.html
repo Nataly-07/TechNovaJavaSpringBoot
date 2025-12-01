@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title th:text="'Detalle de Compra #' + ${compra.id} + ' - Technova'">Detalle de Compra - Technova</title>
+    <title th:text="'Detalle de Compra #' + ${compra.compraId} + ' - Technova'">Detalle de Compra - Technova</title>
 
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
-    <link rel="stylesheet" th:href="@{/frontend/css/estilodas.css}">
-    <link rel="stylesheet" th:href="@{/frontend/css/stilotech.css}">
     <link rel="stylesheet" th:href="@{/frontend/css/color-palette.css}">
+    <link rel="stylesheet" th:href="@{/frontend/css/stilotech.css}">
+    <link rel="stylesheet" th:href="@{/frontend/css/estilodas.css}">
 </head>
 <body>
   <header class="header">
@@ -29,12 +29,15 @@
 
     <main class="main-content" th:if="${compra != null}">
       <div class="welcome-section">
-        <div class="header-actions">
+        <div class="header-actions" style="display: flex; gap: 10px; margin-bottom: 20px;">
           <a th:href="@{/cliente/mis-compras}" class="btn btn-secondary">
             <i class='bx bx-arrow-back'></i> Volver a Mis Compras
           </a>
+          <a th:href="@{/cliente/mis-compras/{id}/factura(id=${compra.compraId})}" class="btn btn-primary" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+            <i class='bx bx-receipt'></i> Ver Factura
+          </a>
         </div>
-        <h1 th:text="'Detalle de Compra #' + ${compra.id}">Detalle de Compra</h1>
+        <h1 th:text="'Detalle de Compra #' + ${compra.compraId}">Detalle de Compra</h1>
         <p>Información completa de tu compra</p>
       </div>
 
@@ -56,26 +59,31 @@
           <div class="info-card">
             <div class="info-row">
               <span class="label"><i class='bx bx-receipt'></i> Número de Compra:</span>
-              <span class="value">#<span th:text="${compra.id}">0</span></span>
+              <span class="value">#<span th:text="${compra.compraId}">0</span></span>
             </div>
             <div class="info-row">
               <span class="label"><i class='bx bx-calendar'></i> Fecha de Compra:</span>
-              <span class="value" th:text="${compra.fechaCompra}">Fecha</span>
+              <span class="value" th:text="${compra.fechaCompra != null ? #temporals.format(compra.fechaCompra, 'dd/MM/yyyy HH:mm') : 'Fecha no disponible'}">Fecha</span>
             </div>
             <div class="info-row">
               <span class="label"><i class='bx bx-check-circle'></i> Estado:</span>
               <span th:classappend="'status-' + ${#strings.toLowerCase(compra.estado)}" class="status-badge">
-                <th:block th:switch="${compra.estado}">
-                  <i th:case="'procesado'" class='bx bx-time-five'></i> Procesando
-                  <i th:case="'enviado'" class='bx bx-truck'></i> Enviado
-                  <i th:case="'entregado'" class='bx bx-check-circle'></i> Entregado
-                  <i th:case="*" class='bx bx-x-circle'></i> <span th:text="${compra.estado}">Estado</span>
+                <th:block th:if="${compra.estado == 'procesado'}">
+                  <i class='bx bx-time-five'></i> Procesando
+                </th:block>
+                <th:block th:if="${compra.estado == 'enviado'}">
+                  <i class='bx bx-truck'></i> Enviado
+                </th:block>
+                <th:block th:if="${compra.estado == 'entregado'}">
+                  <i class='bx bx-check-circle'></i> Entregado
+                </th:block>
+                <th:block th:if="${compra.estado != null && compra.estado != 'procesado' && compra.estado != 'enviado' && compra.estado != 'entregado'}">
+                  <i class='bx bx-x-circle'></i> <span th:text="${compra.estado}">Estado</span>
+                </th:block>
+                <th:block th:if="${compra.estado == null}">
+                  <i class='bx bx-time-five'></i> Pendiente
                 </th:block>
               </span>
-            </div>
-            <div class="info-row">
-              <span class="label"><i class='bx bx-time'></i> Entrega Estimada:</span>
-              <span class="value" th:text="${compra.tiempoDeEntrega}">Fecha</span>
             </div>
           </div>
         </div>
@@ -84,36 +92,33 @@
           <div class="section-header">
             <h2><i class='bx bx-package'></i> Productos Comprados</h2>
           </div>
-          <div class="productos-list" th:if="${compra.detalles != null}">
-            <div class="producto-item" th:each="detalle : ${compra.detalles}">
+          <div class="productos-list" th:if="${compra.items != null && !compra.items.isEmpty()}">
+            <div class="producto-item" th:each="detalle : ${compra.items}">
               <div class="producto-info">
-                <h3 th:text="${detalle.producto != null ? detalle.producto.nombre : 'Producto no disponible'}">Producto</h3>
-                <p class="producto-descripcion" th:if="${detalle.producto != null && detalle.producto.caracteristica != null && detalle.producto.caracteristica.descripcion != null}" 
-                   th:text="${detalle.producto.caracteristica.descripcion}">Descripción</p>
+                <h3 th:text="${detalle.nombreProducto != null ? detalle.nombreProducto : 'Producto no disponible'}">Producto</h3>
               </div>
               <div class="producto-details">
                 <div class="detail-row">
                   <span><i class='bx bx-hash'></i> Cantidad:</span>
-                  <span class="quantity" th:text="${detalle.cantidad}">1</span>
+                  <span class="quantity" th:text="${detalle.cantidad != null ? detalle.cantidad : 1}">1</span>
                 </div>
                 <div class="detail-row">
                   <span><i class='bx bx-money'></i> Precio Unitario:</span>
                   <div class="price-container">
-                    <div class="precio-original" style="text-decoration: line-through; color: #999; font-size: 0.9rem; margin-bottom: 4px;">
-                      Antes: $<span th:text="${#numbers.formatDecimal(detalle.precio * 1.05, 0, 'COMMA', '.')}">0</span>
-                    </div>
                     <span class="price" style="color: #27ae60; font-weight: bold;">
-                      $<span th:text="${#numbers.formatDecimal(detalle.precio, 0, 'COMMA', '.')}">0</span>
-                      <span class="descuento" style="background-color: #cce5cc; color: #006600; padding: 2px 6px; border-radius: 6px; font-size: 0.8rem; margin-left: 6px;">-5%</span>
+                      $<span th:text="${detalle.precio != null ? #numbers.formatDecimal(detalle.precio, 0, 0) : '0'}">0</span>
                     </span>
                   </div>
                 </div>
                 <div class="detail-row total">
                   <span><i class='bx bx-calculator'></i> Subtotal:</span>
-                  <span class="subtotal">$<span th:text="${#numbers.formatDecimal(detalle.precio * detalle.cantidad, 0, 'COMMA', '.')}">0</span></span>
+                  <span class="subtotal">$<span th:text="${detalle.precio != null && detalle.cantidad != null ? #numbers.formatDecimal(detalle.precio * detalle.cantidad, 0, 0) : '0'}">0</span></span>
                 </div>
               </div>
             </div>
+          </div>
+          <div th:if="${compra.items == null || compra.items.isEmpty()}" class="no-items" style="padding: 20px; text-align: center; color: #999;">
+            <p>No hay productos en esta compra</p>
           </div>
         </div>
 
@@ -124,7 +129,7 @@
           <div class="pago-resumen">
             <div class="resumen-row">
               <span><i class='bx bx-money'></i> Subtotal:</span>
-              <span>$<span th:text="${#numbers.formatDecimal(compra.total, 0, 'COMMA', '.')}">0</span></span>
+              <span>$<span th:text="${compra.total != null ? #numbers.formatDecimal(compra.total, 0, 0) : '0'}">0</span></span>
             </div>
             <div class="resumen-row">
               <span><i class='bx bx-truck'></i> Envío:</span>
@@ -136,19 +141,10 @@
             </div>
             <div class="resumen-row total">
               <span><i class='bx bx-wallet'></i> Total Pagado:</span>
-              <span class="total-amount">$<span th:text="${#numbers.formatDecimal(compra.total, 0, 'COMMA', '.')}">0</span></span>
+              <span class="total-amount">$<span th:text="${compra.total != null ? #numbers.formatDecimal(compra.total, 0, 0) : '0'}">0</span></span>
             </div>
           </div>
 
-          <div class="metodo-pago" th:if="${compra.medioPago != null}">
-            <h3><i class='bx bx-credit-card'></i> Método de Pago</h3>
-            <div class="pago-info">
-              <span class="metodo" th:text="${compra.medioPago.metodoPago}">Método</span>
-              <span class="fecha-pago" th:if="${compra.medioPago.fechaCompra != null}">
-                <i class='bx bx-time'></i> Pagado el <span th:text="${compra.medioPago.fechaCompra}">Fecha</span>
-              </span>
-            </div>
-          </div>
         </div>
 
         <div class="info-section">
@@ -161,74 +157,88 @@
                 <div class="timeline-marker"></div>
                 <div class="timeline-content">
                   <h4><i class='bx bx-check-circle'></i> Compra Realizada</h4>
-                  <p th:text="${compra.fechaCompra}">Fecha</p>
+                  <p th:text="${compra.fechaCompra != null ? #temporals.format(compra.fechaCompra, 'dd/MM/yyyy HH:mm') : 'Fecha no disponible'}">Fecha</p>
                 </div>
               </div>
               
-              <th:block th:switch="${compra.estado}">
-                <div th:case="'procesado'" class="timeline-item active">
+              <th:block th:if="${compra.estado == 'procesado'}">
+                <div class="timeline-item active">
                   <div class="timeline-marker"></div>
                   <div class="timeline-content">
                     <h4><i class='bx bx-time-five'></i> Procesando</h4>
                     <p>Preparando tu pedido</p>
                   </div>
                 </div>
-                <div th:case="'procesado'" class="timeline-item">
+                <div class="timeline-item">
                   <div class="timeline-marker"></div>
                   <div class="timeline-content">
                     <h4><i class='bx bx-truck'></i> Enviado</h4>
                     <p>Tu pedido está en camino</p>
                   </div>
                 </div>
-                <div th:case="'procesado'" class="timeline-item">
+                <div class="timeline-item">
                   <div class="timeline-marker"></div>
                   <div class="timeline-content">
                     <h4><i class='bx bx-home'></i> Entregado</h4>
                     <p>Pedido entregado</p>
                   </div>
                 </div>
-                
-                <div th:case="'enviado'" class="timeline-item completed">
+              </th:block>
+              
+              <th:block th:if="${compra.estado == 'enviado'}">
+                <div class="timeline-item completed">
                   <div class="timeline-marker"></div>
                   <div class="timeline-content">
                     <h4><i class='bx bx-time-five'></i> Procesando</h4>
                     <p>Pedido procesado</p>
                   </div>
                 </div>
-                <div th:case="'enviado'" class="timeline-item active">
+                <div class="timeline-item active">
                   <div class="timeline-marker"></div>
                   <div class="timeline-content">
                     <h4><i class='bx bx-truck'></i> Enviado</h4>
                     <p>Tu pedido está en camino</p>
                   </div>
                 </div>
-                <div th:case="'enviado'" class="timeline-item">
+                <div class="timeline-item">
                   <div class="timeline-marker"></div>
                   <div class="timeline-content">
                     <h4><i class='bx bx-home'></i> Entregado</h4>
                     <p>Pedido entregado</p>
                   </div>
                 </div>
-                
-                <div th:case="'entregado'" class="timeline-item completed">
+              </th:block>
+              
+              <th:block th:if="${compra.estado == 'entregado'}">
+                <div class="timeline-item completed">
                   <div class="timeline-marker"></div>
                   <div class="timeline-content">
                     <h4><i class='bx bx-time-five'></i> Procesando</h4>
                     <p>Pedido procesado</p>
                   </div>
                 </div>
-                <div th:case="'entregado'" class="timeline-item completed">
+                <div class="timeline-item completed">
                   <div class="timeline-marker"></div>
                   <div class="timeline-content">
                     <h4><i class='bx bx-truck'></i> Enviado</h4>
                     <p>Pedido enviado</p>
                   </div>
                 </div>
-                <div th:case="'entregado'" class="timeline-item completed">
+                <div class="timeline-item completed">
                   <div class="timeline-marker"></div>
                   <div class="timeline-content">
                     <h4><i class='bx bx-home'></i> Entregado</h4>
                     <p>Pedido entregado exitosamente</p>
+                  </div>
+                </div>
+              </th:block>
+              
+              <th:block th:if="${compra.estado == null || (compra.estado != 'procesado' && compra.estado != 'enviado' && compra.estado != 'entregado')}">
+                <div class="timeline-item active">
+                  <div class="timeline-marker"></div>
+                  <div class="timeline-content">
+                    <h4><i class='bx bx-time-five'></i> Pendiente</h4>
+                    <p>Esperando procesamiento</p>
                   </div>
                 </div>
               </th:block>

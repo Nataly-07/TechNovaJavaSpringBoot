@@ -53,7 +53,7 @@ public class VentaServiceImpl implements VentaService {
     }
 
     @Override
-    @Transactional(readOnly = true)
+    @Transactional
     public List<VentaDto> porUsuario(Integer usuarioId) {
         return ventaRepository.findByUsuario_IdAndEstadoTrue(Long.valueOf(usuarioId)).stream().map(this::toDto).collect(Collectors.toList());
     }
@@ -158,8 +158,30 @@ public class VentaServiceImpl implements VentaService {
         List<DetalleVenta> detalles = detalleVentaRepository.findByVenta(v);
         List<VentaItemDto> items = new ArrayList<>();
         BigDecimal total = BigDecimal.ZERO;
+        boolean necesitaActualizacion = false;
+        
         for (DetalleVenta dv : detalles) {
             BigDecimal precioLinea = dv.getPrecio() == null ? BigDecimal.ZERO : dv.getPrecio();
+            
+            // Si el precio está en 0, intentar recalcularlo desde las características del producto
+            if (precioLinea.compareTo(BigDecimal.ZERO) == 0) {
+                Producto producto = productoRepository.findById(dv.getProducto().getId()).orElse(null);
+                if (producto != null && producto.getCaracteristica() != null && producto.getCaracteristica().getPrecioVenta() != null) {
+                    BigDecimal precioUnitario = producto.getCaracteristica().getPrecioVenta();
+                    int cantidad = Integer.valueOf(dv.getCantidad());
+                    precioLinea = precioUnitario.multiply(BigDecimal.valueOf(cantidad));
+                    
+                    // Actualizar el precio en la base de datos
+                    dv.setPrecio(precioLinea);
+                    detalleVentaRepository.save(dv);
+                    necesitaActualizacion = true;
+                    
+                    System.out.println("Precio recalculado para DetalleVenta #" + dv.getId() + 
+                                     " - Producto: " + producto.getNombre() + 
+                                     " x" + cantidad + " = $" + precioLinea);
+                }
+            }
+            
             total = total.add(precioLinea);
             items.add(VentaItemDto.builder()
                     .productoId(dv.getProducto().getId())
@@ -168,6 +190,7 @@ public class VentaServiceImpl implements VentaService {
                     .precioLinea(precioLinea)
                     .build());
         }
+        
         return VentaDto.builder()
                 .ventaId(v.getId())
                 .usuarioId(v.getUsuario().getId().intValue())

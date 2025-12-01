@@ -27,8 +27,4 @@ public interface AtencionClienteRepository extends JpaRepository<AtencionCliente
      * @return lista de atenciones con el estado solicitado
      */
     List<AtencionCliente> findByEstadoIgnoreCase(String estado);
-    List<AtencionCliente> findByDeletedFalse();
-    java.util.Optional<AtencionCliente> findByIdAndDeletedFalse(Integer id);
-    List<AtencionCliente> findByUsuario_IdAndDeletedFalse(Long usuarioId);
-    List<AtencionCliente> findByEstadoIgnoreCaseAndDeletedFalse(String estado);
 }

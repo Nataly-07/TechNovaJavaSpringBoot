@@ -3,49 +3,279 @@
   <th:block th:if="${session.error != null}">
     <div class="info-box" style="background:#ffecec;color:#b00020;margin-bottom:10px;" th:text="${session.error}">Error</div>
   </th:block>
-  <form method="POST" th:action="@{/checkout/pago}">
+  <form method="POST" th:action="@{/checkout/pago}" id="pagoForm">
     <div class="form-group full">
-      <label>Método de pago</label>
-      <select name="metodoPago" id="metodo_pago" required>
-        <option th:each="metodo : ${metodosDisponibles}" th:value="${metodo.value}" th:text="${metodo.label}">Método</option>
+      <label style="font-weight: 600; color: #333; margin-bottom: 8px; display: block;">Método de pago</label>
+      <select name="metodoPago" id="metodo_pago" required style="width: 100%; padding: 12px 16px; border: 2px solid var(--sinbad); border-radius: 12px; font-size: 14px; background: white;">
+        <option value="">Seleccione un método de pago</option>
+        <option value="tarjeta_credito">Tarjeta de Crédito</option>
+        <option value="tarjeta_debito">Tarjeta Débito</option>
+        <option value="nequi">Nequi</option>
       </select>
     </div>
-    <div class="form-group full" id="tarjeta_campos" style="display:none; flex-wrap: wrap; gap: 10px;">
-      <input type="text" name="datosPago[numero]" placeholder="Número de tarjeta" />
-      <input type="text" name="datosPago[nombre]" placeholder="Nombre" />
-      <input type="text" name="datosPago[apellido]" placeholder="Apellido" />
-      <input type="text" name="datosPago[expMes]" placeholder="MM" style="max-width:80px;" />
-      <input type="text" name="datosPago[expAnio]" placeholder="AAAA" style="max-width:100px;" />
-      <input type="text" name="datosPago[cvc]" placeholder="CVC/CVV" style="max-width:120px;" />
-      <input type="email" name="datosPago[email]" placeholder="Correo" />
-      <input type="text" name="datosPago[telefono]" placeholder="Telefono" />
-      <select name="datosPago[cuotas]">
+    
+    <!-- Formulario para Tarjeta de Crédito -->
+    <div class="formulario-pago" id="tarjeta_credito_campos" style="display:none;">
+      <h3 style="color: #667eea; margin-bottom: 15px; font-size: 1.1em;">Datos de Tarjeta de Crédito</h3>
+      <div class="form-group full">
+        <input type="text" name="datosPagoCredito[numero]" id="credito_numero" placeholder="Número de tarjeta" maxlength="16" pattern="[0-9]{13,16}" />
+      </div>
+      <div class="form-group">
+        <input type="text" name="datosPagoCredito[nombre]" id="credito_nombre" placeholder="Nombre del titular" />
+        <input type="text" name="datosPagoCredito[apellido]" id="credito_apellido" placeholder="Apellido del titular" />
+      </div>
+      <div class="form-group">
+        <input type="text" name="datosPagoCredito[expMes]" id="credito_expMes" placeholder="MM" maxlength="2" pattern="[0-9]{2}" style="max-width:100px;" />
+        <input type="text" name="datosPagoCredito[expAnio]" id="credito_expAnio" placeholder="AAAA" maxlength="4" pattern="[0-9]{4}" style="max-width:120px;" />
+        <input type="text" name="datosPagoCredito[cvc]" id="credito_cvc" placeholder="CVC/CVV" maxlength="4" pattern="[0-9]{3,4}" style="max-width:120px;" />
+      </div>
+      <div class="form-group">
+        <input type="email" name="datosPagoCredito[email]" id="credito_email" placeholder="Correo electrónico" />
+        <input type="text" name="datosPagoCredito[telefono]" id="credito_telefono" placeholder="Teléfono" pattern="[0-9]{10}" />
+      </div>
+      <div class="form-group full">
+        <label style="font-weight: 600; color: #333; margin-bottom: 8px; display: block;">Número de cuotas</label>
+        <select name="datosPagoCredito[cuotas]" id="credito_cuotas" style="width: 100%; padding: 12px 16px; border: 2px solid var(--sinbad); border-radius: 12px; font-size: 14px;">
         <option value="1">1 cuota</option>
         <option value="3">3 cuotas</option>
         <option value="6">6 cuotas</option>
         <option value="12">12 cuotas</option>
       </select>
     </div>
+    </div>
+    
+    <!-- Formulario para Tarjeta Débito -->
+    <div class="formulario-pago" id="tarjeta_debito_campos" style="display:none;">
+      <h3 style="color: #667eea; margin-bottom: 15px; font-size: 1.1em;">Datos de Tarjeta Débito</h3>
+      <div class="form-group full">
+        <input type="text" name="datosPagoDebito[numero]" id="debito_numero" placeholder="Número de tarjeta" maxlength="16" pattern="[0-9]{13,16}" />
+      </div>
+      <div class="form-group">
+        <input type="text" name="datosPagoDebito[nombre]" id="debito_nombre" placeholder="Nombre del titular" />
+        <input type="text" name="datosPagoDebito[apellido]" id="debito_apellido" placeholder="Apellido del titular" />
+      </div>
+      <div class="form-group">
+        <input type="text" name="datosPagoDebito[expMes]" id="debito_expMes" placeholder="MM" maxlength="2" pattern="[0-9]{2}" style="max-width:100px;" />
+        <input type="text" name="datosPagoDebito[expAnio]" id="debito_expAnio" placeholder="AAAA" maxlength="4" pattern="[0-9]{4}" style="max-width:120px;" />
+        <input type="text" name="datosPagoDebito[cvc]" id="debito_cvc" placeholder="CVC/CVV" maxlength="4" pattern="[0-9]{3,4}" style="max-width:120px;" />
+      </div>
+      <div class="form-group">
+        <input type="email" name="datosPagoDebito[email]" id="debito_email" placeholder="Correo electrónico" />
+        <input type="text" name="datosPagoDebito[telefono]" id="debito_telefono" placeholder="Teléfono" pattern="[0-9]{10}" />
+      </div>
+    </div>
+    
+    <!-- Formulario para Nequi -->
+    <div class="formulario-pago" id="nequi_campos" style="display:none;">
+      <h3 style="color: #667eea; margin-bottom: 15px; font-size: 1.1em;">Datos de Nequi</h3>
+      <div class="form-group full">
+        <input type="text" name="datosPagoNequi[numero]" id="nequi_numero" placeholder="Número de teléfono Nequi" maxlength="10" pattern="[0-9]{10}" />
+      </div>
+      <div class="form-group full">
+        <input type="email" name="datosPagoNequi[email]" id="nequi_email" placeholder="Correo electrónico" />
+      </div>
+      <div class="info-box" style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 12px; margin-bottom: 15px;">
+        <p style="margin: 0; font-size: 0.9em; color: #1976d2;">
+          <i class='bx bx-info-circle'></i> Recibirás un código de confirmación en tu número Nequi para completar el pago.
+        </p>
+      </div>
+    </div>
+    
     <button type="submit" class="account">Continuar</button>
   </form>
-  <script>
+  
+  <style>
+    .formulario-pago {
+      background: #f8f9fa;
+      border-radius: 12px;
+      padding: 20px;
+      margin-top: 20px;
+      border: 2px solid #e0e0e0;
+    }
+    
+    .formulario-pago .form-group {
+      margin-bottom: 15px;
+    }
+    
+    .formulario-pago input,
+    .formulario-pago select {
+      padding: 12px 16px;
+      border: 2px solid var(--sinbad);
+      border-radius: 12px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color 0.3s ease;
+    }
+    
+    .formulario-pago input:focus,
+    .formulario-pago select:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+  </style>
+  
+  <script th:inline="javascript">
+    /*<![CDATA[*/
     document.addEventListener('DOMContentLoaded', function(){
-      var selector = document.getElementById('metodo_pago');
-      var tarjetaCampos = document.getElementById('tarjeta_campos');
+      const selector = document.getElementById('metodo_pago');
+      const tarjetaCreditoCampos = document.getElementById('tarjeta_credito_campos');
+      const tarjetaDebitoCampos = document.getElementById('tarjeta_debito_campos');
+      const nequiCampos = document.getElementById('nequi_campos');
+      const form = document.getElementById('pagoForm');
       
-      function toggle(){
-        var v = selector.value;
-        var usingCard = (v === 'tarjeta_credito' || v === 'tarjeta_debito');
+      // Campos de cada formulario
+      const camposCredito = tarjetaCreditoCampos.querySelectorAll('input, select');
+      const camposDebito = tarjetaDebitoCampos.querySelectorAll('input, select');
+      const camposNequi = nequiCampos.querySelectorAll('input, select');
+      
+      function toggleFormularios(){
+        const metodo = selector.value;
         
-        if(usingCard){
-          tarjetaCampos.style.display = 'flex';
-        } else {
-          tarjetaCampos.style.display = 'none';
+        // Ocultar todos los formularios y quitar required
+        tarjetaCreditoCampos.style.display = 'none';
+        camposCredito.forEach(campo => {
+          campo.removeAttribute('required');
+          campo.disabled = true;
+        });
+        
+        tarjetaDebitoCampos.style.display = 'none';
+        camposDebito.forEach(campo => {
+          campo.removeAttribute('required');
+          campo.disabled = true;
+        });
+        
+        nequiCampos.style.display = 'none';
+        camposNequi.forEach(campo => {
+          campo.removeAttribute('required');
+          campo.disabled = true;
+        });
+        
+        // Mostrar el formulario correspondiente y agregar required
+        if(metodo === 'tarjeta_credito'){
+          tarjetaCreditoCampos.style.display = 'block';
+          camposCredito.forEach(campo => {
+            campo.setAttribute('required', 'required');
+            campo.disabled = false;
+          });
+        } else if(metodo === 'tarjeta_debito'){
+          tarjetaDebitoCampos.style.display = 'block';
+          camposDebito.forEach(campo => {
+            campo.setAttribute('required', 'required');
+            campo.disabled = false;
+          });
+        } else if(metodo === 'nequi'){
+          nequiCampos.style.display = 'block';
+          camposNequi.forEach(campo => {
+            campo.setAttribute('required', 'required');
+            campo.disabled = false;
+          });
         }
       }
       
-      selector.addEventListener('change', toggle);
-      toggle();
+      // Validación y consolidación de datos antes de enviar
+      if(form){
+        form.addEventListener('submit', function(e){
+          const metodo = selector.value;
+          
+          if(!metodo){
+            e.preventDefault();
+            alert('Por favor selecciona un método de pago');
+            selector.focus();
+            return false;
+          }
+          
+          // Crear campos ocultos con los datos consolidados
+          let datosConsolidados = {};
+          
+          // Validar y consolidar campos según el método seleccionado
+          if(metodo === 'tarjeta_credito'){
+            const numero = document.getElementById('credito_numero');
+            const nombre = document.getElementById('credito_nombre');
+            const apellido = document.getElementById('credito_apellido');
+            const expMes = document.getElementById('credito_expMes');
+            const expAnio = document.getElementById('credito_expAnio');
+            const cvc = document.getElementById('credito_cvc');
+            const email = document.getElementById('credito_email');
+            const telefono = document.getElementById('credito_telefono');
+            const cuotas = document.getElementById('credito_cuotas');
+            
+            if(!numero.value || !nombre.value || !apellido.value || !expMes.value || !expAnio.value || !cvc.value || !email.value || !telefono.value){
+              e.preventDefault();
+              alert('Por favor completa todos los campos de la tarjeta de crédito');
+              return false;
+            }
+            
+            datosConsolidados = {
+              numero: numero.value,
+              nombre: nombre.value,
+              apellido: apellido.value,
+              expMes: expMes.value,
+              expAnio: expAnio.value,
+              cvc: cvc.value,
+              email: email.value,
+              telefono: telefono.value,
+              cuotas: cuotas.value
+            };
+          } else if(metodo === 'tarjeta_debito'){
+            const numero = document.getElementById('debito_numero');
+            const nombre = document.getElementById('debito_nombre');
+            const apellido = document.getElementById('debito_apellido');
+            const expMes = document.getElementById('debito_expMes');
+            const expAnio = document.getElementById('debito_expAnio');
+            const cvc = document.getElementById('debito_cvc');
+            const email = document.getElementById('debito_email');
+            const telefono = document.getElementById('debito_telefono');
+            
+            if(!numero.value || !nombre.value || !apellido.value || !expMes.value || !expAnio.value || !cvc.value || !email.value || !telefono.value){
+              e.preventDefault();
+              alert('Por favor completa todos los campos de la tarjeta débito');
+              return false;
+            }
+            
+            datosConsolidados = {
+              numero: numero.value,
+              nombre: nombre.value,
+              apellido: apellido.value,
+              expMes: expMes.value,
+              expAnio: expAnio.value,
+              cvc: cvc.value,
+              email: email.value,
+              telefono: telefono.value
+            };
+          } else if(metodo === 'nequi'){
+            const numero = document.getElementById('nequi_numero');
+            const email = document.getElementById('nequi_email');
+            
+            if(!numero.value || !email.value){
+              e.preventDefault();
+              alert('Por favor completa todos los campos de Nequi');
+              return false;
+            }
+            
+            datosConsolidados = {
+              numero: numero.value,
+              email: email.value
+            };
+          }
+          
+          // Eliminar campos ocultos anteriores si existen
+          const camposOcultosAnteriores = form.querySelectorAll('input[type="hidden"][name^="datosPago"]');
+          camposOcultosAnteriores.forEach(campo => campo.remove());
+          
+          // Crear campos ocultos con los datos consolidados
+          Object.keys(datosConsolidados).forEach(key => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = 'datosPago[' + key + ']';
+            input.value = datosConsolidados[key];
+            form.appendChild(input);
+          });
+        });
+      }
+      
+      selector.addEventListener('change', toggleFormularios);
+      toggleFormularios();
     });
+    /*]]>*/
   </script>
 </div>

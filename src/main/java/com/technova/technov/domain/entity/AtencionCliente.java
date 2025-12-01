@@ -38,7 +38,4 @@ public class AtencionCliente {
 
     @Column(name = "Respuesta", columnDefinition = "TEXT")
     private String respuesta;
-
-    @Column(name = "deleted", nullable = false)
-    private Boolean deleted = false;
 }

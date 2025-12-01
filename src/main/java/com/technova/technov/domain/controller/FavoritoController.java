@@ -45,5 +45,21 @@ public class FavoritoController {
         boolean resultado = favoritoService.toggle(usuarioId, productoId);
         return ResponseEntity.ok(resultado);
     }
+
+    @DeleteMapping("/usuario/{usuarioId}/producto/{productoId}")
+    public ResponseEntity<?> eliminar(
+            @PathVariable Long usuarioId,
+            @PathVariable Integer productoId) {
+        try {
+            FavoritoDto eliminado = favoritoService.eliminar(usuarioId, productoId);
+            if (eliminado != null) {
+                return ResponseEntity.ok(eliminado);
+            } else {
+                return ResponseEntity.notFound().build();
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error al eliminar favorito: " + e.getMessage());
+        }
+    }
 }
 

@@ -66,7 +66,14 @@ public class CheckoutServiceImpl implements CheckoutService {
 
         BigDecimal total = BigDecimal.ZERO;
         for (DetalleCarrito dc : items) {
-            Producto prod = dc.getProducto();
+            Producto prod = productoRepository.findById(dc.getProducto().getId())
+                    .orElseThrow(() -> new IllegalStateException("Producto no encontrado: " + dc.getProducto().getId()));
+            
+            // Forzar carga de característica
+            if (prod.getCaracteristica() != null) {
+                prod.getCaracteristica().getPrecioVenta(); // Forzar carga
+            }
+            
             int disponible = prod.getStock() != null ? prod.getStock() : 0;
             int cant = dc.getCantidad();
             if (disponible < cant) {
@@ -75,11 +82,16 @@ public class CheckoutServiceImpl implements CheckoutService {
             prod.setStock(disponible - cant);
             productoRepository.save(prod);
 
-            BigDecimal precioUnit = dc.getProducto().getCaracteristica() != null
-                    ? dc.getProducto().getCaracteristica().getPrecioVenta()
-                    : BigDecimal.ZERO;
-            BigDecimal precioLinea = precioUnit.multiply(BigDecimal.valueOf(dc.getCantidad()));
+            BigDecimal precioUnit = BigDecimal.ZERO;
+            if (prod.getCaracteristica() != null && prod.getCaracteristica().getPrecioVenta() != null) {
+                precioUnit = prod.getCaracteristica().getPrecioVenta();
+            } else {
+                System.err.println("ADVERTENCIA: Producto " + prod.getId() + " (" + prod.getNombre() + ") no tiene precio de venta configurado");
+            }
+            BigDecimal precioLinea = precioUnit.multiply(BigDecimal.valueOf(cant));
             total = total.add(precioLinea);
+            
+            System.out.println("Checkout - Producto: " + prod.getNombre() + " x" + cant + " = $" + precioLinea);
 
             DetalleVenta dv = new DetalleVenta();
             dv.setVenta(venta);

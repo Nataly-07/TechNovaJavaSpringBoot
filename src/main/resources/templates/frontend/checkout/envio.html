@@ -3,19 +3,54 @@
   <th:block th:if="${direccion != null}">
     <div class="info-box" style="margin-bottom:15px;">
       <strong>Enviar a:</strong>
-      <div th:text="${direccion.direccion} + ', ' + ${direccion.barrio}">Dirección</div>
-      <div th:text="${direccion.ciudad} + ' - ' + ${direccion.departamento}">Ciudad - Departamento</div>
+      <div th:text="${direccion.direccion != null ? direccion.direccion : ''} + (${direccion.barrio != null ? ', ' + direccion.barrio : ''})">Dirección</div>
+      <div th:text="${direccion.ciudad != null ? direccion.ciudad : ''} + ' - ' + ${direccion.departamento != null ? direccion.departamento : ''}">Ciudad - Departamento</div>
     </div>
   </th:block>
-  <form method="POST" th:action="@{/checkout/envio}">
+  <form method="POST" th:action="@{/checkout/envio}" id="envioForm">
     <div class="form-group">
       <select name="transportadora" required>
+        <option value="">Seleccione una transportadora</option>
         <option value="Servientrega">Servientrega</option>
         <option value="Coordinadora">Coordinadora</option>
         <option value="Interrapidisimo">Interrapidísimo</option>
       </select>
-      <input type="date" name="fechaEnvio" th:value="${fechaEnvio}" required />
+      <input type="date" name="fechaEnvio" id="fechaEnvio" th:value="${fechaEnvio}" required min="" />
     </div>
     <button type="submit" class="account">Continuar</button>
   </form>
+  
+  <script th:inline="javascript">
+    /*<![CDATA[*/
+    document.addEventListener('DOMContentLoaded', function() {
+      const fechaInput = document.getElementById('fechaEnvio');
+      if (fechaInput) {
+        // Establecer la fecha mínima como hoy
+        const today = new Date();
+        const year = today.getFullYear();
+        const month = String(today.getMonth() + 1).padStart(2, '0');
+        const day = String(today.getDate()).padStart(2, '0');
+        const minDate = year + '-' + month + '-' + day;
+        fechaInput.setAttribute('min', minDate);
+        
+        // Validación adicional al enviar el formulario
+        const form = document.getElementById('envioForm');
+        if (form) {
+          form.addEventListener('submit', function(e) {
+            const selectedDate = new Date(fechaInput.value);
+            const todayDate = new Date();
+            todayDate.setHours(0, 0, 0, 0);
+            
+            if (selectedDate < todayDate) {
+              e.preventDefault();
+              alert('No puedes seleccionar una fecha anterior a hoy. Por favor selecciona una fecha válida.');
+              fechaInput.focus();
+              return false;
+            }
+          });
+        }
+      }
+    });
+    /*]]>*/
+  </script>
 </div>

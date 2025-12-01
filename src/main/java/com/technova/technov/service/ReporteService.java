@@ -1,5 +1,7 @@
 package com.technova.technov.service;
 
+import com.technova.technov.domain.dto.CompraDto;
+import com.technova.technov.domain.dto.CompraDetalleDto;
 import com.technova.technov.domain.dto.ProductoDto;
 import com.technova.technov.domain.dto.UsuarioDto;
 import com.technova.technov.domain.dto.VentaDto;
@@ -15,6 +17,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -432,6 +435,299 @@ public class ReporteService {
 
             y -= 20;
         }
+
+        contentStream.close();
+
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        document.save(outputStream);
+        document.close();
+
+        return outputStream.toByteArray();
+    }
+
+    public byte[] generarFacturaCompra(CompraDto compra, UsuarioDto usuario) throws IOException {
+        PDDocument document = new PDDocument();
+        PDPage page = new PDPage(PDRectangle.A4);
+        document.addPage(page);
+
+        PDType1Font fontBold = new PDType1Font(Standard14Fonts.FontName.HELVETICA_BOLD);
+        PDType1Font font = new PDType1Font(Standard14Fonts.FontName.HELVETICA);
+        
+        PDPageContentStream contentStream = new PDPageContentStream(document, page);
+        
+        // Encabezado con gradiente Technova (color púrpura)
+        // Fondo del encabezado
+        contentStream.setNonStrokingColor(102.0f / 255.0f, 126.0f / 255.0f, 234.0f / 255.0f); // #667eea
+        contentStream.addRect(0, 700, 595, 100);
+        contentStream.fill();
+        
+        // Título de la factura en blanco
+        contentStream.setNonStrokingColor(1.0f, 1.0f, 1.0f); // Blanco
+        contentStream.beginText();
+        contentStream.setFont(fontBold, 24);
+        contentStream.newLineAtOffset(50, 750);
+        contentStream.showText("FACTURA DE COMPRA");
+        contentStream.endText();
+
+        // Información de la empresa
+        contentStream.beginText();
+        contentStream.setFont(fontBold, 14);
+        contentStream.newLineAtOffset(50, 720);
+        contentStream.showText("TECHNOVA");
+        contentStream.endText();
+
+        contentStream.beginText();
+        contentStream.setFont(font, 11);
+        contentStream.newLineAtOffset(50, 705);
+        contentStream.showText("Sistema de Gestión de Inventario");
+        contentStream.endText();
+        
+        // Número de factura en caja destacada
+        contentStream.setNonStrokingColor(1.0f, 1.0f, 1.0f);
+        contentStream.addRect(400, 720, 145, 50);
+        contentStream.fill();
+        contentStream.setNonStrokingColor(102.0f / 255.0f, 126.0f / 255.0f, 234.0f / 255.0f);
+        contentStream.beginText();
+        contentStream.setFont(font, 10);
+        contentStream.newLineAtOffset(410, 755);
+        contentStream.showText("Número de Factura");
+        contentStream.endText();
+        contentStream.beginText();
+        contentStream.setFont(fontBold, 18);
+        contentStream.newLineAtOffset(410, 735);
+        contentStream.showText("#" + (compra.getCompraId() != null ? compra.getCompraId() : "N/A"));
+        contentStream.endText();
+
+        // Información del cliente (texto negro)
+        contentStream.setNonStrokingColor(0.0f, 0.0f, 0.0f); // Negro
+        int yPos = 680;
+        
+        // Caja de información del cliente
+        contentStream.setNonStrokingColor(248.0f / 255.0f, 249.0f / 255.0f, 250.0f / 255.0f); // #f8f9fa
+        contentStream.addRect(50, 600, 250, 70);
+        contentStream.fill();
+        contentStream.setNonStrokingColor(102.0f / 255.0f, 126.0f / 255.0f, 234.0f / 255.0f); // #667eea
+        contentStream.setLineWidth(4);
+        contentStream.addRect(50, 600, 250, 70);
+        contentStream.stroke();
+        
+        contentStream.setNonStrokingColor(102.0f / 255.0f, 126.0f / 255.0f, 234.0f / 255.0f);
+        contentStream.beginText();
+        contentStream.setFont(fontBold, 12);
+        contentStream.newLineAtOffset(60, 660);
+        contentStream.showText("Información del Cliente");
+        contentStream.endText();
+
+        contentStream.setNonStrokingColor(0.0f, 0.0f, 0.0f); // Negro para texto
+        if (usuario != null) {
+            contentStream.beginText();
+            contentStream.setFont(font, 10);
+            contentStream.newLineAtOffset(60, 640);
+            contentStream.showText("Nombre: " + (usuario.getName() != null ? usuario.getName() : "N/A"));
+            contentStream.endText();
+
+            contentStream.beginText();
+            contentStream.setFont(font, 10);
+            contentStream.newLineAtOffset(60, 625);
+            contentStream.showText("Email: " + (usuario.getEmail() != null ? usuario.getEmail() : "N/A"));
+            contentStream.endText();
+
+            if (usuario.getPhone() != null) {
+                contentStream.beginText();
+                contentStream.setFont(font, 10);
+                contentStream.newLineAtOffset(60, 610);
+                contentStream.showText("Teléfono: " + usuario.getPhone());
+                contentStream.endText();
+            }
+        }
+
+        // Caja de información de la compra
+        contentStream.setNonStrokingColor(248.0f / 255.0f, 249.0f / 255.0f, 250.0f / 255.0f); // #f8f9fa
+        contentStream.addRect(320, 600, 250, 70);
+        contentStream.fill();
+        contentStream.setNonStrokingColor(118.0f / 255.0f, 75.0f / 255.0f, 162.0f / 255.0f); // #764ba2
+        contentStream.setLineWidth(4);
+        contentStream.addRect(320, 600, 250, 70);
+        contentStream.stroke();
+        
+        contentStream.setNonStrokingColor(118.0f / 255.0f, 75.0f / 255.0f, 162.0f / 255.0f);
+        contentStream.beginText();
+        contentStream.setFont(fontBold, 12);
+        contentStream.newLineAtOffset(330, 660);
+        contentStream.showText("Información de la Compra");
+        contentStream.endText();
+
+        contentStream.setNonStrokingColor(0.0f, 0.0f, 0.0f);
+        if (compra.getFechaCompra() != null) {
+            String fechaCompra = compra.getFechaCompra().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+            contentStream.beginText();
+            contentStream.setFont(font, 10);
+            contentStream.newLineAtOffset(330, 640);
+            contentStream.showText("Fecha: " + fechaCompra);
+            contentStream.endText();
+        }
+
+        if (compra.getEstado() != null) {
+            contentStream.beginText();
+            contentStream.setFont(font, 10);
+            contentStream.newLineAtOffset(330, 625);
+            contentStream.showText("Estado: " + compra.getEstado());
+            contentStream.endText();
+        }
+        
+        yPos = 580;
+
+        // Tabla de productos
+        contentStream.setNonStrokingColor(0.0f, 0.0f, 0.0f);
+        contentStream.beginText();
+        contentStream.setFont(fontBold, 13);
+        contentStream.newLineAtOffset(50, yPos);
+        contentStream.showText("Productos Comprados");
+        contentStream.endText();
+
+        yPos -= 25;
+        
+        // Encabezado de tabla con fondo Technova
+        contentStream.setNonStrokingColor(102.0f / 255.0f, 126.0f / 255.0f, 234.0f / 255.0f); // #667eea
+        contentStream.addRect(50, yPos - 15, 500, 20);
+        contentStream.fill();
+        
+        contentStream.setNonStrokingColor(1.0f, 1.0f, 1.0f); // Texto blanco
+        contentStream.beginText();
+        contentStream.setFont(fontBold, 10);
+        contentStream.newLineAtOffset(55, yPos - 5);
+        contentStream.showText("Producto");
+        contentStream.endText();
+
+        contentStream.beginText();
+        contentStream.setFont(fontBold, 10);
+        contentStream.newLineAtOffset(250, yPos - 5);
+        contentStream.showText("Cantidad");
+        contentStream.endText();
+
+        contentStream.beginText();
+        contentStream.setFont(fontBold, 10);
+        contentStream.newLineAtOffset(320, yPos - 5);
+        contentStream.showText("Precio Unit.");
+        contentStream.endText();
+
+        contentStream.beginText();
+        contentStream.setFont(fontBold, 10);
+        contentStream.newLineAtOffset(420, yPos - 5);
+        contentStream.showText("Subtotal");
+        contentStream.endText();
+
+        yPos -= 25;
+        contentStream.setNonStrokingColor(0.0f, 0.0f, 0.0f); // Negro para texto de productos
+
+        // Productos
+        boolean alternate = false;
+        if (compra.getItems() != null && !compra.getItems().isEmpty()) {
+            for (CompraDetalleDto detalle : compra.getItems()) {
+                if (yPos < 100) {
+                    contentStream.close();
+                    page = new PDPage(PDRectangle.A4);
+                    document.addPage(page);
+                    contentStream = new PDPageContentStream(document, page);
+                    yPos = 750;
+                    alternate = false;
+                }
+
+                // Fondo alternado para filas
+                if (alternate) {
+                    contentStream.setNonStrokingColor(248.0f / 255.0f, 249.0f / 255.0f, 250.0f / 255.0f); // #f8f9fa
+                    contentStream.addRect(50, yPos - 12, 500, 15);
+                    contentStream.fill();
+                }
+                alternate = !alternate;
+
+                String nombreProducto = detalle.getNombreProducto() != null ? detalle.getNombreProducto() : "N/A";
+                if (nombreProducto.length() > 30) {
+                    nombreProducto = nombreProducto.substring(0, 27) + "...";
+                }
+
+                contentStream.setNonStrokingColor(0.0f, 0.0f, 0.0f);
+                contentStream.beginText();
+                contentStream.setFont(font, 9);
+                contentStream.newLineAtOffset(55, yPos - 5);
+                contentStream.showText(nombreProducto);
+                contentStream.endText();
+
+                contentStream.beginText();
+                contentStream.setFont(font, 9);
+                contentStream.newLineAtOffset(250, yPos - 5);
+                contentStream.showText(String.valueOf(detalle.getCantidad() != null ? detalle.getCantidad() : 0));
+                contentStream.endText();
+
+                String precioUnit = detalle.getPrecio() != null ? String.format("%.0f", detalle.getPrecio().doubleValue()) : "0";
+                contentStream.beginText();
+                contentStream.setFont(font, 9);
+                contentStream.newLineAtOffset(320, yPos - 5);
+                contentStream.showText("$" + precioUnit);
+                contentStream.endText();
+
+                BigDecimal subtotal = BigDecimal.ZERO;
+                if (detalle.getPrecio() != null && detalle.getCantidad() != null) {
+                    subtotal = detalle.getPrecio().multiply(BigDecimal.valueOf(detalle.getCantidad()));
+                }
+                contentStream.setNonStrokingColor(39.0f / 255.0f, 174.0f / 255.0f, 96.0f / 255.0f); // Verde para subtotal
+                contentStream.beginText();
+                contentStream.setFont(fontBold, 9);
+                contentStream.newLineAtOffset(420, yPos - 5);
+                contentStream.showText("$" + String.format("%.0f", subtotal.doubleValue()));
+                contentStream.endText();
+
+                yPos -= 15;
+            }
+        }
+
+        // Total destacado
+        yPos -= 20;
+        contentStream.setNonStrokingColor(0.0f, 0.0f, 0.0f);
+        contentStream.setLineWidth(2);
+        contentStream.moveTo(50, yPos);
+        contentStream.lineTo(550, yPos);
+        contentStream.stroke();
+
+        yPos -= 25;
+        // Caja destacada para el total
+        contentStream.setNonStrokingColor(248.0f / 255.0f, 249.0f / 255.0f, 250.0f / 255.0f); // #f8f9fa
+        contentStream.addRect(300, yPos - 25, 250, 40);
+        contentStream.fill();
+        contentStream.setNonStrokingColor(102.0f / 255.0f, 126.0f / 255.0f, 234.0f / 255.0f); // #667eea
+        contentStream.setLineWidth(3);
+        contentStream.addRect(300, yPos - 25, 250, 40);
+        contentStream.stroke();
+        
+        contentStream.setNonStrokingColor(102.0f / 255.0f, 126.0f / 255.0f, 234.0f / 255.0f);
+        contentStream.beginText();
+        contentStream.setFont(fontBold, 11);
+        contentStream.newLineAtOffset(310, yPos);
+        contentStream.showText("TOTAL A PAGAR");
+        contentStream.endText();
+
+        String total = compra.getTotal() != null ? String.format("%.0f", compra.getTotal().doubleValue()) : "0";
+        contentStream.beginText();
+        contentStream.setFont(fontBold, 18);
+        contentStream.newLineAtOffset(310, yPos - 18);
+        contentStream.showText("$" + total);
+        contentStream.endText();
+
+        // Pie de página
+        yPos -= 40;
+        contentStream.beginText();
+        contentStream.setFont(font, 8);
+        contentStream.newLineAtOffset(50, yPos);
+        contentStream.showText("Gracias por su compra!");
+        contentStream.endText();
+
+        yPos -= 15;
+        String fechaGeneracion = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
+        contentStream.beginText();
+        contentStream.setFont(font, 8);
+        contentStream.newLineAtOffset(50, yPos);
+        contentStream.showText("Factura generada el: " + fechaGeneracion);
+        contentStream.endText();
 
         contentStream.close();
 

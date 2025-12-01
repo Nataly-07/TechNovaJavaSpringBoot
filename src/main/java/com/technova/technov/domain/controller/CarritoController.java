@@ -58,5 +58,11 @@ public class CarritoController {
         List<CarritoItemDto> items = carritoService.eliminar(usuarioId, detalleId);
         return ResponseEntity.ok(items);
     }
+    
+    @DeleteMapping("/{usuarioId}/vaciar")
+    public ResponseEntity<?> vaciar(@PathVariable Integer usuarioId) {
+        carritoService.vaciar(usuarioId);
+        return ResponseEntity.ok().build();
+    }
 }
 

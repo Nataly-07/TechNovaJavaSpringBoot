@@ -30,22 +30,34 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
     @Override
     @Transactional
     public AtencionClienteDto crearTicket(Integer usuarioId, String tema, String descripcion) {
+        if (usuarioId == null) {
+            throw new IllegalArgumentException("El ID de usuario no puede ser nulo");
+        }
+        if (tema == null || tema.trim().isEmpty()) {
+            throw new IllegalArgumentException("El tema no puede estar vacío");
+        }
+        if (descripcion == null || descripcion.trim().isEmpty()) {
+            throw new IllegalArgumentException("La descripción no puede estar vacía");
+        }
+        
         Usuario usuario = usuarioRepository.findByIdAndEstadoTrue(Long.valueOf(usuarioId))
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + usuarioId));
+                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado o inactivo: " + usuarioId));
+        
         AtencionCliente ticket = new AtencionCliente();
         ticket.setUsuario(usuario);
         ticket.setFechaConsulta(LocalDateTime.now());
-        ticket.setTema(tema);
-        ticket.setDescripcion(descripcion);
+        ticket.setTema(tema.trim());
+        ticket.setDescripcion(descripcion.trim());
         ticket.setEstado("abierto");
-        ticket.setDeleted(false);
-        return convertToDto(atencionClienteRepository.save(ticket));
+        
+        AtencionCliente ticketGuardado = atencionClienteRepository.save(ticket);
+        return convertToDto(ticketGuardado);
     }
 
     @Override
     @Transactional
     public AtencionClienteDto responder(Integer id, String respuesta) {
-        AtencionCliente t = atencionClienteRepository.findByIdAndDeletedFalse(id)
+        AtencionCliente t = atencionClienteRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Ticket no encontrado: " + id));
         t.setRespuesta(respuesta);
         t.setEstado("en_proceso");
@@ -55,7 +67,7 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
     @Override
     @Transactional
     public AtencionClienteDto cerrar(Integer id) {
-        AtencionCliente t = atencionClienteRepository.findByIdAndDeletedFalse(id)
+        AtencionCliente t = atencionClienteRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Ticket no encontrado: " + id));
         t.setEstado("resuelto");
         return convertToDto(atencionClienteRepository.save(t));
@@ -64,7 +76,7 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
     @Override
     @Transactional(readOnly = true)
     public List<AtencionClienteDto> listarPorUsuario(Integer usuarioId) {
-        List<AtencionCliente> tickets = atencionClienteRepository.findByUsuario_IdAndDeletedFalse(Long.valueOf(usuarioId));
+        List<AtencionCliente> tickets = atencionClienteRepository.findByUsuario_Id(Long.valueOf(usuarioId));
         return tickets.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
@@ -73,7 +85,7 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
     @Override
     @Transactional(readOnly = true)
     public List<AtencionClienteDto> listarPorEstado(String estado) {
-        List<AtencionCliente> tickets = atencionClienteRepository.findByEstadoIgnoreCaseAndDeletedFalse(estado);
+        List<AtencionCliente> tickets = atencionClienteRepository.findByEstadoIgnoreCase(estado);
         return tickets.stream()
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
@@ -82,7 +94,7 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
     @Override
     @Transactional(readOnly = true)
     public AtencionClienteDto detalle(Integer id) {
-        return atencionClienteRepository.findByIdAndDeletedFalse(id)
+        return atencionClienteRepository.findById(id)
                 .map(this::convertToDto)
                 .orElse(null);
     }
@@ -90,7 +102,7 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
     @Override
     @Transactional
     public AtencionClienteDto actualizar(Integer id, AtencionClienteDto dto) {
-        return atencionClienteRepository.findByIdAndDeletedFalse(id)
+        return atencionClienteRepository.findById(id)
                 .map(existing -> {
                     existing.setTema(dto.getTema());
                     existing.setDescripcion(dto.getDescripcion());
@@ -107,8 +119,7 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
     public boolean eliminar(Integer id) {
         return atencionClienteRepository.findById(id)
                 .map(ticket -> {
-                    ticket.setDeleted(true);
-                    atencionClienteRepository.save(ticket);
+                    atencionClienteRepository.delete(ticket);
                     return true;
                 })
                 .orElse(false);

@@ -6,6 +6,157 @@
   <title>Lenovo | Technova</title>
   <link rel="stylesheet" th:href="@{/frontend/css/stilotech.css}" />
   <link rel="stylesheet" th:href="@{/frontend/css/producto.css}" />
+  <style>
+    .productos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 20px;
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    
+    .productos-grid .producto {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      transition: all 0.3s ease;
+      border: 2px solid #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+    }
+    
+    .productos-grid .producto:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      border-color: #00d4ff;
+    }
+    
+    .productos-grid .producto img {
+      width: 100%;
+      max-width: 200px;
+      height: 180px;
+      object-fit: contain;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      background: #f8f9fa;
+      padding: 10px;
+    }
+    
+    .productos-grid .producto h3 {
+      font-size: 1.1em;
+      font-weight: 600;
+      margin: 10px 0 8px;
+      color: #333;
+      line-height: 1.3;
+    }
+    
+    .productos-grid .producto p {
+      margin: 5px 0;
+      color: #666;
+      font-size: 0.9em;
+      line-height: 1.4;
+    }
+    
+    .productos-grid .producto .precio-original {
+      text-decoration: line-through;
+      color: #999;
+      font-size: 0.9em;
+      margin: 5px 0;
+    }
+    
+    .productos-grid .producto .precio-descuento {
+      font-weight: 600;
+      color: #00d4ff;
+      font-size: 1.1em;
+      margin: 5px 0;
+    }
+    
+    .productos-grid .producto .detalles {
+      display: inline-block;
+      margin: 10px 0;
+      padding: 10px 20px;
+      background: var(--gradient-primary);
+      color: white;
+      text-decoration: none;
+      border-radius: 10px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    
+    .productos-grid .producto .detalles:hover {
+      background: var(--gradient-secondary);
+      transform: scale(1.05);
+    }
+    
+    .productos-grid .producto .carrito-btn {
+      background: var(--gradient-secondary);
+      border: none;
+      color: white;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      font-size: 18px;
+      cursor: pointer;
+      margin: 10px 0;
+      transition: all 0.3s ease;
+    }
+    
+    .productos-grid .producto .carrito-btn:hover {
+      transform: scale(1.1);
+      background: var(--gradient-primary);
+    }
+    
+    .navegacion-categorias {
+      margin: 40px auto;
+      max-width: 1200px;
+      padding: 20px;
+    }
+    
+    .navegacion-categorias h2 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 20px;
+      font-size: 1.5em;
+    }
+    
+    .categorias-grid,
+    .marcas-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 15px;
+      justify-content: center;
+    }
+    
+    .categoria-item,
+    .marca-item {
+      padding: 12px 24px;
+      background: var(--gradient-primary);
+      color: white;
+      text-decoration: none;
+      border-radius: 25px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+    
+    .categoria-item:hover,
+    .marca-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      background: var(--gradient-secondary);
+    }
+    
+    .productos h2 {
+      text-align: center;
+      color: #333;
+      margin: 30px 0 20px;
+      font-size: 2em;
+    }
+  </style>
 </head>
 <body>
   <header class="header">
@@ -46,17 +197,17 @@
   <main class="main-content">
     <section class="productos">
       <h2>💻 Productos Lenovo</h2>
-      <div th:if="${productos != null && !productos.isEmpty()}" class="productos-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 15px; padding: 15px;">
+      <div th:if="${productos != null && !productos.isEmpty()}" class="productos-grid">
         <div class="producto" th:each="producto : ${productos}">
           <img th:if="${producto.imagen != null && !producto.imagen.isEmpty()}" 
                th:src="${producto.imagen.startsWith('http') ? producto.imagen : '/frontend/imagenes/' + producto.imagen}" 
                th:alt="${producto.nombre}" />
-          <a href="javascript:void(0)" class="detalles">Ver Más Detalles</a>
+          <a th:href="@{'/producto/' + ${producto.id}}" class="detalles">Ver Más Detalles</a>
           <h3 th:text="${producto.nombre}">Producto</h3>
           <p>4.5 ⭐</p>
           <th:block th:if="${producto.precioOriginal != null && producto.precioDescuento != null}">
-            <p class="precio-original">$<span th:text="${#numbers.formatDecimal(producto.precioOriginal, 0, 'COMMA', '.')}">0</span></p>
-            <p class="precio-descuento">$<span th:text="${#numbers.formatDecimal(producto.precioDescuento, 0, 'COMMA', '.')}">0</span> <span class="descuento">-5%</span></p>
+            <p class="precio-original">$<span th:text="${#numbers.formatDecimal(producto.precioOriginal, 0, 0)}">0</span></p>
+            <p class="precio-descuento">$<span th:text="${#numbers.formatDecimal(producto.precioDescuento, 0, 0)}">0</span> <span class="descuento">-5%</span></p>
           </th:block>
           <button class="carrito-btn">&#128722;</button>
           <p th:if="${producto.caracteristica != null && producto.caracteristica.descripcion != null}" th:text="${producto.caracteristica.descripcion}"></p>
