@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="es" xmlns:th="http://www.thymeleaf.org">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TECHNOVA - Crear Cuenta</title>
   <link rel="stylesheet" th:href="@{/frontend/css/estilos1.css}" />
   <link rel="stylesheet" th:href="@{/frontend/css/stilotech.css}" />
@@ -111,7 +112,8 @@
       position: relative;
     }
 
-    .form-group input, .form-group select {
+    .form-group input,
+    .form-group select {
       width: 100%;
       padding: 16px 20px;
       border: 2px solid #e2e8f0;
@@ -121,7 +123,8 @@
       background: #f8fafc;
     }
 
-    .form-group input:focus, .form-group select:focus {
+    .form-group input:focus,
+    .form-group select:focus {
       outline: none;
       border-color: #667eea;
       background: white;
@@ -137,7 +140,7 @@
       font-size: 20px;
     }
 
-    .form-group input:focus + .input-icon {
+    .form-group input:focus+.input-icon {
       color: #667eea;
     }
 
@@ -231,7 +234,7 @@
       left: 10%;
       animation-delay: 0s;
     }
-    
+
     .shape-2 {
       width: 120px;
       height: 120px;
@@ -247,7 +250,7 @@
       left: 20%;
       animation-delay: 4s;
     }
-    
+
     .shape-4 {
       width: 100px;
       height: 100px;
@@ -273,9 +276,12 @@
     }
 
     @keyframes float {
-      0%, 100% {
+
+      0%,
+      100% {
         transform: translateY(0px) rotate(0deg);
       }
+
       50% {
         transform: translateY(-10px) rotate(45deg);
       }
@@ -290,7 +296,7 @@
       z-index: 1;
       will-change: transform;
     }
-    
+
     .device-3d {
       position: absolute;
       perspective: 1000px;
@@ -510,10 +516,25 @@
       animation: propellerSpin 0.2s linear infinite;
     }
 
-    .prop-1 { top: -5px; left: -15px; }
-    .prop-2 { top: -5px; right: -15px; }
-    .prop-3 { bottom: -5px; left: -15px; }
-    .prop-4 { bottom: -5px; right: -15px; }
+    .prop-1 {
+      top: -5px;
+      left: -15px;
+    }
+
+    .prop-2 {
+      top: -5px;
+      right: -15px;
+    }
+
+    .prop-3 {
+      bottom: -5px;
+      left: -15px;
+    }
+
+    .prop-4 {
+      bottom: -5px;
+      right: -15px;
+    }
 
     .robot-3d {
       bottom: 40%;
@@ -582,8 +603,15 @@
       animation: buttonBlink 2s ease-in-out infinite;
     }
 
-    .btn-1 { top: -8px; left: -8px; }
-    .btn-2 { top: -8px; right: -8px; }
+    .btn-1 {
+      top: -8px;
+      left: -8px;
+    }
+
+    .btn-2 {
+      top: -8px;
+      right: -8px;
+    }
 
     /* Partículas flotantes - Optimizadas */
     .particle {
@@ -638,226 +666,542 @@
 
     /* Animaciones de flotación */
     @keyframes laptopFloat {
-      0%, 100% { transform: translateY(0px) rotateZ(0deg); }
-      50% { transform: translateY(-20px) rotateZ(5deg); }
+
+      0%,
+      100% {
+        transform: translateY(0px) rotateZ(0deg);
+      }
+
+      50% {
+        transform: translateY(-20px) rotateZ(5deg);
+      }
     }
 
     @keyframes phoneFloat {
-      0%, 100% { transform: translateY(0px) rotateZ(0deg); }
-      50% { transform: translateY(-15px) rotateZ(-3deg); }
+
+      0%,
+      100% {
+        transform: translateY(0px) rotateZ(0deg);
+      }
+
+      50% {
+        transform: translateY(-15px) rotateZ(-3deg);
+      }
     }
 
     @keyframes tabletFloat {
-      0%, 100% { transform: translateY(0px) rotateZ(0deg); }
-      50% { transform: translateY(-25px) rotateZ(4deg); }
+
+      0%,
+      100% {
+        transform: translateY(0px) rotateZ(0deg);
+      }
+
+      50% {
+        transform: translateY(-25px) rotateZ(4deg);
+      }
     }
 
     @keyframes smartwatchFloat {
-      0%, 100% { transform: translateY(0px) rotateZ(0deg); }
-      50% { transform: translateY(-12px) rotateZ(-2deg); }
+
+      0%,
+      100% {
+        transform: translateY(0px) rotateZ(0deg);
+      }
+
+      50% {
+        transform: translateY(-12px) rotateZ(-2deg);
+      }
     }
 
     @keyframes headphonesFloat {
-      0%, 100% { transform: translateY(0px) rotateZ(0deg); }
-      50% { transform: translateY(-18px) rotateZ(3deg); }
+
+      0%,
+      100% {
+        transform: translateY(0px) rotateZ(0deg);
+      }
+
+      50% {
+        transform: translateY(-18px) rotateZ(3deg);
+      }
     }
 
     @keyframes cameraFloat {
-      0%, 100% { transform: translateY(0px) rotateZ(0deg); }
-      50% { transform: translateY(-22px) rotateZ(-4deg); }
+
+      0%,
+      100% {
+        transform: translateY(0px) rotateZ(0deg);
+      }
+
+      50% {
+        transform: translateY(-22px) rotateZ(-4deg);
+      }
     }
 
     @keyframes keyboardFloat {
-      0%, 100% { transform: translateY(0px) rotateZ(0deg); }
-      50% { transform: translateY(-16px) rotateZ(2deg); }
+
+      0%,
+      100% {
+        transform: translateY(0px) rotateZ(0deg);
+      }
+
+      50% {
+        transform: translateY(-16px) rotateZ(2deg);
+      }
     }
 
     @keyframes mouseFloat {
-      0%, 100% { transform: translateY(0px) rotateZ(0deg); }
-      50% { transform: translateY(-14px) rotateZ(-1deg); }
+
+      0%,
+      100% {
+        transform: translateY(0px) rotateZ(0deg);
+      }
+
+      50% {
+        transform: translateY(-14px) rotateZ(-1deg);
+      }
     }
 
     @keyframes monitorFloat {
-      0%, 100% { transform: translateY(0px) rotateZ(0deg); }
-      50% { transform: translateY(-28px) rotateZ(6deg); }
+
+      0%,
+      100% {
+        transform: translateY(0px) rotateZ(0deg);
+      }
+
+      50% {
+        transform: translateY(-28px) rotateZ(6deg);
+      }
     }
 
     @keyframes droneFloat {
-      0%, 100% { transform: translateY(0px) rotateZ(0deg); }
-      50% { transform: translateY(-30px) rotateZ(8deg); }
+
+      0%,
+      100% {
+        transform: translateY(0px) rotateZ(0deg);
+      }
+
+      50% {
+        transform: translateY(-30px) rotateZ(8deg);
+      }
     }
 
     @keyframes robotFloat {
-      0%, 100% { transform: translateY(0px) rotateZ(0deg); }
-      50% { transform: translateY(-22px) rotateZ(-5deg); }
+
+      0%,
+      100% {
+        transform: translateY(0px) rotateZ(0deg);
+      }
+
+      50% {
+        transform: translateY(-22px) rotateZ(-5deg);
+      }
     }
 
     @keyframes vrFloat {
-      0%, 100% { transform: translateY(0px) rotateZ(0deg); }
-      50% { transform: translateY(-26px) rotateZ(7deg); }
+
+      0%,
+      100% {
+        transform: translateY(0px) rotateZ(0deg);
+      }
+
+      50% {
+        transform: translateY(-26px) rotateZ(7deg);
+      }
     }
 
     @keyframes gamepadFloat {
-      0%, 100% { transform: translateY(0px) rotateZ(0deg); }
-      50% { transform: translateY(-24px) rotateZ(-6deg); }
+
+      0%,
+      100% {
+        transform: translateY(0px) rotateZ(0deg);
+      }
+
+      50% {
+        transform: translateY(-24px) rotateZ(-6deg);
+      }
     }
 
     @keyframes particleFloat {
-      0%, 100% { transform: translateY(0px) translateX(0px) rotate(0deg); }
-      25% { transform: translateY(-8px) translateX(5px) rotate(45deg); }
-      50% { transform: translateY(-12px) translateX(-3px) rotate(90deg); }
-      75% { transform: translateY(-8px) translateX(-5px) rotate(135deg); }
+
+      0%,
+      100% {
+        transform: translateY(0px) translateX(0px) rotate(0deg);
+      }
+
+      25% {
+        transform: translateY(-8px) translateX(5px) rotate(45deg);
+      }
+
+      50% {
+        transform: translateY(-12px) translateX(-3px) rotate(90deg);
+      }
+
+      75% {
+        transform: translateY(-8px) translateX(-5px) rotate(135deg);
+      }
     }
 
     /* Animaciones de rotación 3D */
     @keyframes laptopRotate {
-      0% { transform: rotateY(0deg) rotateX(0deg); }
-      25% { transform: rotateY(90deg) rotateX(10deg); }
-      50% { transform: rotateY(180deg) rotateX(0deg); }
-      75% { transform: rotateY(270deg) rotateX(-10deg); }
-      100% { transform: rotateY(360deg) rotateX(0deg); }
+      0% {
+        transform: rotateY(0deg) rotateX(0deg);
+      }
+
+      25% {
+        transform: rotateY(90deg) rotateX(10deg);
+      }
+
+      50% {
+        transform: rotateY(180deg) rotateX(0deg);
+      }
+
+      75% {
+        transform: rotateY(270deg) rotateX(-10deg);
+      }
+
+      100% {
+        transform: rotateY(360deg) rotateX(0deg);
+      }
     }
 
     @keyframes phoneRotate {
-      0% { transform: rotateX(0deg) rotateZ(0deg); }
-      25% { transform: rotateX(90deg) rotateZ(10deg); }
-      50% { transform: rotateX(180deg) rotateZ(0deg); }
-      75% { transform: rotateX(270deg) rotateZ(-10deg); }
-      100% { transform: rotateX(360deg) rotateZ(0deg); }
+      0% {
+        transform: rotateX(0deg) rotateZ(0deg);
+      }
+
+      25% {
+        transform: rotateX(90deg) rotateZ(10deg);
+      }
+
+      50% {
+        transform: rotateX(180deg) rotateZ(0deg);
+      }
+
+      75% {
+        transform: rotateX(270deg) rotateZ(-10deg);
+      }
+
+      100% {
+        transform: rotateX(360deg) rotateZ(0deg);
+      }
     }
 
     @keyframes tabletRotate {
-      0% { transform: rotateY(0deg) rotateZ(0deg); }
-      33% { transform: rotateY(120deg) rotateZ(15deg); }
-      66% { transform: rotateY(240deg) rotateZ(-15deg); }
-      100% { transform: rotateY(360deg) rotateZ(0deg); }
+      0% {
+        transform: rotateY(0deg) rotateZ(0deg);
+      }
+
+      33% {
+        transform: rotateY(120deg) rotateZ(15deg);
+      }
+
+      66% {
+        transform: rotateY(240deg) rotateZ(-15deg);
+      }
+
+      100% {
+        transform: rotateY(360deg) rotateZ(0deg);
+      }
     }
 
     @keyframes smartwatchRotate {
-      0% { transform: rotateX(0deg) rotateZ(0deg); }
-      25% { transform: rotateX(90deg) rotateZ(15deg); }
-      50% { transform: rotateX(180deg) rotateZ(0deg); }
-      75% { transform: rotateX(270deg) rotateZ(-15deg); }
-      100% { transform: rotateX(360deg) rotateZ(0deg); }
+      0% {
+        transform: rotateX(0deg) rotateZ(0deg);
+      }
+
+      25% {
+        transform: rotateX(90deg) rotateZ(15deg);
+      }
+
+      50% {
+        transform: rotateX(180deg) rotateZ(0deg);
+      }
+
+      75% {
+        transform: rotateX(270deg) rotateZ(-15deg);
+      }
+
+      100% {
+        transform: rotateX(360deg) rotateZ(0deg);
+      }
     }
 
     @keyframes headphonesRotate {
-      0% { transform: rotateY(0deg) rotateX(0deg); }
-      20% { transform: rotateY(72deg) rotateX(20deg); }
-      40% { transform: rotateY(144deg) rotateX(0deg); }
-      60% { transform: rotateY(216deg) rotateX(-20deg); }
-      80% { transform: rotateY(288deg) rotateX(0deg); }
-      100% { transform: rotateY(360deg) rotateX(0deg); }
+      0% {
+        transform: rotateY(0deg) rotateX(0deg);
+      }
+
+      20% {
+        transform: rotateY(72deg) rotateX(20deg);
+      }
+
+      40% {
+        transform: rotateY(144deg) rotateX(0deg);
+      }
+
+      60% {
+        transform: rotateY(216deg) rotateX(-20deg);
+      }
+
+      80% {
+        transform: rotateY(288deg) rotateX(0deg);
+      }
+
+      100% {
+        transform: rotateY(360deg) rotateX(0deg);
+      }
     }
 
     @keyframes cameraRotate {
-      0% { transform: rotateZ(0deg) rotateY(0deg); }
-      30% { transform: rotateZ(108deg) rotateY(30deg); }
-      60% { transform: rotateZ(216deg) rotateY(0deg); }
-      90% { transform: rotateZ(324deg) rotateY(-30deg); }
-      100% { transform: rotateZ(360deg) rotateY(0deg); }
+      0% {
+        transform: rotateZ(0deg) rotateY(0deg);
+      }
+
+      30% {
+        transform: rotateZ(108deg) rotateY(30deg);
+      }
+
+      60% {
+        transform: rotateZ(216deg) rotateY(0deg);
+      }
+
+      90% {
+        transform: rotateZ(324deg) rotateY(-30deg);
+      }
+
+      100% {
+        transform: rotateZ(360deg) rotateY(0deg);
+      }
     }
 
     @keyframes keyboardRotate {
-      0% { transform: rotateX(0deg) rotateY(0deg); }
-      25% { transform: rotateX(90deg) rotateY(25deg); }
-      50% { transform: rotateX(180deg) rotateY(0deg); }
-      75% { transform: rotateX(270deg) rotateY(-25deg); }
-      100% { transform: rotateX(360deg) rotateY(0deg); }
+      0% {
+        transform: rotateX(0deg) rotateY(0deg);
+      }
+
+      25% {
+        transform: rotateX(90deg) rotateY(25deg);
+      }
+
+      50% {
+        transform: rotateX(180deg) rotateY(0deg);
+      }
+
+      75% {
+        transform: rotateX(270deg) rotateY(-25deg);
+      }
+
+      100% {
+        transform: rotateX(360deg) rotateY(0deg);
+      }
     }
 
     @keyframes mouseRotate {
-      0% { transform: rotateY(0deg) rotateZ(0deg); }
-      50% { transform: rotateY(180deg) rotateZ(180deg); }
-      100% { transform: rotateY(360deg) rotateZ(360deg); }
+      0% {
+        transform: rotateY(0deg) rotateZ(0deg);
+      }
+
+      50% {
+        transform: rotateY(180deg) rotateZ(180deg);
+      }
+
+      100% {
+        transform: rotateY(360deg) rotateZ(360deg);
+      }
     }
 
     @keyframes monitorRotate {
-      0% { transform: rotateY(0deg) rotateX(0deg); }
-      16% { transform: rotateY(60deg) rotateX(15deg); }
-      32% { transform: rotateY(120deg) rotateX(0deg); }
-      48% { transform: rotateY(180deg) rotateX(-15deg); }
-      64% { transform: rotateY(240deg) rotateX(0deg); }
-      80% { transform: rotateY(300deg) rotateX(15deg); }
-      100% { transform: rotateY(360deg) rotateX(0deg); }
+      0% {
+        transform: rotateY(0deg) rotateX(0deg);
+      }
+
+      16% {
+        transform: rotateY(60deg) rotateX(15deg);
+      }
+
+      32% {
+        transform: rotateY(120deg) rotateX(0deg);
+      }
+
+      48% {
+        transform: rotateY(180deg) rotateX(-15deg);
+      }
+
+      64% {
+        transform: rotateY(240deg) rotateX(0deg);
+      }
+
+      80% {
+        transform: rotateY(300deg) rotateX(15deg);
+      }
+
+      100% {
+        transform: rotateY(360deg) rotateX(0deg);
+      }
     }
 
     @keyframes droneRotate {
-      0% { transform: rotateY(0deg) rotateZ(0deg); }
-      25% { transform: rotateY(90deg) rotateZ(15deg); }
-      50% { transform: rotateY(180deg) rotateZ(0deg); }
-      75% { transform: rotateY(270deg) rotateZ(-15deg); }
-      100% { transform: rotateY(360deg) rotateZ(0deg); }
+      0% {
+        transform: rotateY(0deg) rotateZ(0deg);
+      }
+
+      25% {
+        transform: rotateY(90deg) rotateZ(15deg);
+      }
+
+      50% {
+        transform: rotateY(180deg) rotateZ(0deg);
+      }
+
+      75% {
+        transform: rotateY(270deg) rotateZ(-15deg);
+      }
+
+      100% {
+        transform: rotateY(360deg) rotateZ(0deg);
+      }
     }
 
     @keyframes robotRotate {
-      0% { transform: rotateX(0deg) rotateY(0deg); }
-      33% { transform: rotateX(120deg) rotateY(30deg); }
-      66% { transform: rotateX(240deg) rotateY(0deg); }
-      100% { transform: rotateX(360deg) rotateY(0deg); }
+      0% {
+        transform: rotateX(0deg) rotateY(0deg);
+      }
+
+      33% {
+        transform: rotateX(120deg) rotateY(30deg);
+      }
+
+      66% {
+        transform: rotateX(240deg) rotateY(0deg);
+      }
+
+      100% {
+        transform: rotateX(360deg) rotateY(0deg);
+      }
     }
 
     @keyframes vrRotate {
-      0% { transform: rotateZ(0deg) rotateX(0deg); }
-      20% { transform: rotateZ(72deg) rotateX(20deg); }
-      40% { transform: rotateZ(144deg) rotateX(0deg); }
-      60% { transform: rotateZ(216deg) rotateX(-20deg); }
-      80% { transform: rotateZ(288deg) rotateX(0deg); }
-      100% { transform: rotateZ(360deg) rotateX(0deg); }
+      0% {
+        transform: rotateZ(0deg) rotateX(0deg);
+      }
+
+      20% {
+        transform: rotateZ(72deg) rotateX(20deg);
+      }
+
+      40% {
+        transform: rotateZ(144deg) rotateX(0deg);
+      }
+
+      60% {
+        transform: rotateZ(216deg) rotateX(-20deg);
+      }
+
+      80% {
+        transform: rotateZ(288deg) rotateX(0deg);
+      }
+
+      100% {
+        transform: rotateZ(360deg) rotateX(0deg);
+      }
     }
 
     @keyframes gamepadRotate {
-      0% { transform: rotateY(0deg) rotateX(0deg); }
-      25% { transform: rotateY(90deg) rotateX(25deg); }
-      50% { transform: rotateY(180deg) rotateX(0deg); }
-      75% { transform: rotateY(270deg) rotateX(-25deg); }
-      100% { transform: rotateY(360deg) rotateX(0deg); }
+      0% {
+        transform: rotateY(0deg) rotateX(0deg);
+      }
+
+      25% {
+        transform: rotateY(90deg) rotateX(25deg);
+      }
+
+      50% {
+        transform: rotateY(180deg) rotateX(0deg);
+      }
+
+      75% {
+        transform: rotateY(270deg) rotateX(-25deg);
+      }
+
+      100% {
+        transform: rotateY(360deg) rotateX(0deg);
+      }
     }
 
     /* Animaciones especiales */
     @keyframes propellerSpin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
+      0% {
+        transform: rotate(0deg);
+      }
+
+      100% {
+        transform: rotate(360deg);
+      }
     }
 
     @keyframes antennaWave {
-      0%, 100% { transform: rotateX(15deg) rotateY(20deg) translateZ(5px) rotateZ(0deg); }
-      50% { transform: rotateX(15deg) rotateY(20deg) translateZ(5px) rotateZ(15deg); }
+
+      0%,
+      100% {
+        transform: rotateX(15deg) rotateY(20deg) translateZ(5px) rotateZ(0deg);
+      }
+
+      50% {
+        transform: rotateX(15deg) rotateY(20deg) translateZ(5px) rotateZ(15deg);
+      }
     }
 
     @keyframes buttonBlink {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.3; transform: scale(0.8); }
+
+      0%,
+      100% {
+        opacity: 1;
+        transform: scale(1);
+      }
+
+      50% {
+        opacity: 0.3;
+        transform: scale(0.8);
+      }
     }
 
     /* Efectos de brillo */
     @keyframes screenGlow {
-      0%, 100% {
+
+      0%,
+      100% {
         filter: drop-shadow(0 0 20px rgba(0, 212, 255, 0.6));
         text-shadow: 0 0 20px rgba(0, 212, 255, 0.8);
       }
+
       50% {
         filter: drop-shadow(0 0 30px rgba(0, 212, 255, 0.9));
         text-shadow: 0 0 30px rgba(0, 212, 255, 1);
       }
     }
-    
+
     @keyframes phoneGlow {
-      0%, 100% {
+
+      0%,
+      100% {
         filter: drop-shadow(0 0 15px rgba(139, 92, 246, 0.6));
         text-shadow: 0 0 15px rgba(139, 92, 246, 0.8);
       }
+
       50% {
         filter: drop-shadow(0 0 25px rgba(139, 92, 246, 0.9));
         text-shadow: 0 0 25px rgba(139, 92, 246, 1);
       }
     }
-    
+
     @keyframes tabletGlow {
-      0%, 100% {
+
+      0%,
+      100% {
         filter: drop-shadow(0 0 18px rgba(16, 185, 129, 0.6));
         text-shadow: 0 0 18px rgba(16, 185, 129, 0.8);
       }
+
       50% {
         filter: drop-shadow(0 0 28px rgba(16, 185, 129, 0.9));
         text-shadow: 0 0 28px rgba(16, 185, 129, 1);
@@ -865,10 +1209,13 @@
     }
 
     @keyframes smartwatchGlow {
-      0%, 100% { 
+
+      0%,
+      100% {
         filter: drop-shadow(0 0 12px rgba(255, 165, 0, 0.6));
         text-shadow: 0 0 12px rgba(255, 165, 0, 0.8);
       }
+
       50% {
         filter: drop-shadow(0 0 22px rgba(255, 165, 0, 0.9));
         text-shadow: 0 0 22px rgba(255, 165, 0, 1);
@@ -876,21 +1223,27 @@
     }
 
     @keyframes headphonesGlow {
-      0%, 100% { 
+
+      0%,
+      100% {
         filter: drop-shadow(0 0 16px rgba(155, 89, 182, 0.6));
         text-shadow: 0 0 16px rgba(155, 89, 182, 0.8);
       }
-      50% { 
+
+      50% {
         filter: drop-shadow(0 0 26px rgba(155, 89, 182, 0.9));
         text-shadow: 0 0 26px rgba(155, 89, 182, 1);
       }
     }
 
     @keyframes cameraGlow {
-      0%, 100% {
+
+      0%,
+      100% {
         filter: drop-shadow(0 0 14px rgba(52, 152, 219, 0.6));
         text-shadow: 0 0 14px rgba(52, 152, 219, 0.8);
       }
+
       50% {
         filter: drop-shadow(0 0 24px rgba(52, 152, 219, 0.9));
         text-shadow: 0 0 24px rgba(52, 152, 219, 1);
@@ -898,88 +1251,112 @@
     }
 
     @keyframes keyboardGlow {
-      0%, 100% { 
+
+      0%,
+      100% {
         filter: drop-shadow(0 0 13px rgba(46, 204, 113, 0.6));
         text-shadow: 0 0 13px rgba(46, 204, 113, 0.8);
       }
-      50% { 
+
+      50% {
         filter: drop-shadow(0 0 23px rgba(46, 204, 113, 0.9));
         text-shadow: 0 0 23px rgba(46, 204, 113, 1);
       }
     }
 
     @keyframes mouseGlow {
-      0%, 100% { 
+
+      0%,
+      100% {
         filter: drop-shadow(0 0 11px rgba(230, 126, 34, 0.6));
         text-shadow: 0 0 11px rgba(230, 126, 34, 0.8);
       }
-      50% { 
+
+      50% {
         filter: drop-shadow(0 0 21px rgba(230, 126, 34, 0.9));
         text-shadow: 0 0 21px rgba(230, 126, 34, 1);
       }
     }
 
     @keyframes monitorGlow {
-      0%, 100% { 
+
+      0%,
+      100% {
         filter: drop-shadow(0 0 17px rgba(142, 68, 173, 0.6));
         text-shadow: 0 0 17px rgba(142, 68, 173, 0.8);
       }
-      50% { 
+
+      50% {
         filter: drop-shadow(0 0 27px rgba(142, 68, 173, 0.9));
         text-shadow: 0 0 27px rgba(142, 68, 173, 1);
       }
     }
 
     @keyframes droneGlow {
-      0%, 100% { 
+
+      0%,
+      100% {
         filter: drop-shadow(0 0 20px rgba(255, 193, 7, 0.8));
         text-shadow: 0 0 20px rgba(255, 193, 7, 1);
       }
-      50% { 
+
+      50% {
         filter: drop-shadow(0 0 30px rgba(255, 193, 7, 1));
         text-shadow: 0 0 30px rgba(255, 193, 7, 1);
       }
     }
 
     @keyframes robotGlow {
-      0%, 100% { 
+
+      0%,
+      100% {
         filter: drop-shadow(0 0 18px rgba(0, 150, 136, 0.8));
         text-shadow: 0 0 18px rgba(0, 150, 136, 1);
       }
-      50% { 
+
+      50% {
         filter: drop-shadow(0 0 28px rgba(0, 150, 136, 1));
         text-shadow: 0 0 28px rgba(0, 150, 136, 1);
       }
     }
 
     @keyframes vrGlow {
-      0%, 100% { 
+
+      0%,
+      100% {
         filter: drop-shadow(0 0 19px rgba(156, 39, 176, 0.8));
         text-shadow: 0 0 19px rgba(156, 39, 176, 1);
       }
-      50% { 
+
+      50% {
         filter: drop-shadow(0 0 29px rgba(156, 39, 176, 1));
         text-shadow: 0 0 29px rgba(156, 39, 176, 1);
       }
     }
 
     @keyframes gamepadGlow {
-      0%, 100% { 
+
+      0%,
+      100% {
         filter: drop-shadow(0 0 16px rgba(255, 87, 34, 0.8));
         text-shadow: 0 0 16px rgba(255, 87, 34, 1);
       }
-      50% { 
+
+      50% {
         filter: drop-shadow(0 0 26px rgba(255, 87, 34, 1));
         text-shadow: 0 0 26px rgba(255, 87, 34, 1);
       }
     }
 
     @keyframes particleGlow {
-      0%, 100% { 
+
+      0%,
+      100% {
         filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.8));
         text-shadow: 0 0 15px rgba(255, 255, 255, 1);
       }
-      50% { 
+
+      50% {
         filter: drop-shadow(0 0 25px rgba(255, 255, 255, 1));
         text-shadow: 0 0 25px rgba(255, 255, 255, 1);
       }
@@ -1053,7 +1430,7 @@
       border: 2px solid rgba(255, 255, 255, 0.2);
       transition: all 0.3s ease;
     }
-    
+
     .header .account:hover {
       transform: translateY(-2px);
       box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
@@ -1082,6 +1459,7 @@
         opacity: 0;
         transform: translateY(15px);
       }
+
       to {
         opacity: 1;
         transform: translateY(0);
@@ -1089,6 +1467,7 @@
     }
   </style>
 </head>
+
 <body>
   <!-- Header -->
   <header class="header">
@@ -1123,13 +1502,13 @@
         <div class="laptop-screen">💻</div>
         <div class="laptop-base"></div>
       </div>
-      
+
       <!-- Teléfono principal -->
       <div class="device-3d phone-3d">
         <div class="phone-screen">📱</div>
         <div class="phone-body"></div>
-    </div>
-    
+      </div>
+
       <!-- Tablet principal -->
       <div class="device-3d tablet-3d">
         <div class="tablet-screen">📱</div>
@@ -1208,126 +1587,132 @@
     <div class="form-wrapper">
       <div class="form-header">
         <div class="logo">
-          <img th:src="@{/frontend/imagenes/logo technova.png}" alt="Logo Technova" style="width: 100%; height: 100%; object-fit: contain;">
+          <img th:src="@{/frontend/imagenes/logo technova.png}" alt="Logo Technova"
+            style="width: 100%; height: 100%; object-fit: contain;">
         </div>
         <h1 class="form-title">Crear Cuenta</h1>
         <p class="form-subtitle">Únete a la comunidad TechNova</p>
-    </div>
+      </div>
 
-      <div class="error-message d-none" id="successAlert" style="color: #10b981;">
+      <div class="error-message" id="successAlert" style="color: #10b981; display: none;">
         <i class='bx bx-check-circle'></i>
         <span id="successMessage">Usuario registrado correctamente.</span>
       </div>
 
-      <div class="error-message d-none" id="errorAlert">
+      <div class="error-message" id="errorAlert" style="display: none;">
         <i class='bx bx-error-circle'></i>
         <span id="errorMessage">No se pudo registrar el usuario. Revisa los datos e inténtalo nuevamente.</span>
       </div>
 
       <form id="registro-form" novalidate>
         <div class="form-row">
-      <div class="form-group">
-        <label for="nombre">Nombre</label>
+          <div class="form-group">
+            <label for="nombre">Nombre</label>
             <div class="input-wrapper">
               <input type="text" id="nombre" name="nombre" required placeholder="Tu nombre" />
               <i class='bx bx-user input-icon'></i>
-        </div>
-        <div class="error-message d-none" id="nombreError"></div>
-      </div>
+            </div>
+            <div class="error-message d-none" id="nombreError"></div>
+          </div>
 
-      <div class="form-group">
-        <label for="apellido">Apellido</label>
+          <div class="form-group">
+            <label for="apellido">Apellido</label>
             <div class="input-wrapper">
               <input type="text" id="apellido" name="apellido" required placeholder="Tu apellido" />
               <i class='bx bx-user input-icon'></i>
-        </div>
-        <div class="error-message d-none" id="apellidoError"></div>
+            </div>
+            <div class="error-message d-none" id="apellidoError"></div>
           </div>
-      </div>
+        </div>
 
-      <div class="form-group">
-        <label for="tipo-doc">Tipo de Documento</label>
+        <div class="form-group">
+          <label for="tipo-doc">Tipo de Documento</label>
           <div class="input-wrapper">
-        <select id="tipo-doc" name="tipo-doc" required>
-          <option value="">Selecciona</option>
+            <select id="tipo-doc" name="tipo-doc" required>
+              <option value="">Selecciona</option>
               <option value="CC">Cédula de Ciudadanía</option>
               <option value="TI">Tarjeta de Identidad</option>
               <option value="CE">Cédula de Extranjería</option>
-        </select>
+            </select>
             <i class='bx bx-id-card input-icon'></i>
           </div>
           <div class="error-message d-none" id="tipoDocError"></div>
-      </div>
+        </div>
 
-      <div class="form-group">
-        <label for="documento">Número de Documento</label>
+        <div class="form-group">
+          <label for="documento">Número de Documento</label>
           <div class="input-wrapper">
             <input type="text" id="documento" name="documento" required placeholder="Número de documento" />
             <i class='bx bx-id-card input-icon'></i>
+          </div>
+          <div class="error-message d-none" id="documentoError"></div>
         </div>
-        <div class="error-message d-none" id="documentoError"></div>
-      </div>
 
-      <div class="form-group">
-        <label for="correo">Correo Electrónico</label>
+        <div class="form-group">
+          <label for="correo">Correo Electrónico</label>
           <div class="input-wrapper">
             <input type="email" id="correo" name="correo" required placeholder="tu@email.com" />
             <i class='bx bx-envelope input-icon'></i>
+          </div>
+          <div class="error-message d-none" id="correoError"></div>
         </div>
-        <div class="error-message d-none" id="correoError"></div>
-      </div>
 
-      <div class="form-group">
-        <label for="confirmar-correo">Confirmar Correo</label>
+        <div class="form-group">
+          <label for="confirmar-correo">Confirmar Correo</label>
           <div class="input-wrapper">
-            <input type="email" id="confirmar-correo" name="confirmar-correo" required placeholder="Confirma tu correo" />
+            <input type="email" id="confirmar-correo" name="confirmar-correo" required
+              placeholder="Confirma tu correo" />
             <i class='bx bx-envelope input-icon'></i>
-        </div>
+          </div>
           <div class="error-message d-none" id="confirmarCorreoError"></div>
-      </div>
+        </div>
 
-      <div class="form-group">
-        <label for="telefono">Teléfono Celular</label>
+        <div class="form-group">
+          <label for="telefono">Teléfono Celular</label>
           <div class="input-wrapper">
             <input type="tel" id="telefono" name="telefono" required placeholder="Tu teléfono celular" />
             <i class='bx bx-phone input-icon'></i>
+          </div>
+          <div class="error-message d-none" id="telefonoError"></div>
         </div>
-        <div class="error-message d-none" id="telefonoError"></div>
-      </div>
 
-      <div class="form-group">
-        <label for="direccion">Dirección de Residencia</label>
+        <div class="form-group">
+          <label for="direccion">Dirección de Residencia</label>
           <div class="input-wrapper">
             <input type="text" id="direccion" name="direccion" required placeholder="Tu dirección completa" />
             <i class='bx bx-home input-icon'></i>
+          </div>
+          <div class="error-message d-none" id="direccionError"></div>
         </div>
-        <div class="error-message d-none" id="direccionError"></div>
-      </div>
 
-      <div class="form-group">
-        <label for="password">Contraseña</label>
+        <div class="form-group">
+          <label for="password">Contraseña</label>
           <div class="input-wrapper">
             <input type="password" id="password" name="password" required placeholder="Mínimo 8 caracteres" />
             <i class='bx bx-lock-alt input-icon'></i>
-        </div>
-        <div class="error-message d-none" id="passwordError"></div>
-          <div class="password-requisitos" id="password-requisitos" style="margin-top: 10px; font-size: 12px; color: #666; transition: all 0.5s ease;">
-            <p class="requisito" data-req="length" style="margin: 2px 0; transition: all 0.3s ease;">✗ Mínimo 8 caracteres</p>
+          </div>
+          <div class="error-message d-none" id="passwordError"></div>
+          <div class="password-requisitos" id="password-requisitos"
+            style="margin-top: 10px; font-size: 12px; color: #666; transition: all 0.5s ease;">
+            <p class="requisito" data-req="length" style="margin: 2px 0; transition: all 0.3s ease;">✗ Mínimo 8
+              caracteres</p>
             <p class="requisito" data-req="upper" style="margin: 2px 0; transition: all 0.3s ease;">✗ Mayúscula</p>
             <p class="requisito" data-req="lower" style="margin: 2px 0; transition: all 0.3s ease;">✗ Minúscula</p>
             <p class="requisito" data-req="digit" style="margin: 2px 0; transition: all 0.3s ease;">✗ Número</p>
-            <p class="requisito" data-req="special" style="margin: 2px 0; transition: all 0.3s ease;">✗ Carácter especial</p>
+            <p class="requisito" data-req="special" style="margin: 2px 0; transition: all 0.3s ease;">✗ Carácter
+              especial</p>
+          </div>
         </div>
-      </div>
 
-      <div class="form-group">
-        <label for="confirmar-password">Confirmar Contraseña</label>
+        <div class="form-group">
+          <label for="confirmar-password">Confirmar Contraseña</label>
           <div class="input-wrapper">
-            <input type="password" id="confirmar-password" name="password_confirmation" required placeholder="Repite tu contraseña" />
+            <input type="password" id="confirmar-password" name="password_confirmation" required
+              placeholder="Repite tu contraseña" />
             <i class='bx bx-lock-alt input-icon'></i>
+          </div>
+          <div class="error-message d-none" id="confirmarPasswordError"></div>
         </div>
-        <div class="error-message d-none" id="confirmarPasswordError"></div>
-      </div>
 
         <button type="submit" class="register-btn">
           <i class='bx bx-user-plus' style="margin-right: 8px;"></i>
@@ -1337,7 +1722,7 @@
 
       <div class="divider">
         <span>¿Ya tienes cuenta?</span>
-    </div>
+      </div>
 
       <div class="login-link">
         <a th:href="@{/login}">
@@ -1350,31 +1735,32 @@
 
   <!-- Footer -->
   <footer>
-    <p>© <span th:text="${#dates.format(#dates.createNow(), 'yyyy')}">2025</span> TECHNOVA. Todos los derechos reservados.</p>
+    <p>© <span th:text="${#dates.format(#dates.createNow(), 'yyyy')}">2025</span> TECHNOVA. Todos los derechos
+      reservados.</p>
   </footer>
 
   <!--Start of Tawk.to Script-->
   <script type="text/javascript">
-  var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
-  (function(){
-  var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
-  s1.async=true;
-  s1.src='https://embed.tawk.to/68632ae6db555c190ce714bb/1iv1lv5no';
-  s1.charset='UTF-8';
-  s1.setAttribute('crossorigin','*');
-  s0.parentNode.insertBefore(s1,s0);
-  })();</script>
+    var Tawk_API = Tawk_API || {}, Tawk_LoadStart = new Date();
+    (function () {
+      var s1 = document.createElement("script"), s0 = document.getElementsByTagName("script")[0];
+      s1.async = true;
+      s1.src = 'https://embed.tawk.to/68632ae6db555c190ce714bb/1iv1lv5no';
+      s1.charset = 'UTF-8';
+      s1.setAttribute('crossorigin', '*');
+      s0.parentNode.insertBefore(s1, s0);
+    })();</script>
   <!--End of Tawk.to Script-->
 
   <script>
-    document.addEventListener('DOMContentLoaded', function() {
+    document.addEventListener('DOMContentLoaded', function () {
       const registroForm = document.getElementById('registro-form');
       const successAlert = document.getElementById('successAlert');
       const errorAlert = document.getElementById('errorAlert');
       const passwordInput = document.getElementById('password');
       const requisitos = document.getElementById('password-requisitos');
       const requisitoElements = document.querySelectorAll('.requisito');
-      
+
       // Función para validar la contraseña
       function validarPassword(password) {
         const validaciones = {
@@ -1384,18 +1770,18 @@
           digit: /\d/.test(password),
           special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
         };
-        
+
         return validaciones;
       }
-      
+
       // Función para actualizar la visualización de requisitos
       function actualizarRequisitos(validaciones) {
         let todosCompletos = true;
-        
+
         requisitoElements.forEach(element => {
           const tipo = element.getAttribute('data-req');
           const esValido = validaciones[tipo];
-          
+
           if (esValido) {
             // Iluminar el requisito cumplido
             element.innerHTML = '✓ ' + element.textContent.substring(2);
@@ -1411,7 +1797,7 @@
             todosCompletos = false;
           }
         });
-        
+
         // Si todos los requisitos están completos, hacer transición de desaparición
         if (todosCompletos) {
           setTimeout(() => {
@@ -1430,13 +1816,13 @@
           }
         }
       }
-      
+
       // Función para validar y aplicar estilos a un campo
       function validarCampo(input, tipo) {
         const valor = input.value.trim();
         let esValido = false;
-        
-        switch(tipo) {
+
+        switch (tipo) {
           case 'nombre':
           case 'apellido':
             esValido = valor.length >= 2 && /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(valor);
@@ -1458,7 +1844,7 @@
             esValido = Object.values(validaciones).every(v => v);
             break;
         }
-        
+
         // Aplicar estilos según la validación
         if (valor.length > 0) {
           if (esValido) {
@@ -1475,15 +1861,15 @@
           input.style.boxShadow = 'none';
           input.style.background = '#f8fafc';
         }
-        
+
         return esValido;
       }
-      
+
       // Función para validar confirmación de correo
       function validarConfirmacionCorreo() {
         const correo = document.getElementById('correo').value;
         const confirmarCorreo = document.getElementById('confirmar-correo').value;
-        
+
         if (confirmarCorreo.length > 0) {
           if (correo === confirmarCorreo && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(confirmarCorreo)) {
             document.getElementById('confirmar-correo').style.borderColor = '#10b981';
@@ -1500,12 +1886,12 @@
           document.getElementById('confirmar-correo').style.background = '#f8fafc';
         }
       }
-      
+
       // Función para validar confirmación de contraseña
       function validarConfirmacionPassword() {
         const password = passwordInput.value;
         const confirmPassword = document.getElementById('confirmar-password').value;
-        
+
         if (confirmPassword.length > 0) {
           if (password === confirmPassword && password.length > 0) {
             document.getElementById('confirmar-password').style.borderColor = '#10b981';
@@ -1522,7 +1908,7 @@
           document.getElementById('confirmar-password').style.background = '#f8fafc';
         }
       }
-      
+
       // Función para mostrar/ocultar errores
       function showError(elementId, message) {
         const element = document.getElementById(elementId);
@@ -1553,46 +1939,58 @@
         hideError('successAlert');
         hideError('errorAlert');
       }
-      
+
+      // Event listener general para ocultar alertas al interactuar con el formulario
+      registroForm?.addEventListener('input', function () {
+        const successAlert = document.getElementById('successAlert');
+        const errorAlert = document.getElementById('errorAlert');
+        if (successAlert && !successAlert.classList.contains('d-none')) {
+          successAlert.style.display = 'none';
+        }
+        if (errorAlert && !errorAlert.classList.contains('d-none')) {
+          errorAlert.style.display = 'none';
+        }
+      });
+
       // Event listeners para todos los campos
-      document.getElementById('nombre').addEventListener('input', function() {
+      document.getElementById('nombre').addEventListener('input', function () {
         validarCampo(this, 'nombre');
         hideError('nombreError');
       });
-      
-      document.getElementById('apellido').addEventListener('input', function() {
+
+      document.getElementById('apellido').addEventListener('input', function () {
         validarCampo(this, 'apellido');
         hideError('apellidoError');
       });
-      
-      document.getElementById('documento').addEventListener('input', function() {
+
+      document.getElementById('documento').addEventListener('input', function () {
         validarCampo(this, 'documento');
         hideError('documentoError');
       });
-      
-      document.getElementById('correo').addEventListener('input', function() {
+
+      document.getElementById('correo').addEventListener('input', function () {
         validarCampo(this, 'correo');
         validarConfirmacionCorreo();
         hideError('correoError');
       });
-      
-      document.getElementById('confirmar-correo').addEventListener('input', function() {
+
+      document.getElementById('confirmar-correo').addEventListener('input', function () {
         validarConfirmacionCorreo();
         hideError('confirmarCorreoError');
       });
-      
-      document.getElementById('telefono').addEventListener('input', function() {
+
+      document.getElementById('telefono').addEventListener('input', function () {
         validarCampo(this, 'telefono');
         hideError('telefonoError');
       });
-      
-      document.getElementById('direccion').addEventListener('input', function() {
+
+      document.getElementById('direccion').addEventListener('input', function () {
         validarCampo(this, 'direccion');
         hideError('direccionError');
       });
-      
+
       // Event listener para el campo de contraseña
-      passwordInput.addEventListener('input', function() {
+      passwordInput.addEventListener('input', function () {
         const password = this.value;
         const validaciones = validarPassword(password);
         actualizarRequisitos(validaciones);
@@ -1600,15 +1998,15 @@
         validarConfirmacionPassword();
         hideError('passwordError');
       });
-      
+
       // Event listener para el campo de confirmación de contraseña
-      document.getElementById('confirmar-password').addEventListener('input', function() {
+      document.getElementById('confirmar-password').addEventListener('input', function () {
         validarConfirmacionPassword();
         hideError('confirmarPasswordError');
       });
-      
+
       // Validar tipo de documento
-      document.getElementById('tipo-doc').addEventListener('change', function() {
+      document.getElementById('tipo-doc').addEventListener('change', function () {
         if (this.value) {
           this.style.borderColor = '#10b981';
           this.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.1)';
@@ -1730,13 +2128,15 @@
 
           if (response.ok) {
             const data = await response.json();
-            successAlert.classList.remove('d-none');
+            // Ocultar mensaje de error y mostrar mensaje de éxito
+            errorAlert.style.display = 'none';
+            successAlert.style.display = 'flex';
             registroForm.reset();
             registroForm.classList.remove('was-validated');
             requisitos.style.display = 'block';
             requisitos.style.opacity = '1';
             requisitos.style.transform = 'translateY(0)';
-            
+
             // Resetear estilos de campos
             registroForm.querySelectorAll('input, select').forEach(input => {
               input.style.borderColor = '#e2e8f0';
@@ -1750,16 +2150,21 @@
           } else {
             const errorData = await response.json().catch(() => ({}));
             const errorMsg = errorData.message || 'No se pudo registrar el usuario. Revisa los datos e inténtalo nuevamente.';
-            errorAlert.classList.remove('d-none');
+            // Ocultar mensaje de éxito y mostrar mensaje de error
+            successAlert.style.display = 'none';
+            errorAlert.style.display = 'flex';
             document.getElementById('errorMessage').textContent = errorMsg;
           }
         } catch (error) {
           console.error(error);
-          errorAlert.classList.remove('d-none');
+          // Ocultar mensaje de éxito y mostrar mensaje de error
+          successAlert.style.display = 'none';
+          errorAlert.style.display = 'flex';
           document.getElementById('errorMessage').textContent = 'Error de conexión. Intenta nuevamente.';
         }
       });
     });
   </script>
 </body>
+
 </html>
