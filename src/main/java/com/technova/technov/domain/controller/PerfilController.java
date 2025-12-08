@@ -13,6 +13,8 @@ import com.technova.technov.domain.service.NotificacionService;
 import com.technova.technov.domain.service.ProductoService;
 import com.technova.technov.domain.service.UsuarioService;
 import com.technova.technov.domain.service.VentaService;
+import com.technova.technov.domain.service.ProveedorService;
+import com.technova.technov.domain.service.PagoService;
 
 import com.technova.technov.util.SecurityUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +34,8 @@ public class PerfilController {
     private final AtencionClienteService atencionClienteService;
     private final NotificacionService notificacionService;
     private final VentaService ventaService;
+    private final ProveedorService proveedorService;
+    private final PagoService pagoService;
     
     @Autowired
     private SecurityUtil securityUtil;
@@ -44,7 +48,9 @@ public class PerfilController {
             ProductoService productoService,
             AtencionClienteService atencionClienteService,
             NotificacionService notificacionService,
-            VentaService ventaService) {
+            VentaService ventaService,
+            ProveedorService proveedorService,
+            PagoService pagoService) {
         this.favoritoService = favoritoService;
         this.carritoService = carritoService;
         this.comprasService = comprasService;
@@ -53,6 +59,8 @@ public class PerfilController {
         this.atencionClienteService = atencionClienteService;
         this.notificacionService = notificacionService;
         this.ventaService = ventaService;
+        this.proveedorService = proveedorService;
+        this.pagoService = pagoService;
     }
 
     @GetMapping("/cliente/perfil")
@@ -116,13 +124,28 @@ public class PerfilController {
         int usersCount = usuarioService.listarUsuarios().size();
         int productosCount = productoService.listarProductos().size();
         int reportesDisponibles = 3; // Reportes: productos, usuarios, ventas
-        int proveedoresCount = 0; // TODO: implementar cuando exista ProveedorService
+        int proveedoresCount = proveedorService.listarProveedores().size();
+        int pedidosProcesados = ventaService.listar().size();
+        int transaccionesProcesadas = pagoService.listarTodos().size();
+        
+        // Calcular mensajes pendientes (tickets abiertos + en proceso)
+        int mensajesPendientes = 0;
+        try {
+            int ticketsAbiertos = atencionClienteService.listarPorEstado("abierto").size();
+            int ticketsEnProceso = atencionClienteService.listarPorEstado("en_proceso").size();
+            mensajesPendientes = ticketsAbiertos + ticketsEnProceso;
+        } catch (Exception e) {
+            mensajesPendientes = 0;
+        }
         
         model.addAttribute("usuario", usuario);
         model.addAttribute("usersCount", usersCount);
         model.addAttribute("productosCount", productosCount);
         model.addAttribute("reportesDisponibles", reportesDisponibles);
         model.addAttribute("proveedoresCount", proveedoresCount);
+        model.addAttribute("mensajesPendientes", mensajesPendientes);
+        model.addAttribute("pedidosProcesados", pedidosProcesados);
+        model.addAttribute("transaccionesProcesadas", transaccionesProcesadas);
         
         return "frontend/admin/perfil";
     }
