@@ -76,6 +76,26 @@ public class AtencionClienteController {
     }
 
     
+    @PutMapping("/{id}/responder")
+    public ResponseEntity<AtencionClienteDto> responderTicket(
+            @PathVariable Integer id,
+            @RequestParam String respuesta) {
+        AtencionClienteDto ticketRespondido = atencionClienteService.responder(id, respuesta);
+        if (ticketRespondido == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(ticketRespondido);
+    }
+
+    @PutMapping("/{id}/cerrar")
+    public ResponseEntity<AtencionClienteDto> cerrarTicket(@PathVariable Integer id) {
+        AtencionClienteDto ticketCerrado = atencionClienteService.cerrar(id);
+        if (ticketCerrado == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(ticketCerrado);
+    }
+    
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarTicket(@PathVariable Integer id) {
         boolean eliminarTicket = atencionClienteService.eliminar(id);
