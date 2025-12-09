@@ -153,7 +153,7 @@
               <span class="stat-number" th:text="${usersCount != null ? usersCount : 0}">0</span>
               <span class="stat-label">usuarios registrados</span>
             </div>
-            <a th:href="@{/login}" class="card-button">
+            <a th:href="@{/admin/usuarios}" class="card-button">
               <i class='bx bx-right-arrow-alt'></i> Gestionar Usuarios
             </a>
           </div>
@@ -170,7 +170,7 @@
               <span class="stat-number" th:text="${productosCount != null ? productosCount : 0}">0</span>
               <span class="stat-label">productos en inventario</span>
             </div>
-            <a th:href="@{/login}" class="card-button">
+            <a th:href="@{/admin/inventario}" class="card-button">
               <i class='bx bx-right-arrow-alt'></i> Gestionar Movimientos
             </a>
           </div>
@@ -204,7 +204,7 @@
               <span class="stat-number" th:text="${proveedoresCount != null ? proveedoresCount : 0}">0</span>
               <span class="stat-label">proveedores activos</span>
             </div>
-            <a th:href="@{/login}" class="card-button">
+            <a th:href="@{/admin/proveedores}" class="card-button">
               <i class='bx bx-right-arrow-alt'></i> Gestionar Proveedores
             </a>
           </div>
@@ -218,10 +218,10 @@
             <h3>Mensajes</h3>
             <p>Gestiona comunicación del sistema</p>
             <div class="card-stats">
-              <span class="stat-number">-</span>
+              <span class="stat-number" th:text="${mensajesPendientes != null ? mensajesPendientes : 0}">0</span>
               <span class="stat-label">mensajes pendientes</span>
             </div>
-            <a th:href="@{/login}" class="card-button">
+            <a th:href="@{/admin/mensajes}" class="card-button">
               <i class='bx bx-right-arrow-alt'></i> Ver Mensajes
             </a>
           </div>
@@ -235,10 +235,10 @@
             <h3>Pedidos</h3>
             <p>Gestiona pedidos y ventas</p>
             <div class="card-stats">
-              <span class="stat-number">-</span>
+              <span class="stat-number" th:text="${pedidosProcesados != null ? pedidosProcesados : 0}">0</span>
               <span class="stat-label">pedidos procesados</span>
             </div>
-            <a th:href="@{/login}" class="card-button">
+            <a th:href="@{/admin/pedidos}" class="card-button">
               <i class='bx bx-right-arrow-alt'></i> Ver Pedidos
             </a>
           </div>
@@ -252,10 +252,10 @@
             <h3>Pagos</h3>
             <p>Gestiona transacciones y pagos</p>
             <div class="card-stats">
-              <span class="stat-number">-</span>
+              <span class="stat-number" th:text="${transaccionesProcesadas != null ? transaccionesProcesadas : 0}">0</span>
               <span class="stat-label">transacciones procesadas</span>
             </div>
-            <a th:href="@{/login}" class="card-button">
+            <a th:href="@{/admin/pagos}" class="card-button">
               <i class='bx bx-right-arrow-alt'></i> Ver Pagos
             </a>
           </div>
