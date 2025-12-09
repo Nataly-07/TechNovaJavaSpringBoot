@@ -257,7 +257,12 @@
 
     <div class="acciones-usuario">
       <a th:href="@{/admin/perfil}" class="account"><i class='bx bx-user-circle'></i> <span>Perfil</span></a>
-      <a th:href="@{/logout}" class="account"><i class='bx bx-log-out'></i> <span>Cerrar Sesión</span></a>
+      <form method="POST" th:action="@{/logout}" style="display:inline;">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        <button type="submit" style="background:none;border:none;color:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:5px;" class="account">
+          <i class='bx bx-log-out'></i> <span>Cerrar Sesión</span>
+        </button>
+      </form>
     </div>
   </header>
 
@@ -350,7 +355,36 @@
   <script th:inline="javascript">
     const baseUrl = /*[[@{/}]]*/ '';
     
-    function mostrarFormulario(tipo) {
+    // Categorías y marcas desde el backend
+    const categorias = /*[[${categorias}]]*/ [];
+    const marcas = /*[[${marcas}]]*/ [];
+    
+    // Función auxiliar para capitalizar
+    function capitalize(str) {
+      if (!str) return '';
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+    
+    // Función para generar opciones de categorías
+    function generarOpcionesCategorias() {
+      let html = '<option value="">Todas las categorías</option>';
+      categorias.forEach(cat => {
+        html += `<option value="${cat}">${capitalize(cat)}</option>`;
+      });
+      return html;
+    }
+    
+    // Función para generar opciones de marcas
+    function generarOpcionesMarcas() {
+      let html = '<option value="">Todas las marcas</option>';
+      marcas.forEach(marca => {
+        html += `<option value="${marca}">${marca}</option>`;
+      });
+      return html;
+    }
+    
+    // Asegurar que las funciones estén disponibles globalmente
+    window.mostrarFormulario = function(tipo) {
       const contenedor = document.getElementById('contenedor-formularios');
       contenedor.innerHTML = '';
       contenedor.classList.remove('mostrar');
@@ -374,13 +408,13 @@
                   <div class="filtro-group">
                     <label>Categoría</label>
                     <select name="categoria" id="categoria">
-                      <option value="">Todas las categorías</option>
+                      ${generarOpcionesCategorias()}
                     </select>
                   </div>
                   <div class="filtro-group">
                     <label>Marca</label>
                     <select name="marca" id="marca">
-                      <option value="">Todas las marcas</option>
+                      ${generarOpcionesMarcas()}
                     </select>
                   </div>
                   <div class="filtro-group">
@@ -467,13 +501,13 @@
                   <div class="filtro-group">
                     <label>Categoría</label>
                     <select name="categoria" id="categoria">
-                      <option value="">Todas las categorías</option>
+                      ${generarOpcionesCategorias()}
                     </select>
                   </div>
                   <div class="filtro-group">
                     <label>Marca</label>
                     <select name="marca" id="marca">
-                      <option value="">Todas las marcas</option>
+                      ${generarOpcionesMarcas()}
                     </select>
                   </div>
                   <div class="filtro-group">
@@ -508,11 +542,11 @@
       setTimeout(() => {
         contenedor.classList.add('mostrar');
         contenedor.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        cargarFiltros(tipo);
+        // Los filtros ya están cargados desde el backend, no necesitamos cargarFiltros
       }, 200);
-    }
+    };
     
-    function previewReporte(tipo) {
+    window.previewReporte = function(tipo) {
       const form = document.getElementById(`form${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`);
       if (!form) return;
       
@@ -520,9 +554,9 @@
       const params = new URLSearchParams(formData);
       const url = baseUrl + 'admin/reportes/preview-' + tipo + '?' + params.toString();
       window.open(url, '_blank');
-    }
+    };
     
-    function generarPdf(tipo) {
+    window.generarPdf = function(tipo) {
       const form = document.getElementById(`form${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`);
       if (!form) return;
       
@@ -530,9 +564,9 @@
       const params = new URLSearchParams(formData);
       const url = baseUrl + 'admin/reportes/' + tipo + '/pdf?' + params.toString();
       window.location.href = url;
-    }
+    };
     
-    function generarExcel(tipo) {
+    window.generarExcel = function(tipo) {
       const form = document.getElementById(`form${tipo.charAt(0).toUpperCase() + tipo.slice(1)}`);
       if (!form) return;
       
@@ -540,36 +574,8 @@
       const params = new URLSearchParams(formData);
       const url = baseUrl + 'admin/reportes/' + tipo + '/excel?' + params.toString();
       window.location.href = url;
-    }
+    };
     
-    function cargarFiltros(tipo) {
-      // Cargar categorías y marcas desde los productos disponibles
-      fetch(baseUrl + 'api/productos')
-        .then(response => response.json())
-        .then(data => {
-          const categorias = [...new Set(data.map(p => p.caracteristica?.categoria).filter(Boolean))];
-          const marcas = [...new Set(data.map(p => p.caracteristica?.marca).filter(Boolean))];
-          
-          categorias.forEach(cat => {
-            document.querySelectorAll('select[name="categoria"]').forEach(select => {
-              const option = document.createElement('option');
-              option.value = cat;
-              option.textContent = cat;
-              select.appendChild(option);
-            });
-          });
-          
-          marcas.forEach(marca => {
-            document.querySelectorAll('select[name="marca"]').forEach(select => {
-              const option = document.createElement('option');
-              option.value = marca;
-              option.textContent = marca;
-              select.appendChild(option);
-            });
-          });
-        })
-        .catch(err => console.error('Error cargando filtros:', err));
-    }
   </script>
 </body>
 </html>

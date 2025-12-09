@@ -5,6 +5,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Gestión de Proveedores - Technova</title>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" th:href="@{/frontend/css/estilodas.css}">
@@ -189,6 +191,206 @@
             margin-bottom: 20px;
             opacity: 0.5;
         }
+
+        .btn-agregar {
+            background: linear-gradient(135deg, #00cc44 0%, #00a638 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+        }
+
+        .btn-agregar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 204, 68, 0.3);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.show {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 2rem;
+            color: #7f8c8d;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .close-modal:hover {
+            background: #f0f0f0;
+            color: #2c3e50;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.95rem;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+            justify-content: flex-end;
+        }
+
+        .btn-modal {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-modal-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-modal-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-modal-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn-modal-secondary:hover {
+            background: #d0d0d0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideDown 0.3s ease;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
     </style>
 </head>
 <body>
@@ -216,6 +418,14 @@
       <div class="proveedores-container">
         <div class="proveedores-header">
           <h2><i class='bx bx-user-circle'></i> Gestión de Proveedores</h2>
+          <button class="btn-agregar" onclick="abrirModalAgregar()">
+            <i class='bx bx-plus-circle'></i> Agregar Proveedor
+          </button>
+        </div>
+
+        <div th:if="${mensaje}" th:classappend="${tipoMensaje == 'success' ? 'alert-success' : 'alert-error'}" class="alert">
+          <i th:class="${tipoMensaje == 'success' ? 'bx bx-check-circle' : 'bx bx-error-circle'}"></i>
+          <span th:text="${mensaje}"></span>
         </div>
 
         <div class="stats-bar">
@@ -280,6 +490,53 @@
         </div>
       </div>
     </main>
+  </div>
+
+  <!-- Modal para agregar proveedor -->
+  <div id="modalAgregar" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class='bx bx-user-plus'></i> Agregar Nuevo Proveedor</h3>
+        <button class="close-modal" onclick="cerrarModalAgregar()">&times;</button>
+      </div>
+      <form id="formAgregarProveedor">
+        <div class="form-group">
+          <label><i class='bx bx-id-card'></i> Identificación *</label>
+          <input type="text" name="identificacion" id="identificacion" placeholder="Número de identificación" required />
+        </div>
+
+        <div class="form-group">
+          <label><i class='bx bx-user'></i> Nombre *</label>
+          <input type="text" name="nombre" id="nombre" placeholder="Nombre completo" required />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label><i class='bx bx-building'></i> Empresa</label>
+            <input type="text" name="empresa" id="empresa" placeholder="Nombre de la empresa (opcional)" />
+          </div>
+
+          <div class="form-group">
+            <label><i class='bx bx-phone'></i> Teléfono *</label>
+            <input type="tel" name="telefono" id="telefono" placeholder="Número de teléfono" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label><i class='bx bx-envelope'></i> Correo Electrónico *</label>
+          <input type="email" name="correo" id="correo" placeholder="correo@ejemplo.com" required />
+        </div>
+
+        <div class="modal-actions">
+          <button type="submit" class="btn-modal btn-modal-primary">
+            <i class='bx bx-save'></i> Guardar Proveedor
+          </button>
+          <button type="button" class="btn-modal btn-modal-secondary" onclick="cerrarModalAgregar()">
+            <i class='bx bx-x'></i> Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <footer>
@@ -355,11 +612,121 @@
     }
 
     // Permitir buscar al presionar Enter
-    document.getElementById('filtroBusqueda').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        aplicarFiltros();
+    document.addEventListener('DOMContentLoaded', function() {
+      const filtroBusqueda = document.getElementById('filtroBusqueda');
+      if (filtroBusqueda) {
+        filtroBusqueda.addEventListener('keypress', function(e) {
+          if (e.key === 'Enter') {
+            aplicarFiltros();
+          }
+        });
+      }
+
+      // Manejar envío del formulario de agregar proveedor
+      const formAgregarProveedor = document.getElementById('formAgregarProveedor');
+      if (formAgregarProveedor) {
+        formAgregarProveedor.addEventListener('submit', function(e) {
+          e.preventDefault();
+          
+          const formData = new FormData(this);
+          const data = {};
+          formData.forEach((value, key) => {
+            data[key] = value;
+          });
+
+          // Validar campos requeridos
+          if (!data.identificacion || !data.nombre || !data.telefono || !data.correo) {
+            Swal.fire({
+              title: 'Error',
+              text: 'Por favor completa todos los campos requeridos',
+              icon: 'error',
+              confirmButtonText: 'OK'
+            });
+            return;
+          }
+
+          // Validar formato de email
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(data.correo)) {
+            Swal.fire({
+              title: 'Error',
+              text: 'Por favor ingresa un correo electrónico válido',
+              icon: 'error',
+              confirmButtonText: 'OK'
+            });
+            return;
+          }
+
+          // Enviar a la API
+          fetch('/api/proveedores', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'X-CSRF-TOKEN': document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || ''
+            },
+            body: JSON.stringify(data)
+          })
+          .then(response => {
+            if (response.ok) {
+              return response.json();
+            } else {
+              return response.json().then(err => {
+                throw new Error(err.message || 'Error al crear el proveedor');
+              });
+            }
+          })
+          .then(data => {
+            Swal.fire({
+              title: 'Éxito',
+              text: 'Proveedor creado correctamente',
+              icon: 'success',
+              confirmButtonText: 'OK'
+            }).then(() => {
+              cerrarModalAgregar();
+              location.reload();
+            });
+          })
+          .catch(error => {
+            Swal.fire({
+              title: 'Error',
+              text: error.message || 'Ocurrió un error al crear el proveedor',
+              icon: 'error',
+              confirmButtonText: 'OK'
+            });
+          });
+        });
+      }
+
+      // Cerrar modal al hacer clic fuera de él
+      const modalAgregar = document.getElementById('modalAgregar');
+      if (modalAgregar) {
+        modalAgregar.addEventListener('click', function(e) {
+          if (e.target === this) {
+            cerrarModalAgregar();
+          }
+        });
       }
     });
+
+    function abrirModalAgregar() {
+      const modal = document.getElementById('modalAgregar');
+      if (modal) {
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function cerrarModalAgregar() {
+      const modal = document.getElementById('modalAgregar');
+      if (modal) {
+        modal.classList.remove('show');
+        document.body.style.overflow = 'auto';
+        const form = document.getElementById('formAgregarProveedor');
+        if (form) {
+          form.reset();
+        }
+      }
+    }
   </script>
 </body>
 </html>

@@ -16,6 +16,7 @@ import com.technova.technov.domain.service.ProductoService;
 import com.technova.technov.domain.service.UsuarioService;
 import com.technova.technov.domain.service.VentaService;
 import com.technova.technov.service.ReporteService;
+import com.technova.technov.domain.repository.CaracteristicaRepository;
 
 import com.technova.technov.util.SecurityUtil;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,7 @@ public class ReporteController {
     private final UsuarioService usuarioService;
     private final VentaService ventaService;
     private final ReporteService reporteService;
+    private final CaracteristicaRepository caracteristicaRepository;
     
     @Autowired
     private SecurityUtil securityUtil;
@@ -43,11 +45,13 @@ public class ReporteController {
             ProductoService productoService,
             UsuarioService usuarioService,
             VentaService ventaService,
-            ReporteService reporteService) {
+            ReporteService reporteService,
+            CaracteristicaRepository caracteristicaRepository) {
         this.productoService = productoService;
         this.usuarioService = usuarioService;
         this.ventaService = ventaService;
         this.reporteService = reporteService;
+        this.caracteristicaRepository = caracteristicaRepository;
     }
 
     @GetMapping("/admin/reportes")
@@ -63,9 +67,31 @@ public class ReporteController {
         int usuariosCount = usuarioService.listarUsuarios().size();
         int ventasCount = ventaService.listar().size();
 
+        // Obtener categorías únicas del repositorio y normalizarlas
+        List<String> categorias = caracteristicaRepository.listarCategorias();
+        // Normalizar a minúsculas y eliminar duplicados (case-insensitive), filtrando "temporal"
+        categorias = categorias.stream()
+                .filter(c -> c != null && !c.trim().isEmpty() && !c.equalsIgnoreCase("temporal"))
+                .map(String::toLowerCase)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+
+        // Obtener marcas únicas del repositorio y normalizarlas
+        List<String> marcas = caracteristicaRepository.listarMarcas();
+        // Normalizar y eliminar duplicados (case-insensitive), filtrando "Temporal"
+        marcas = marcas.stream()
+                .filter(m -> m != null && !m.trim().isEmpty() && !m.equalsIgnoreCase("Temporal"))
+                .map(String::trim)
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+
         model.addAttribute("productosCount", productosCount);
         model.addAttribute("usuariosCount", usuariosCount);
         model.addAttribute("ventasCount", ventasCount);
+        model.addAttribute("categorias", categorias);
+        model.addAttribute("marcas", marcas);
         
         return "frontend/admin/reportes/index";
     }

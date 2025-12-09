@@ -3,6 +3,9 @@ package com.technova.technov.domain.controller;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.technova.technov.domain.dto.UsuarioDto;
 import com.technova.technov.domain.service.AtencionClienteService;
@@ -243,5 +246,71 @@ public class PerfilController {
         model.addAttribute("totalProductos", productos.size());
         
         return "frontend/empleado/productos";
+    }
+
+    @GetMapping("/perfil/edit")
+    public String editarPerfil(Model model) {
+        UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
+        
+        if (usuario == null) {
+            return "redirect:/login";
+        }
+        
+        model.addAttribute("usuario", usuario);
+        
+        // Redirigir según el rol para mantener el contexto
+        String role = usuario.getRole();
+        if ("admin".equalsIgnoreCase(role)) {
+            return "frontend/admin/perfil-edit";
+        } else if ("empleado".equalsIgnoreCase(role)) {
+            return "frontend/empleado/perfil-edit";
+        } else if ("cliente".equalsIgnoreCase(role)) {
+            return "frontend/cliente/perfil-edit";
+        }
+        
+        return "redirect:/login";
+    }
+
+    @PostMapping("/perfil/edit")
+    public String actualizarPerfil(
+            @ModelAttribute UsuarioDto usuarioDto,
+            RedirectAttributes redirectAttributes) {
+        
+        UsuarioDto usuarioAutenticado = securityUtil.getUsuarioAutenticado().orElse(null);
+        
+        if (usuarioAutenticado == null) {
+            return "redirect:/login";
+        }
+        
+        // Asegurar que solo se actualice el perfil del usuario autenticado
+        usuarioDto.setId(usuarioAutenticado.getId());
+        usuarioDto.setRole(usuarioAutenticado.getRole()); // No permitir cambiar el rol
+        
+        // Si la contraseña está vacía, no actualizarla
+        if (usuarioDto.getPassword() == null || usuarioDto.getPassword().trim().isEmpty()) {
+            usuarioDto.setPassword(null);
+        }
+        
+        UsuarioDto usuarioActualizado = usuarioService.actualizarUsuario(usuarioAutenticado.getId(), usuarioDto);
+        
+        if (usuarioActualizado != null) {
+            redirectAttributes.addFlashAttribute("mensaje", "Perfil actualizado correctamente");
+            redirectAttributes.addFlashAttribute("tipoMensaje", "success");
+        } else {
+            redirectAttributes.addFlashAttribute("mensaje", "Error al actualizar el perfil");
+            redirectAttributes.addFlashAttribute("tipoMensaje", "error");
+        }
+        
+        // Redirigir según el rol
+        String role = usuarioAutenticado.getRole();
+        if ("admin".equalsIgnoreCase(role)) {
+            return "redirect:/admin/perfil";
+        } else if ("empleado".equalsIgnoreCase(role)) {
+            return "redirect:/empleado/perfil";
+        } else if ("cliente".equalsIgnoreCase(role)) {
+            return "redirect:/cliente/perfil";
+        }
+        
+        return "redirect:/login";
     }
 }
