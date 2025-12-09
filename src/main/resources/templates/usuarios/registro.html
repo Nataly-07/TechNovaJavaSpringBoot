@@ -44,7 +44,7 @@
       border-radius: 24px;
       padding: 25px;
       width: 100%;
-      max-width: 450px;
+      max-width: 520px;
       box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
       border: 1px solid rgba(255, 255, 255, 0.2);
       position: relative;
@@ -1214,12 +1214,12 @@
         <p class="form-subtitle">Únete a la comunidad TechNova</p>
     </div>
 
-      <div class="error-message d-none" id="successAlert" style="color: #10b981;">
+      <div class="error-message" id="successAlert" style="color: #10b981; display: none; background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%); padding: 20px; border-radius: 12px; border: 2px solid #10b981; box-shadow: 0 8px 24px rgba(16, 185, 129, 0.3); font-size: 16px; font-weight: 600; margin-bottom: 20px;">
         <i class='bx bx-check-circle'></i>
         <span id="successMessage">Usuario registrado correctamente.</span>
       </div>
 
-      <div class="error-message d-none" id="errorAlert">
+      <div class="error-message" id="errorAlert" style="display: none; background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%); padding: 20px; border-radius: 12px; border: 2px solid #ef4444; box-shadow: 0 8px 24px rgba(239, 68, 68, 0.3); font-size: 16px; font-weight: 600; margin-bottom: 20px; color: #dc2626;">
         <i class='bx bx-error-circle'></i>
         <span id="errorMessage">No se pudo registrar el usuario. Revisa los datos e inténtalo nuevamente.</span>
       </div>
@@ -1505,21 +1505,52 @@
       function validarConfirmacionPassword() {
         const password = passwordInput.value;
         const confirmPassword = document.getElementById('confirmar-password').value;
+        const errorDiv = document.getElementById('confirmarPasswordError');
+        const confirmPasswordInput = document.getElementById('confirmar-password');
         
-        if (confirmPassword.length > 0) {
-          if (password === confirmPassword && password.length > 0) {
-            document.getElementById('confirmar-password').style.borderColor = '#10b981';
-            document.getElementById('confirmar-password').style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.1)';
-            document.getElementById('confirmar-password').style.background = '#f0fdf4';
-          } else {
-            document.getElementById('confirmar-password').style.borderColor = '#ef4444';
-            document.getElementById('confirmar-password').style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
-            document.getElementById('confirmar-password').style.background = '#fef2f2';
+        // Si el campo de confirmación está vacío, resetear estilos y ocultar error
+        if (confirmPassword.length === 0) {
+          confirmPasswordInput.style.borderColor = '#e2e8f0';
+          confirmPasswordInput.style.boxShadow = 'none';
+          confirmPasswordInput.style.background = '#f8fafc';
+          if (errorDiv) {
+            errorDiv.style.display = 'none';
+            errorDiv.classList.add('d-none');
           }
-        } else {
-          document.getElementById('confirmar-password').style.borderColor = '#e2e8f0';
-          document.getElementById('confirmar-password').style.boxShadow = 'none';
-          document.getElementById('confirmar-password').style.background = '#f8fafc';
+          return;
+        }
+        
+        // Si hay texto en ambos campos, validar si coinciden
+        if (password.length > 0 && confirmPassword.length > 0) {
+          if (password === confirmPassword) {
+            // Las contraseñas coinciden - mostrar éxito y OCULTAR error
+            confirmPasswordInput.style.borderColor = '#10b981';
+            confirmPasswordInput.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.1)';
+            confirmPasswordInput.style.background = '#f0fdf4';
+            if (errorDiv) {
+              errorDiv.style.display = 'none';
+              errorDiv.classList.add('d-none');
+            }
+          } else {
+            // Las contraseñas NO coinciden - mostrar error
+            confirmPasswordInput.style.borderColor = '#ef4444';
+            confirmPasswordInput.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
+            confirmPasswordInput.style.background = '#fef2f2';
+            if (errorDiv) {
+              errorDiv.textContent = 'Las contraseñas no coinciden.';
+              errorDiv.style.display = 'flex';
+              errorDiv.classList.remove('d-none');
+            }
+          }
+        } else if (confirmPassword.length > 0 && password.length === 0) {
+          // Si solo hay texto en confirmación pero no en password, mostrar estado neutral
+          confirmPasswordInput.style.borderColor = '#e2e8f0';
+          confirmPasswordInput.style.boxShadow = 'none';
+          confirmPasswordInput.style.background = '#f8fafc';
+          if (errorDiv) {
+            errorDiv.style.display = 'none';
+            errorDiv.classList.add('d-none');
+          }
         }
       }
       
@@ -1550,8 +1581,9 @@
         hideError('direccionError');
         hideError('passwordError');
         hideError('confirmarPasswordError');
-        hideError('successAlert');
-        hideError('errorAlert');
+        // Ocultar mensajes de éxito y error usando style.display
+        successAlert.style.display = 'none';
+        errorAlert.style.display = 'none';
       }
       
       // Event listeners para todos los campos
@@ -1604,7 +1636,6 @@
       // Event listener para el campo de confirmación de contraseña
       document.getElementById('confirmar-password').addEventListener('input', function() {
         validarConfirmacionPassword();
-        hideError('confirmarPasswordError');
       });
       
       // Validar tipo de documento
@@ -1730,7 +1761,13 @@
 
           if (response.ok) {
             const data = await response.json();
-            successAlert.classList.remove('d-none');
+            // Ocultar mensaje de error y mostrar mensaje de éxito
+            errorAlert.style.display = 'none';
+            successAlert.style.display = 'flex';
+            
+            // Hacer scroll automático al inicio para ver el mensaje
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            
             registroForm.reset();
             registroForm.classList.remove('was-validated');
             requisitos.style.display = 'block';
@@ -1750,12 +1787,16 @@
           } else {
             const errorData = await response.json().catch(() => ({}));
             const errorMsg = errorData.message || 'No se pudo registrar el usuario. Revisa los datos e inténtalo nuevamente.';
-            errorAlert.classList.remove('d-none');
+            // Ocultar mensaje de éxito y mostrar mensaje de error
+            successAlert.style.display = 'none';
+            errorAlert.style.display = 'flex';
             document.getElementById('errorMessage').textContent = errorMsg;
           }
         } catch (error) {
           console.error(error);
-          errorAlert.classList.remove('d-none');
+          // Ocultar mensaje de éxito y mostrar mensaje de error
+          successAlert.style.display = 'none';
+          errorAlert.style.display = 'flex';
           document.getElementById('errorMessage').textContent = 'Error de conexión. Intenta nuevamente.';
         }
       });

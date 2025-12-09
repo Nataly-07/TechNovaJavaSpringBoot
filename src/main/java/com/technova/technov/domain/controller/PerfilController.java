@@ -17,6 +17,7 @@ import com.technova.technov.domain.service.VentaService;
 import com.technova.technov.util.SecurityUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Controlador para los perfiles de usuario según su rol.
@@ -100,7 +101,16 @@ public class PerfilController {
             return "redirect:/login";
         }
         
+        // Obtener estadísticas del empleado
+        List<UsuarioDto> todosUsuarios = usuarioService.listarUsuarios();
+        int clientesCount = (int) todosUsuarios.stream()
+                .filter(u -> "CLIENTE".equalsIgnoreCase(u.getRole()) || "cliente".equalsIgnoreCase(u.getRole()))
+                .count();
+        int productosCount = productoService.listarProductos().size();
+        
         model.addAttribute("usuario", usuario);
+        model.addAttribute("clientesCount", clientesCount);
+        model.addAttribute("productosCount", productosCount);
         return "frontend/empleado/perfil";
     }
 
@@ -171,5 +181,44 @@ public class PerfilController {
         model.addAttribute("usuario", usuario);
         model.addAttribute("notificaciones", notificaciones);
         return "frontend/cliente/notificaciones";
+    }
+
+    @GetMapping("/empleado/usuarios")
+    public String usuariosEmpleado(Model model) {
+        UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
+        
+        if (usuario == null || !"empleado".equalsIgnoreCase(usuario.getRole())) {
+            return "redirect:/login";
+        }
+        
+        // Obtener todos los usuarios y filtrar solo los clientes
+        List<UsuarioDto> todosUsuarios = usuarioService.listarUsuarios();
+        List<UsuarioDto> clientes = todosUsuarios.stream()
+                .filter(u -> "CLIENTE".equalsIgnoreCase(u.getRole()) || "cliente".equalsIgnoreCase(u.getRole()))
+                .collect(Collectors.toList());
+        
+        model.addAttribute("usuario", usuario);
+        model.addAttribute("usuarios", clientes);
+        model.addAttribute("totalUsuarios", clientes.size());
+        
+        return "frontend/empleado/usuarios";
+    }
+
+    @GetMapping("/empleado/productos")
+    public String productosEmpleado(Model model) {
+        UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
+        
+        if (usuario == null || !"empleado".equalsIgnoreCase(usuario.getRole())) {
+            return "redirect:/login";
+        }
+        
+        // Obtener todos los productos
+        List<com.technova.technov.domain.dto.ProductoDto> productos = productoService.listarProductos();
+        
+        model.addAttribute("usuario", usuario);
+        model.addAttribute("productos", productos);
+        model.addAttribute("totalProductos", productos.size());
+        
+        return "frontend/empleado/productos";
     }
 }

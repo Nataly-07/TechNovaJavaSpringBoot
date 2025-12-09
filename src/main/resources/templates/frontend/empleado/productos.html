@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Visualización de Artículos - Technova</title>
+
+    <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" th:href="@{/frontend/css/estilodas.css}">
+    <link rel="stylesheet" th:href="@{/frontend/css/stilotech.css}">
+    <link rel="stylesheet" th:href="@{/frontend/css/color-palette.css}">
+    <style>
+        .main-content {
+            max-width: 100% !important;
+            width: 100% !important;
+            padding: 0 !important;
+        }
+
+        .productos-container {
+            padding: 30px 50px;
+            max-width: 98%;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        @media (min-width: 1600px) {
+            .productos-container {
+                max-width: 1900px;
+                padding: 30px 60px;
+            }
+        }
+
+        @media (max-width: 1200px) {
+            .productos-container {
+                max-width: 98%;
+                padding: 30px 25px;
+            }
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #2c3e50;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .page-title i {
+            font-size: 2.2rem;
+            color: #667eea;
+        }
+
+        .stats-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 16px;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
+        }
+
+        .stats-card .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .stats-card .stat-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .search-container {
+            background: white;
+            padding: 20px;
+            border-radius: 16px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+        }
+
+        .search-box {
+            position: relative;
+            width: 100%;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 14px 20px 14px 50px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: #f8fafc;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #a0aec0;
+            font-size: 20px;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+
+        .table-productos {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .table-productos thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .table-productos th {
+            padding: 18px 20px;
+            text-align: left;
+            font-weight: 600;
+            font-size: 0.95rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .table-productos th:first-child {
+            text-align: center;
+        }
+
+        .table-productos th:nth-child(2) {
+            text-align: left;
+        }
+
+        .table-productos th i {
+            margin-right: 8px;
+        }
+
+        .table-productos td {
+            padding: 18px 20px;
+            border-bottom: 1px solid #f0f0f0;
+            font-size: 0.9rem;
+            color: #4a5568;
+        }
+
+        .table-productos td:first-child {
+            text-align: center;
+        }
+
+        .table-productos td:nth-child(2) {
+            text-align: left;
+        }
+
+        .table-productos tbody tr {
+            transition: all 0.2s ease;
+        }
+
+        .table-productos tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .table-productos tbody tr:last-child td {
+            border-bottom: none;
+        }
+
+        .producto-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .producto-imagen {
+            width: 60px;
+            height: 60px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 2px solid #e2e8f0;
+            flex-shrink: 0;
+        }
+
+        .producto-details {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .producto-name {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 4px;
+            font-size: 1rem;
+        }
+
+        .producto-codigo {
+            font-size: 0.85rem;
+            color: #718096;
+        }
+
+        .categoria-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .marca-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            color: white;
+        }
+
+        .precio-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .precio-venta {
+            font-weight: 700;
+            color: #10b981;
+            font-size: 1rem;
+        }
+
+        .precio-original {
+            font-size: 0.85rem;
+            color: #718096;
+            text-decoration: line-through;
+        }
+
+        .stock-info {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .stock-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .stock-badge.alto {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .stock-badge.medio {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .stock-badge.bajo {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #718096;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            color: #cbd5e0;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            color: #4a5568;
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            font-size: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .table-container {
+                overflow-x: auto;
+            }
+
+            .table-productos {
+                min-width: 1500px;
+            }
+        }
+    </style>
+</head>
+<body>
+  <header class="header">
+    <div class="logo" style="cursor: default;">
+      <img th:src="@{/frontend/imagenes/logo technova.png}" alt="Logo">
+      <span>TECHNOVA</span>
+    </div>
+
+    <div class="acciones-usuario">
+      <a th:href="@{/empleado/perfil}" class="account"><i class='bx bx-user-circle'></i> <span>Perfil</span></a>
+      <form method="POST" th:action="@{/logout}" style="display:inline;">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        <button type="submit" style="background:none;border:none;color:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:5px;" class="account">
+          <i class='bx bx-log-out'></i> <span>Cerrar Sesión</span>
+        </button>
+      </form>
+    </div>
+  </header>
+
+  <div class="dashboard-wrapper">
+    <div th:replace="~{frontend/layouts/sidebar-empleado :: sidebar}"></div>
+
+    <main class="main-content">
+      <div class="productos-container">
+        <div class="page-header">
+          <h1 class="page-title">
+            <i class='bx bx-shopping-bag'></i>
+            Visualización de Artículos
+          </h1>
+          <div class="stats-card">
+            <div class="stat-number" th:text="${totalProductos}">0</div>
+            <div class="stat-label">Productos en Inventario</div>
+          </div>
+        </div>
+
+        <div class="search-container">
+          <div class="search-box">
+            <i class='bx bx-search'></i>
+            <input type="text" id="searchInput" placeholder="Buscar por ID, nombre, código, categoría, marca, color, descripción o proveedor..." onkeyup="filtrarProductos()">
+          </div>
+        </div>
+
+        <div class="table-container">
+          <table class="table-productos" id="productosTable">
+            <thead>
+              <tr>
+                <th><i class='bx bx-hash'></i> ID</th>
+                <th><i class='bx bx-package'></i> Producto</th>
+                <th><i class='bx bx-category'></i> Categoría</th>
+                <th><i class='bx bx-label'></i> Marca</th>
+                <th><i class='bx bx-palette'></i> Color</th>
+                <th><i class='bx bx-dollar'></i> Precio Compra</th>
+                <th><i class='bx bx-dollar-circle'></i> Precio Venta</th>
+                <th><i class='bx bx-box'></i> Stock</th>
+                <th><i class='bx bx-log-in'></i> Ingreso</th>
+                <th><i class='bx bx-log-out'></i> Salida</th>
+                <th><i class='bx bx-store'></i> Proveedor</th>
+                <th><i class='bx bx-file-blank'></i> Descripción</th>
+              </tr>
+            </thead>
+            <tbody id="productosBody">
+              <tr th:if="${productos == null || productos.isEmpty()}">
+                <td colspan="12">
+                  <div class="empty-state">
+                    <i class='bx bx-package'></i>
+                    <h3>No hay productos registrados</h3>
+                    <p>No se encontraron productos en el inventario.</p>
+                  </div>
+                </td>
+              </tr>
+              <tr th:each="producto : ${productos}" class="producto-row">
+                <td style="text-align: center; font-weight: 600; color: #667eea;" th:text="${producto.id ?: 'N/A'}">ID</td>
+                <td>
+                  <div class="producto-info">
+                    <img class="producto-imagen" 
+                         th:src="${producto.imagen != null and !#strings.isEmpty(producto.imagen) and #strings.startsWith(producto.imagen, 'http') 
+                                  ? producto.imagen 
+                                  : (producto.imagen != null and !#strings.isEmpty(producto.imagen) 
+                                      ? '/frontend/imagenes/' + producto.imagen 
+                                      : '/frontend/imagenes/placeholder.png')}"
+                         th:alt="${producto.nombre}">
+                    <div class="producto-details">
+                      <div class="producto-name" th:text="${producto.nombre ?: 'Sin nombre'}">Producto</div>
+                      <div class="producto-codigo" th:text="'Código: ' + (producto.codigo ?: 'N/A')">Código: N/A</div>
+                    </div>
+                  </div>
+                </td>
+                <td>
+                  <span class="categoria-badge" th:if="${producto.caracteristica != null and producto.caracteristica.categoria != null}" 
+                        th:text="${producto.caracteristica.categoria}">Categoría</span>
+                  <span th:if="${producto.caracteristica == null or producto.caracteristica.categoria == null}">N/A</span>
+                </td>
+                <td>
+                  <span class="marca-badge" th:if="${producto.caracteristica != null and producto.caracteristica.marca != null}" 
+                        th:text="${producto.caracteristica.marca}">Marca</span>
+                  <span th:if="${producto.caracteristica == null or producto.caracteristica.marca == null}">N/A</span>
+                </td>
+                <td style="text-align: center;">
+                  <span th:if="${producto.caracteristica != null and producto.caracteristica.color != null}" 
+                        th:text="${producto.caracteristica.color}">Color</span>
+                  <span th:if="${producto.caracteristica == null or producto.caracteristica.color == null}">N/A</span>
+                </td>
+                <td style="text-align: center;">
+                  <span class="precio-venta" th:if="${producto.caracteristica != null and producto.caracteristica.precioCompra != null}" 
+                        th:text="'$' + ${#numbers.formatDecimal(producto.caracteristica.precioCompra, 0, 'COMMA', '.')}">$0</span>
+                  <span th:if="${producto.caracteristica == null or producto.caracteristica.precioCompra == null}">N/A</span>
+                </td>
+                <td style="text-align: center;">
+                  <span class="precio-venta" th:if="${producto.caracteristica != null and producto.caracteristica.precioVenta != null}" 
+                        th:text="'$' + ${#numbers.formatDecimal(producto.caracteristica.precioVenta, 0, 'COMMA', '.')}">$0</span>
+                  <span th:if="${producto.caracteristica == null or producto.caracteristica.precioVenta == null}">N/A</span>
+                </td>
+                <td>
+                  <div class="stock-info">
+                    <span class="stock-badge" 
+                          th:classappend="${producto.stock != null and producto.stock > 50 ? 'alto' : (producto.stock != null and producto.stock > 10 ? 'medio' : 'bajo')}"
+                          th:text="${producto.stock != null ? producto.stock : 0}">0</span>
+                  </div>
+                </td>
+                <td style="text-align: center;" th:text="${producto.ingreso != null ? producto.ingreso : 0}">0</td>
+                <td style="text-align: center;" th:text="${producto.salida != null ? producto.salida : 0}">0</td>
+                <td th:text="${producto.proveedor ?: 'N/A'}">N/A</td>
+                <td style="max-width: 200px; word-wrap: break-word; font-size: 0.85rem;">
+                  <span th:if="${producto.caracteristica != null and producto.caracteristica.descripcion != null}" 
+                        th:text="${producto.caracteristica.descripcion.length() > 100 ? producto.caracteristica.descripcion.substring(0, 100) + '...' : producto.caracteristica.descripcion}">Descripción</span>
+                  <span th:if="${producto.caracteristica == null or producto.caracteristica.descripcion == null}">N/A</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 Technova</p>
+  </footer>
+
+  <script>
+    function filtrarProductos() {
+      const input = document.getElementById('searchInput');
+      const filter = input.value.toLowerCase();
+      const table = document.getElementById('productosTable');
+      const rows = table.getElementsByClassName('producto-row');
+      
+      let visibleCount = 0;
+      
+      for (let i = 0; i < rows.length; i++) {
+        const row = rows[i];
+        const text = row.textContent.toLowerCase();
+        
+        if (text.includes(filter)) {
+          row.style.display = '';
+          visibleCount++;
+        } else {
+          row.style.display = 'none';
+        }
+      }
+      
+      // Actualizar contador si es necesario
+      const emptyRow = table.querySelector('tr:not(.producto-row)');
+      if (emptyRow) {
+        if (visibleCount === 0 && filter !== '') {
+          emptyRow.style.display = '';
+        } else {
+          emptyRow.style.display = 'none';
+        }
+      }
+    }
+  </script>
+</body>
+</html>
+

@@ -35,7 +35,6 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarios);
     }
 
-    
     @GetMapping("/{id}")
     public ResponseEntity<UsuarioDto> obtenerPorId(@PathVariable Long id) {
         UsuarioDto usuario = usuarioService.usuarioPorId(id).orElse(null);
@@ -45,13 +44,37 @@ public class UsuarioController {
         return ResponseEntity.ok(usuario);
     }
 
-
-
-
     @PostMapping
-    public ResponseEntity<UsuarioDto> crear(@RequestBody UsuarioDto usuarioDto) {
-        UsuarioDto creado = usuarioService.crearUsuario(usuarioDto);
-        return ResponseEntity.ok(creado);
+    public ResponseEntity<?> crear(@RequestBody UsuarioDto usuarioDto) {
+        try {
+            UsuarioDto creado = usuarioService.crearUsuario(usuarioDto);
+            return ResponseEntity.ok(creado);
+        } catch (Exception e) {
+            String errorMessage = "No se pudo completar el registro. Por favor, verifica los datos.";
+
+            // Detectar errores comunes y devolver mensajes claros en español
+            String exceptionMsg = e.getMessage().toLowerCase();
+
+            if (exceptionMsg.contains("duplicate") || exceptionMsg.contains("duplicado")) {
+                if (exceptionMsg.contains("email")) {
+                    errorMessage = "Este correo electrónico ya está registrado. Por favor, usa otro correo o inicia sesión.";
+                } else if (exceptionMsg.contains("document_number") || exceptionMsg.contains("documento")) {
+                    errorMessage = "Este número de documento ya está registrado. Por favor, verifica tus datos.";
+                } else {
+                    errorMessage = "Los datos ingresados ya existen en el sistema. Por favor, verifica tu información.";
+                }
+            } else if (exceptionMsg.contains("constraint") || exceptionMsg.contains("restricción")) {
+                errorMessage = "Los datos ingresados ya existen en el sistema. Por favor, verifica tu información.";
+            } else if (exceptionMsg.contains("validation") || exceptionMsg.contains("validación")) {
+                errorMessage = "Algunos datos no son válidos. Por favor, revisa el formulario.";
+            }
+
+            // Crear respuesta de error con mensaje amigable
+            java.util.Map<String, String> errorResponse = new java.util.HashMap<>();
+            errorResponse.put("message", errorMessage);
+
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+        }
     }
 
     @PostMapping("/login")
@@ -61,9 +84,6 @@ public class UsuarioController {
                 .orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());
     }
 
-
-
-    
     @PutMapping("/{id}")
     public ResponseEntity<UsuarioDto> actualizarUsuarios(@PathVariable Long id, @RequestBody UsuarioDto usuarioDto) {
         UsuarioDto usuarioDtoActualizado = usuarioService.actualizarUsuario(id, usuarioDto);
@@ -73,8 +93,6 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioDtoActualizado);
     }
 
-
-    
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminarUsuario(@PathVariable Long id) {
         boolean eliminarUsuario = usuarioService.eliminarUsuario(id);
@@ -83,10 +101,5 @@ public class UsuarioController {
         }
         return ResponseEntity.noContent().build();
     }
-    
+
 }
-            
-
-
-
-
