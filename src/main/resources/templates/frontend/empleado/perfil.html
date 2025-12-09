@@ -150,10 +150,10 @@
             <h3>Gestión de Usuarios</h3>
             <p>Administra usuarios clientes</p>
             <div class="card-stats">
-              <span class="stat-number">-</span>
-              <span class="stat-label">usuarios gestionados</span>
+              <span class="stat-number" th:text="${clientesCount != null ? clientesCount : 0}">0</span>
+              <span class="stat-label">clientes registrados</span>
             </div>
-            <a th:href="@{/login}" class="card-button">
+            <a th:href="@{/empleado/usuarios}" class="card-button">
               <i class='bx bx-right-arrow-alt'></i> Gestionar Usuarios
             </a>
           </div>
@@ -167,10 +167,10 @@
             <h3>Visualización Artículos</h3>
             <p>Consulta el inventario de productos</p>
             <div class="card-stats">
-              <span class="stat-number">-</span>
+              <span class="stat-number" th:text="${productosCount != null ? productosCount : 0}">0</span>
               <span class="stat-label">productos en inventario</span>
             </div>
-            <a th:href="@{/login}" class="card-button">
+            <a th:href="@{/empleado/productos}" class="card-button">
               <i class='bx bx-right-arrow-alt'></i> Ver Inventario
             </a>
           </div>
