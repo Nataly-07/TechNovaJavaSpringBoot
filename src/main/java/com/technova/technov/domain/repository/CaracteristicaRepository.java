@@ -20,4 +20,10 @@ public interface CaracteristicaRepository extends JpaRepository<Caracteristica, 
     java.util.List<String> listarMarcas();
     java.util.List<Caracteristica> findByEstadoTrue();
     java.util.Optional<Caracteristica> findByIdAndEstadoTrue(Integer id);
+    
+    @Query("select c from Caracteristica c where c.estado = true and LOWER(c.categoria) = LOWER(:categoria)")
+    java.util.List<Caracteristica> findByCategoriaIgnoreCase(String categoria);
+    
+    @Query("select c from Caracteristica c where c.estado = true and LOWER(c.marca) = LOWER(:marca)")
+    java.util.List<Caracteristica> findByMarcaIgnoreCase(String marca);
 }
