@@ -45,17 +45,35 @@ public class CarritoServiceImpl implements CarritoService {
     public List<CarritoItemDto> agregar(Integer usuarioId, Integer productoId, Integer cantidad) {
         if (cantidad == null || cantidad < 1) cantidad = 1;
         Carrito carrito = obtenerOCrearCarrito(usuarioId);
+        
+        // Buscar el producto y verificar stock
+        Producto prod = productoRepository.findById(productoId)
+                .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: " + productoId));
+        
+        // Verificar si el producto está agotado
+        if (prod.getStock() == null || prod.getStock() <= 0) {
+            throw new IllegalArgumentException("El producto está agotado y no se puede agregar al carrito");
+        }
+        
         // Buscar si ya existe item del mismo producto
         List<DetalleCarrito> detalles = detalleCarritoRepository.findByCarrito(carrito);
         for (DetalleCarrito d : detalles) {
             if (d.getProducto().getId().equals(productoId)) {
+                // Verificar stock antes de incrementar cantidad
+                if (prod.getStock() < (d.getCantidad() + cantidad)) {
+                    throw new IllegalArgumentException("No hay suficiente stock disponible");
+                }
                 d.setCantidad(d.getCantidad() + cantidad);
                 detalleCarritoRepository.save(d);
                 return listar(usuarioId);
             }
         }
-        Producto prod = productoRepository.findById(productoId)
-                .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: " + productoId));
+        
+        // Verificar stock antes de agregar nuevo item
+        if (prod.getStock() < cantidad) {
+            throw new IllegalArgumentException("No hay suficiente stock disponible");
+        }
+        
         DetalleCarrito nuevo = new DetalleCarrito();
         nuevo.setId(null);
         nuevo.setCarrito(carrito);

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title th:text="${producto.nombre} + ' - Technova'">Producto - Technova</title>
     <link rel="stylesheet" th:href="@{/frontend/css/stilotech.css}">
-    <link rel="stylesheet" th:href="@{/frontend/css/producto.css}">
+    <!-- <link rel="stylesheet" th:href="@{/frontend/css/producto.css}"> -->
     <link rel="stylesheet" th:href="@{/frontend/css/color-palette.css}">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/boxicons/2.1.0/css/boxicons.min.css" rel="stylesheet">
     <style>
@@ -145,9 +145,97 @@
             color: white;
         }
 
+        .caracteristicas {
+            margin: 25px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .caracteristicas h3 {
+            font-size: 1.3rem;
+            color: #333;
+            margin-bottom: 15px;
+            font-weight: 700;
+            border-bottom: 2px solid var(--gradient-secondary);
+            padding-bottom: 10px;
+        }
+
+        .caracteristica-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .caracteristica-item:last-child {
+            border-bottom: none;
+        }
+
+        .caracteristica-label {
+            font-weight: 700;
+            color: #555;
+            min-width: 120px;
+            font-size: 0.95rem;
+        }
+
+        .caracteristica-value {
+            color: #333;
+            font-size: 0.95rem;
+            flex: 1;
+        }
+
+        .descripcion-item {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .caracteristica-descripcion {
+            margin: 8px 0 0 0;
+            color: #666;
+            line-height: 1.6;
+            font-size: 0.95rem;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            border-left: 3px solid var(--gradient-secondary);
+        }
+
+        .producto-categoria {
+            display: inline-block;
+            background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-left: 10px;
+            margin-bottom: 15px;
+        }
+
+        .acciones {
+            margin-top: 25px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .acciones .btn {
+            flex: 1;
+            min-width: 200px;
+        }
+
         @media (max-width: 768px) {
             .producto-container {
                 grid-template-columns: 1fr;
+            }
+            
+            .caracteristica-label {
+                min-width: 100px;
+                font-size: 0.9rem;
             }
         }
     </style>
@@ -159,13 +247,49 @@
             <span>TECHNOVA</span>
         </a>
 
-        <div class="acciones-usuario">
+        <div class="acciones-usuario" th:if="${usuario == null}">
             <a th:href="@{/login}" class="account">
                 <span>Iniciar Sesión</span>
             </a>
             <a th:href="@{/registro}" class="account">
                 <span>Crear Cuenta</span>
             </a>
+        </div>
+        
+        <div class="acciones-usuario" th:if="${usuario != null}">
+            <a th:href="@{/cliente/perfil}" class="account">
+                <span>Perfil</span>
+            </a>
+            <a th:href="@{/favoritos}" class="account" style="position: relative;">
+                <span>❤️ Favoritos</span>
+                <th:block th:if="${favoritosCount != null and favoritosCount > 0}">
+                    <span style="position:absolute; top:-6px; right:-6px; background:#e63946; color:#fff; border-radius:12px; padding:2px 6px; font-size:12px; line-height:1; font-weight:700;" th:text="${favoritosCount}">0</span>
+                </th:block>
+            </a>
+            <div class="carrito-dropdown-container" style="position: relative;">
+                <button class="account carrito-toggle-btn" style="position: relative; background: none; border: none; color: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: 5px;">
+                    <span>🛒 Carrito</span>
+                    <th:block th:if="${carritoCount != null and carritoCount > 0}">
+                        <span style="position:absolute; top:-6px; right:-6px; background:#e63946; color:#fff; border-radius:12px; padding:2px 6px; font-size:12px; line-height:1; font-weight:700;" th:text="${carritoCount}">0</span>
+                    </th:block>
+                </button>
+                <div class="carrito-dropdown" id="carritoDropdown" style="display: none;">
+                    <div class="carrito-dropdown-header">
+                        <h3>Mi Carrito</h3>
+                    </div>
+                    <div class="carrito-dropdown-content" id="carritoDropdownContent">
+                        <p style="text-align: center; padding: 20px; color: #666;">Cargando...</p>
+                    </div>
+                    <div class="carrito-dropdown-footer">
+                        <a th:href="@{/carrito}" class="btn-ir-carrito">Ir a Carrito</a>
+                    </div>
+                </div>
+            </div>
+            <form method="POST" th:action="@{/logout}" style="display:inline;">
+                <button type="submit" style="background:none;border:none;color:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:5px;" class="account">
+                    <span>Cerrar Sesión</span>
+                </button>
+            </form>
         </div>
     </header>
 
@@ -212,6 +336,20 @@
             <div class="producto-info">
                 <h1 th:text="${producto.nombre}">Producto</h1>
                 
+                <!-- Indicador de disponibilidad -->
+                <div class="disponibilidad-indicador" style="margin: 10px 0 15px 0; display: block;">
+                    <th:block th:with="stock=${producto.stock != null ? producto.stock : 0}">
+                        <span th:if="${stock != null and stock > 0}" style="display: inline-flex !important; align-items: center; gap: 5px; background: #d4edda; color: #155724; padding: 8px 16px; border-radius: 20px; font-size: 15px; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <i class='bx bx-check-circle' style="font-size: 20px;"></i>
+                            <span>Disponible</span>
+                        </span>
+                        <span th:if="${stock == null or stock == 0}" style="display: inline-flex !important; align-items: center; gap: 5px; background: #f8d7da; color: #721c24; padding: 8px 16px; border-radius: 20px; font-size: 15px; font-weight: 600; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                            <i class='bx bx-x-circle' style="font-size: 20px;"></i>
+                            <span>Agotado</span>
+                        </span>
+                    </th:block>
+                </div>
+                
                 <div class="producto-marca" th:text="${producto.caracteristica != null && producto.caracteristica.marca != null ? producto.caracteristica.marca : 'Sin marca'}">Marca</div>
                 <span class="producto-categoria" th:text="${producto.caracteristica != null && producto.caracteristica.categoria != null ? producto.caracteristica.categoria : 'Sin categoría'}">Categoría</span>
 
@@ -221,9 +359,23 @@
                 </div>
 
                 <div class="precio-container">
-                    <div class="precio-actual" th:if="${producto.caracteristica != null && producto.caracteristica.precioVenta != null}">
-                        $<span th:text="${#numbers.formatDecimal(producto.caracteristica.precioVenta, 0, 'COMMA', '.')}">0</span>
-                    </div>
+                    <th:block th:if="${producto.precioOriginal != null && producto.precioDescuento != null}">
+                        <div class="precio-original" style="text-decoration: line-through; color: #999; font-size: 1.2rem; margin-bottom: 5px;">
+                            $<span th:text="${#numbers.formatDecimal(producto.precioOriginal, 0, 0)}">0</span>
+                        </div>
+                        <div class="precio-descuento" style="font-size: 2rem; font-weight: bold; color: #0f7d3d;">
+                            $<span th:text="${#numbers.formatDecimal(producto.precioDescuento, 0, 0)}">0</span>
+                            <span class="descuento" style="font-size: 0.9rem; background-color: #d4edda; color: #278a57; padding: 3px 8px; border-radius: 5px; margin-left: 8px;">-5%</span>
+                        </div>
+                    </th:block>
+                    <th:block th:if="${producto.precioOriginal == null || producto.precioDescuento == null}">
+                        <div class="precio-actual" th:if="${producto.caracteristica != null && producto.caracteristica.precioVenta != null}" style="font-size: 2rem; font-weight: bold; color: #0f7d3d;">
+                            $<span th:text="${#numbers.formatDecimal(producto.caracteristica.precioVenta, 0, 0)}">0</span>
+                        </div>
+                        <div th:if="${producto.caracteristica == null || producto.caracteristica.precioVenta == null}" style="font-size: 1.2rem; color: #999;">
+                            Precio no disponible
+                        </div>
+                    </th:block>
                 </div>
 
                 <div class="stock-info">
@@ -248,27 +400,59 @@
                 </div>
 
                 <div class="caracteristicas">
-                    <h3>Características</h3>
+                    <h3>Información del Producto</h3>
                     <div class="caracteristica-item">
-                        <span>Marca:</span>
-                        <span th:text="${producto.caracteristica != null && producto.caracteristica.marca != null ? producto.caracteristica.marca : 'No especificada'}">Marca</span>
+                        <span class="caracteristica-label">Nombre:</span>
+                        <span class="caracteristica-value" th:text="${producto.nombre != null ? producto.nombre : 'No especificado'}">Nombre</span>
                     </div>
                     <div class="caracteristica-item">
-                        <span>Categoría:</span>
-                        <span th:text="${producto.caracteristica != null && producto.caracteristica.categoria != null ? producto.caracteristica.categoria : 'No especificada'}">Categoría</span>
+                        <span class="caracteristica-label">Marca:</span>
+                        <span class="caracteristica-value" th:text="${producto.caracteristica != null && producto.caracteristica.marca != null ? producto.caracteristica.marca : 'No especificada'}">Marca</span>
+                    </div>
+                    <div class="caracteristica-item">
+                        <span class="caracteristica-label">Categoría:</span>
+                        <span class="caracteristica-value" th:text="${producto.caracteristica != null && producto.caracteristica.categoria != null ? producto.caracteristica.categoria : 'No especificada'}">Categoría</span>
+                    </div>
+                    <div class="caracteristica-item">
+                        <span class="caracteristica-label">Color:</span>
+                        <span class="caracteristica-value" th:text="${producto.caracteristica != null && producto.caracteristica.color != null && !producto.caracteristica.color.isEmpty() ? producto.caracteristica.color : 'No especificado'}">Color</span>
+                    </div>
+                    <div class="caracteristica-item">
+                        <span class="caracteristica-label">Stock:</span>
+                        <span class="caracteristica-value" th:text="${producto.stock != null ? producto.stock : 0}">0</span>
+                        <span> unidades disponibles</span>
+                    </div>
+                    <div class="caracteristica-item descripcion-item" th:if="${producto.caracteristica != null && producto.caracteristica.descripcion != null && !producto.caracteristica.descripcion.isEmpty()}">
+                        <span class="caracteristica-label">Descripción:</span>
+                        <p class="caracteristica-descripcion" th:text="${producto.caracteristica.descripcion}">Descripción del producto</p>
                     </div>
                 </div>
 
                 <div class="acciones">
                     <th:block th:with="stock=${producto.stock != null ? producto.stock : 0}">
-                        <button th:if="${stock > 0}" class="btn btn-primary" onclick="agregarAlCarrito([[${producto.id}]])">
-                            <i class='bx bx-cart-add'></i> Agregar al Carrito
-                        </button>
-                        <button th:if="${stock == 0}" class="btn btn-primary" disabled>
-                            <i class='bx bx-x'></i> Producto Agotado
-                        </button>
+                        <th:block th:if="${usuario != null}">
+                            <th:block th:if="${stock > 0}">
+                                <form th:action="@{'/carrito/agregar/' + ${producto.id}}" method="POST" style="display: inline;">
+                                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class='bx bx-cart-add'></i> Agregar al Carrito
+                                    </button>
+                                </form>
+                                <button class="favorito-btn" th:data-producto-id="${producto.id}" style="background: #ff6b9d; border: none; border-radius: 50%; width: 50px; height: 50px; color: white; font-size: 24px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.3s ease; margin-left: 10px;">❤️</button>
+                            </th:block>
+                            <th:block th:if="${stock == 0}">
+                                <button class="btn btn-primary" disabled style="opacity: 0.6; cursor: not-allowed;">
+                                    <i class='bx bx-x'></i> Producto Agotado
+                                </button>
+                                <button class="favorito-btn" th:data-producto-id="${producto.id}" style="background: #ff6b9d; border: none; border-radius: 50%; width: 50px; height: 50px; color: white; font-size: 24px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; transition: all 0.3s ease; margin-left: 10px;">❤️</button>
+                            </th:block>
+                        </th:block>
+                        <th:block th:if="${usuario == null}">
+                            <a th:href="@{/login}" class="btn btn-primary">
+                                <i class='bx bx-log-in'></i> Iniciar Sesión para Comprar
+                            </a>
+                        </th:block>
                     </th:block>
-                    <a th:href="@{/login}" class="btn btn-primary">Iniciar Sesión para Comprar</a>
                 </div>
             </div>
         </div>
@@ -278,11 +462,17 @@
         <p>© 2025 TECHNOVA. Todos los derechos reservados.</p>
     </footer>
 
-    <script>
-        function agregarAlCarrito(productoId) {
-            window.location.href = '/login';
-        }
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const usuarioId = /*[[${usuario != null ? usuario.id : null}]]*/ null;
+        const csrfToken = /*[[${_csrf != null ? _csrf.token : ''}]]*/ '';
+        const csrfHeaderName = /*[[${_csrf != null ? _csrf.headerName : ''}]]*/ '';
+        /*]]>*/
     </script>
+    <script th:src="@{/frontend/js/agregar-carrito.js}" defer></script>
+    <script th:src="@{/frontend/js/carrito-dropdown.js}" defer></script>
+    <script th:src="@{/frontend/js/favoritos.js}" defer></script>
 </body>
 </html>
 
