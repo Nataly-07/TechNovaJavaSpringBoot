@@ -38,6 +38,15 @@ public class ProveedorServiceImpl implements ProveedorService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<ProveedorDto> listarTodosProveedores() {
+        List<Proveedor> proveedores = proveedorRepository.findAll();
+        return proveedores.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
     @Transactional
     public ProveedorDto crearProveedor(ProveedorDto proveedorDto) {
         Proveedor entity = convertToEntity(proveedorDto);
@@ -50,14 +59,18 @@ public class ProveedorServiceImpl implements ProveedorService {
     @Override
     @Transactional(readOnly = true)
     public Optional<ProveedorDto> proveedorPorId(Integer idProveedor) {
-        return proveedorRepository.findByIdAndEstadoTrue(idProveedor)
-                .map(this::convertToDto);
+        return proveedorRepository.findById(idProveedor)
+                .map(proveedor -> {
+                    ProveedorDto dto = convertToDto(proveedor);
+                    dto.setEstado(proveedor.getEstado());
+                    return dto;
+                });
     }
 
     @Override
     @Transactional
     public ProveedorDto actualizarProveedor(Integer idProveedor, ProveedorDto proveedorDto) {
-        return proveedorRepository.findByIdAndEstadoTrue(idProveedor)
+        return proveedorRepository.findById(idProveedor)
                 .map(existing -> {
                     existing.setIdentificacion(proveedorDto.getIdentificacion());
                     existing.setNombre(proveedorDto.getNombre());
@@ -65,11 +78,13 @@ public class ProveedorServiceImpl implements ProveedorService {
                     existing.setCorreo(proveedorDto.getCorreo());
                     existing.setEmpresa(proveedorDto.getEmpresa());
                     if (proveedorDto.getProductoId() != null) {
-                        Producto producto = productoRepository.findByIdAndEstadoTrue(proveedorDto.getProductoId()).orElse(null);
+                        Producto producto = productoRepository.findById(proveedorDto.getProductoId()).orElse(null);
                         existing.setProducto(producto);
                     }
                     Proveedor updated = proveedorRepository.save(existing);
-                    return convertToDto(updated);
+                    ProveedorDto dto = convertToDto(updated);
+                    dto.setEstado(updated.getEstado());
+                    return dto;
                 })
                 .orElse(null);
     }
@@ -86,10 +101,25 @@ public class ProveedorServiceImpl implements ProveedorService {
                 .orElse(false);
     }
 
+    @Override
+    @Transactional
+    public boolean activarDesactivarProveedor(Integer idProveedor, boolean activar) {
+        return proveedorRepository.findById(idProveedor)
+                .map(proveedor -> {
+                    proveedor.setEstado(activar);
+                    proveedorRepository.save(proveedor);
+                    return true;
+                })
+                .orElse(false);
+    }
+
     private ProveedorDto convertToDto(Proveedor proveedor) {
         ProveedorDto dto = modelMapper.map(proveedor, ProveedorDto.class);
         if (proveedor.getProducto() != null) {
             dto.setProductoId(proveedor.getProducto().getId());
+        }
+        if (proveedor.getEstado() != null) {
+            dto.setEstado(proveedor.getEstado());
         }
         return dto;
     }

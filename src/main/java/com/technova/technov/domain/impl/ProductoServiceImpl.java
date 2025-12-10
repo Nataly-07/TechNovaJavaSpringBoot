@@ -107,13 +107,24 @@ public class ProductoServiceImpl implements ProductoService {
     @Override
     @Transactional
     public ProductoDto actualizarProducto(Integer id, ProductoDto productoDto) {
-        return productoRepository.findByIdAndEstadoTrue(id)
+        return productoRepository.findById(id) // Buscar por ID sin filtrar por estado para poder editar productos inactivos
                 .map(existing -> {
                     existing.setNombre(productoDto.getNombre());
                     existing.setStock(productoDto.getStock());
+                    existing.setCodigo(productoDto.getCodigo());
+                    existing.setProveedor(productoDto.getProveedor() != null ? productoDto.getProveedor() : "");
+                    existing.setImagen(productoDto.getImagen() != null ? productoDto.getImagen() : "");
+                    
+                    // Actualizar ingreso y salida
+                    if (productoDto.getIngreso() != null) {
+                        existing.setIngreso(productoDto.getIngreso());
+                    }
+                    if (productoDto.getSalida() != null) {
+                        existing.setSalida(productoDto.getSalida());
+                    }
                     
                     if (productoDto.getCaracteristicasId() != null) {
-                        Caracteristica caracteristica = caracteristicaRepository.findByIdAndEstadoTrue(productoDto.getCaracteristicasId())
+                        Caracteristica caracteristica = caracteristicaRepository.findById(productoDto.getCaracteristicasId())
                                 .orElseThrow(() -> new IllegalArgumentException("Característica no encontrada: " + productoDto.getCaracteristicasId()));
                         existing.setCaracteristica(caracteristica);
                     }
@@ -136,12 +147,60 @@ public class ProductoServiceImpl implements ProductoService {
                 .orElse(false);
     }
 
+    @Override
+    @Transactional
+    public boolean activarDesactivarProducto(Integer id, boolean activar) {
+        return productoRepository.findById(id)
+                .map(producto -> {
+                    producto.setEstado(activar); 
+                    productoRepository.save(producto);
+                    return true;
+                })
+                .orElse(false);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ProductoDto> listarTodosProductos() {
+        List<Producto> productos = productoRepository.findAll();
+        return productos.stream()
+                .map(producto -> {
+                    // Forzar la carga de la relación antes de mapear
+                    if (producto.getCaracteristica() != null) {
+                        producto.getCaracteristica().getCategoria(); // Forzar lazy loading
+                    }
+                    return convertToDto(producto);
+                })
+                .collect(Collectors.toList());
+    }
+
     private ProductoDto convertToDto(Producto producto) {
-        ProductoDto dto = modelMapper.map(producto, ProductoDto.class);
+        ProductoDto dto = new ProductoDto();
+        dto.setId(producto.getId());
+        dto.setCodigo(producto.getCodigo() != null ? producto.getCodigo() : "");
+        dto.setNombre(producto.getNombre() != null ? producto.getNombre() : "");
+        dto.setImagen(producto.getImagen() != null ? producto.getImagen() : "");
+        dto.setStock(producto.getStock() != null ? producto.getStock() : 0);
+        dto.setProveedor(producto.getProveedor() != null ? producto.getProveedor() : "");
+        dto.setIngreso(producto.getIngreso() != null ? producto.getIngreso() : 0);
+        dto.setSalida(producto.getSalida() != null ? producto.getSalida() : 0);
+        dto.setEstado(producto.getEstado() != null ? producto.getEstado() : true);
+        
         if (producto.getCaracteristica() != null) {
             dto.setCaracteristicasId(producto.getCaracteristica().getId());
-            dto.setCaracteristica(modelMapper.map(producto.getCaracteristica(), CaracteristicasDto.class));
+            CaracteristicasDto caracteristicaDto = new CaracteristicasDto();
+            caracteristicaDto.setId(producto.getCaracteristica().getId());
+            caracteristicaDto.setCategoria(producto.getCaracteristica().getCategoria() != null ? producto.getCaracteristica().getCategoria() : "");
+            caracteristicaDto.setMarca(producto.getCaracteristica().getMarca() != null ? producto.getCaracteristica().getMarca() : "");
+            caracteristicaDto.setColor(producto.getCaracteristica().getColor() != null ? producto.getCaracteristica().getColor() : "");
+            caracteristicaDto.setDescripcion(producto.getCaracteristica().getDescripcion() != null ? producto.getCaracteristica().getDescripcion() : "");
+            caracteristicaDto.setPrecioCompra(producto.getCaracteristica().getPrecioCompra());
+            caracteristicaDto.setPrecioVenta(producto.getCaracteristica().getPrecioVenta());
+            dto.setCaracteristica(caracteristicaDto);
+        } else {
+            dto.setCaracteristica(new CaracteristicasDto());
         }
+        
         return dto;
     }
 }

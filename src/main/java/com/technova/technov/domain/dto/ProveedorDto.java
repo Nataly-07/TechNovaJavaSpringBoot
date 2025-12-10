@@ -17,4 +17,5 @@ public class ProveedorDto {
     private String correo;
     private String empresa;
     private Integer productoId;
+    private Boolean estado;
 }

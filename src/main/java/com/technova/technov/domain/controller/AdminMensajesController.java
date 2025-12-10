@@ -13,7 +13,6 @@ import com.technova.technov.domain.entity.AtencionCliente;
 
 import com.technova.technov.util.SecurityUtil;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.modelmapper.ModelMapper;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,18 +24,15 @@ public class AdminMensajesController {
 
     private final AtencionClienteService atencionClienteService;
     private final AtencionClienteRepository atencionClienteRepository;
-    private final ModelMapper modelMapper;
     
     @Autowired
     private SecurityUtil securityUtil;
 
     public AdminMensajesController(
             AtencionClienteService atencionClienteService,
-            AtencionClienteRepository atencionClienteRepository,
-            ModelMapper modelMapper) {
+            AtencionClienteRepository atencionClienteRepository) {
         this.atencionClienteService = atencionClienteService;
         this.atencionClienteRepository = atencionClienteRepository;
-        this.modelMapper = modelMapper;
     }
 
     @GetMapping("/admin/mensajes")
@@ -57,16 +53,8 @@ public class AdminMensajesController {
         if (estado != null && !estado.isEmpty() && !"todos".equalsIgnoreCase(estado)) {
             tickets = atencionClienteService.listarPorEstado(estado);
         } else {
-            // Obtener todos los tickets usando el repositorio directamente
-            tickets = atencionClienteRepository.findAll().stream()
-                    .map(t -> {
-                        AtencionClienteDto dto = modelMapper.map(t, AtencionClienteDto.class);
-                        if (t.getUsuario() != null) {
-                            dto.setUsuarioId(t.getUsuario().getId().intValue());
-                        }
-                        return dto;
-                    })
-                    .collect(Collectors.toList());
+            // Obtener todos los tickets usando el servicio para manejar correctamente la carga lazy
+            tickets = atencionClienteService.listarTodos();
         }
 
         // Aplicar filtro de búsqueda

@@ -108,6 +108,16 @@ public class HomeController {
         List<ProductoDto> productos = productoService.listarProductos();
         model.addAttribute("productos", enriquecerProductos(productos));
         
+        // Cargar categorías y marcas dinámicamente desde la base de datos
+        List<String> categorias = caracteristicaService.listarCategorias();
+        List<String> marcas = caracteristicaService.listarMarcas();
+        // Filtrar la categoría "temporal"
+        categorias = categorias.stream()
+                .filter(cat -> !cat.equalsIgnoreCase("temporal"))
+                .collect(Collectors.toList());
+        model.addAttribute("categorias", categorias);
+        model.addAttribute("marcas", marcas);
+        
         // Si hay un usuario autenticado y es cliente, mostrar index autenticado
         if (usuario != null && "cliente".equalsIgnoreCase(usuario.getRole())) {
             // Obtener datos adicionales para el cliente autenticado
@@ -147,12 +157,44 @@ public class HomeController {
     @GetMapping("/categoria/{categoria}")
     public String categoria(@PathVariable String categoria, Model model) {
         UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
-        List<ProductoDto> productos = productoService.porCategoria(categoria);
+        
+        // Capitalizar la categoría para la búsqueda (ej: "celulares" -> "Celulares")
+        String categoriaCapitalizada = categoria.substring(0, 1).toUpperCase() + categoria.substring(1).toLowerCase();
+        List<ProductoDto> productos = productoService.porCategoria(categoriaCapitalizada);
         model.addAttribute("categoria", categoria);
         model.addAttribute("productos", enriquecerProductos(productos));
         
+        // Cargar categorías y marcas dinámicamente desde la base de datos
+        List<String> categorias = caracteristicaService.listarCategorias();
+        List<String> marcas = caracteristicaService.listarMarcas();
+        // Filtrar la categoría "temporal"
+        categorias = categorias.stream()
+                .filter(cat -> !cat.equalsIgnoreCase("temporal"))
+                .collect(Collectors.toList());
+        model.addAttribute("categorias", categorias);
+        model.addAttribute("marcas", marcas);
+        
         if (usuario != null && "cliente".equalsIgnoreCase(usuario.getRole())) {
             model.addAttribute("usuario", usuario);
+            // Obtener contadores para el cliente
+            int carritoCount = 0;
+            int favoritosCount = 0;
+            if (usuario.getId() != null) {
+                try {
+                    List<CarritoItemDto> itemsCarrito = carritoService.listar(usuario.getId().intValue());
+                    carritoCount = itemsCarrito != null ? itemsCarrito.size() : 0;
+                } catch (Exception e) {
+                    carritoCount = 0;
+                }
+                try {
+                    List<FavoritoDto> favoritos = favoritoService.listarPorUsuario(usuario.getId());
+                    favoritosCount = favoritos != null ? favoritos.size() : 0;
+                } catch (Exception e) {
+                    favoritosCount = 0;
+                }
+            }
+            model.addAttribute("carritoCount", carritoCount);
+            model.addAttribute("favoritosCount", favoritosCount);
             return "frontend/categoria/categoria-autenticado";
         }
         return "frontend/categoria/categoria";

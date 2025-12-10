@@ -14,6 +14,7 @@ import java.time.LocalDateTime;
 public class AtencionClienteDto {
     private Integer id;
     private Integer usuarioId;
+    private String emailUsuario;
     private LocalDateTime fechaConsulta;
     private String tema;
     private String descripcion;

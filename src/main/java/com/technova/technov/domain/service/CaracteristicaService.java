@@ -11,4 +11,6 @@ public interface CaracteristicaService {
     Optional<CaracteristicasDto> caracteristicaPorId(Integer id);
     CaracteristicasDto actualizar(Integer id, CaracteristicasDto dto);
     boolean eliminar(Integer id);
+    List<String> listarCategorias();
+    List<String> listarMarcas();
 }

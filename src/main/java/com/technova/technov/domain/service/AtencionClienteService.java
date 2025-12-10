@@ -9,6 +9,7 @@ public interface AtencionClienteService {
     AtencionClienteDto cerrar(Integer id);
     List<AtencionClienteDto> listarPorUsuario(Integer usuarioId);
     List<AtencionClienteDto> listarPorEstado(String estado);
+    List<AtencionClienteDto> listarTodos();
     AtencionClienteDto detalle(Integer id);
     AtencionClienteDto actualizar(Integer id, AtencionClienteDto dto);
     boolean eliminar(Integer id);

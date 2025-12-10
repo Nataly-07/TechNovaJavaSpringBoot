@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -40,6 +41,20 @@ public class ProveedorController {
         if (proveedor == null) {
             return ResponseEntity.notFound().build();
         }
+        return ResponseEntity.ok(proveedor);
+    }
+
+    @PatchMapping("/{id}/estado")
+    public ResponseEntity<ProveedorDto> activarDesactivarProveedor(@PathVariable Integer id, @RequestBody java.util.Map<String, Boolean> request) {
+        Boolean activar = request.get("activar");
+        if (activar == null) {
+            return ResponseEntity.badRequest().build();
+        }
+        boolean resultado = proveedorService.activarDesactivarProveedor(id, activar);
+        if (!resultado) {
+            return ResponseEntity.notFound().build();
+        }
+        ProveedorDto proveedor = proveedorService.proveedorPorId(id).orElse(null);
         return ResponseEntity.ok(proveedor);
     }
 

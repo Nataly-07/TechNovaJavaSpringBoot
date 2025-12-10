@@ -17,4 +17,6 @@ public interface ProductoService {
     ProductoDto crearProducto(ProductoDto productoDto);
     ProductoDto actualizarProducto(Integer id, ProductoDto productoDto);
     boolean eliminarProducto(Integer id);
+    boolean activarDesactivarProducto(Integer id, boolean activar);
+    List<ProductoDto> listarTodosProductos(); // Incluye activos e inactivos
 }

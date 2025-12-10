@@ -73,11 +73,18 @@ public class AdminInventarioController {
             return "redirect:/login";
         }
 
-        List<ProductoDto> productos = productoService.listarProductos();
+        // Para admin, mostrar todos los productos (activos e inactivos)
+        List<ProductoDto> productos = productoService.listarTodosProductos();
         
         // Aplicar filtros
         if (categoria != null && !categoria.isEmpty()) {
-            productos = productoService.porCategoria(categoria);
+            // Filtrar por categoría manteniendo todos los productos (activos e inactivos)
+            final String categoriaLower = categoria.toLowerCase();
+            productos = productos.stream()
+                    .filter(p -> p.getCaracteristica() != null && 
+                               p.getCaracteristica().getCategoria() != null &&
+                               p.getCaracteristica().getCategoria().toLowerCase().equals(categoriaLower))
+                    .collect(Collectors.toList());
         }
 
         if (busqueda != null && !busqueda.isEmpty()) {
@@ -147,6 +154,7 @@ public class AdminInventarioController {
         model.addAttribute("marcas", marcas);
         model.addAttribute("categorias", categorias);
         model.addAttribute("proveedores", proveedores);
+        model.addAttribute("usuarioId", usuario.getId()); // ID del usuario autenticado para las compras
         
         // Obtener información detallada de categorías y marcas con conteo de productos
         // Usar try-catch para evitar que errores en esta sección rompan toda la página
@@ -271,7 +279,8 @@ public class AdminInventarioController {
     public String crearProducto(
             @RequestParam String codigo,
             @RequestParam String nombre,
-            @RequestParam Integer stock,
+            @RequestParam Integer ingreso,
+            @RequestParam(required = false, defaultValue = "0") Integer salida,
             @RequestParam String categoria,
             @RequestParam String marca,
             @RequestParam String color,
@@ -300,11 +309,19 @@ public class AdminInventarioController {
             
             CaracteristicasDto caracteristicaCreada = caracteristicaService.crear(caracteristicaDto);
             
+            // Calcular stock automáticamente: Ingreso - Salida
+            Integer stockCalculado = ingreso - (salida != null ? salida : 0);
+            if (stockCalculado < 0) {
+                stockCalculado = 0;
+            }
+            
             // Crear producto con referencia a las características
             ProductoDto productoDto = new ProductoDto();
             productoDto.setCodigo(codigo);
             productoDto.setNombre(nombre);
-            productoDto.setStock(stock);
+            productoDto.setStock(stockCalculado);
+            productoDto.setIngreso(ingreso);
+            productoDto.setSalida(salida != null ? salida : 0);
             productoDto.setCaracteristicasId(caracteristicaCreada.getId());
             productoDto.setProveedor(proveedor != null ? proveedor : "");
             productoDto.setImagen(imagen != null ? imagen : "");
@@ -519,6 +536,89 @@ public class AdminInventarioController {
             redirectAttributes.addFlashAttribute("tipoMensaje", "success");
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("mensaje", "Error al eliminar la marca: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("tipoMensaje", "error");
+        }
+        
+        return "redirect:/admin/inventario";
+    }
+
+    @PostMapping("/admin/inventario/editar")
+    public String editarProducto(
+            @RequestParam Integer id,
+            @RequestParam String codigo,
+            @RequestParam String nombre,
+            @RequestParam Integer ingreso,
+            @RequestParam String categoria,
+            @RequestParam String marca,
+            @RequestParam String color,
+            @RequestParam(required = false) String descripcion,
+            @RequestParam java.math.BigDecimal precioCompra,
+            @RequestParam java.math.BigDecimal precioVenta,
+            @RequestParam(required = false) String proveedor,
+            @RequestParam(required = false) String imagen,
+            RedirectAttributes redirectAttributes) {
+        
+        UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
+        
+        if (usuario == null || !"admin".equalsIgnoreCase(usuario.getRole())) {
+            return "redirect:/login";
+        }
+
+        try {
+            // Obtener el producto existente
+            ProductoDto productoExistente = productoService.productoPorId(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: " + id));
+            
+            // Actualizar las características
+            if (productoExistente.getCaracteristica() != null) {
+                CaracteristicasDto caracteristicaDto = productoExistente.getCaracteristica();
+                caracteristicaDto.setCategoria(categoria);
+                caracteristicaDto.setMarca(marca);
+                caracteristicaDto.setColor(color);
+                caracteristicaDto.setDescripcion(descripcion != null ? descripcion : "");
+                caracteristicaDto.setPrecioCompra(precioCompra);
+                caracteristicaDto.setPrecioVenta(precioVenta);
+                
+                caracteristicaService.actualizar(caracteristicaDto.getId(), caracteristicaDto);
+            }
+            
+            // La salida NO se modifica manualmente, solo se actualiza por el sistema de compras
+            // Mantener la salida existente del producto
+            Integer salidaExistente = productoExistente.getSalida() != null ? productoExistente.getSalida() : 0;
+            
+            // Calcular stock automáticamente: Ingreso (nuevo) - Salida (existente, no modificable)
+            Integer stockCalculado = ingreso - salidaExistente;
+            if (stockCalculado < 0) {
+                stockCalculado = 0;
+            }
+            
+            // Actualizar el producto
+            ProductoDto productoDto = new ProductoDto();
+            productoDto.setId(id);
+            productoDto.setCodigo(codigo);
+            productoDto.setNombre(nombre);
+            productoDto.setStock(stockCalculado);
+            productoDto.setIngreso(ingreso);
+            productoDto.setSalida(salidaExistente); // Mantener la salida existente, no se modifica
+            productoDto.setCaracteristicasId(productoExistente.getCaracteristicasId());
+            productoDto.setProveedor(proveedor != null ? proveedor : "");
+            productoDto.setImagen(imagen != null ? imagen : "");
+            
+            ProductoDto productoActualizado = productoService.actualizarProducto(id, productoDto);
+            
+            if (productoActualizado != null) {
+                redirectAttributes.addFlashAttribute("mensaje", "Producto actualizado correctamente");
+                redirectAttributes.addFlashAttribute("tipoMensaje", "success");
+            } else {
+                redirectAttributes.addFlashAttribute("mensaje", "Error al actualizar el producto");
+                redirectAttributes.addFlashAttribute("tipoMensaje", "error");
+            }
+        } catch (Exception e) {
+            String errorMessage = "Error al actualizar el producto";
+            if (e.getMessage() != null) {
+                errorMessage = e.getMessage();
+            }
+            redirectAttributes.addFlashAttribute("mensaje", errorMessage);
             redirectAttributes.addFlashAttribute("tipoMensaje", "error");
         }
         

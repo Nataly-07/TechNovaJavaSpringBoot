@@ -20,6 +20,7 @@ public class ProductoDto {
     private Integer ingreso;
     private Integer salida;
     private CaracteristicasDto caracteristica;
+    private Boolean estado; // true = activo, false = desactivado
     
     // Precios calculados para la vista (evita cálculos complejos en Thymeleaf)
     private Double precioOriginal;   // Precio con 5% de recargo (precio * 1.05)
