@@ -24,4 +24,5 @@ public class UsuarioDto implements Serializable {
     private String phone;
     private String address;
     private String role;
+    private Boolean estado;
 }

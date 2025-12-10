@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.StringUtils;
 
 import com.technova.technov.domain.dto.UsuarioDto;
 import com.technova.technov.domain.entity.Usuario;
@@ -31,9 +30,27 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Override
     @Transactional(readOnly = true)
     public List<UsuarioDto> listarUsuarios() {
-        List<Usuario> usuarios = usuarioRepository.findByEstadoTrue();
-        return usuarios.stream()
-                .map(usuario -> modelMapper.map(usuario, UsuarioDto.class))
+        // Obtener todos los admins y empleados (activos e inactivos)
+        List<Usuario> admins = usuarioRepository.findByRoleIgnoreCase("admin");
+        List<Usuario> empleados = usuarioRepository.findByRoleIgnoreCase("empleado");
+        
+        // Obtener solo clientes activos
+        List<Usuario> clientesActivos = usuarioRepository.findByEstadoTrue().stream()
+                .filter(u -> "cliente".equalsIgnoreCase(u.getRole()))
+                .collect(Collectors.toList());
+        
+        // Combinar todas las listas
+        List<Usuario> todosUsuarios = new java.util.ArrayList<>();
+        todosUsuarios.addAll(admins);
+        todosUsuarios.addAll(empleados);
+        todosUsuarios.addAll(clientesActivos);
+        
+        return todosUsuarios.stream()
+                .map(usuario -> {
+                    UsuarioDto dto = modelMapper.map(usuario, UsuarioDto.class);
+                    dto.setEstado(usuario.getEstado());
+                    return dto;
+                })
                 .collect(Collectors.toList());
     }
 
@@ -54,30 +71,84 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Override
     @Transactional(readOnly = true)
     public Optional<UsuarioDto> usuarioPorId(Long id) {
-        return usuarioRepository.findByIdAndEstadoTrue(id)
-                .map(usuario -> modelMapper.map(usuario, UsuarioDto.class));
+        return usuarioRepository.findById(id)
+                .map(usuario -> {
+                    UsuarioDto dto = modelMapper.map(usuario, UsuarioDto.class);
+                    dto.setEstado(usuario.getEstado());
+                    return dto;
+                });
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<UsuarioDto> usuarioPorEmail(String email) {
+        return usuarioRepository.findByEmail(email)
+                .map(usuario -> {
+                    UsuarioDto dto = modelMapper.map(usuario, UsuarioDto.class);
+                    dto.setEstado(usuario.getEstado());
+                    return dto;
+                });
     }
 
     @Override
     @Transactional
     public UsuarioDto actualizarUsuario(Long idusuario, UsuarioDto usuarioDto) {
-        return usuarioRepository.findByIdAndEstadoTrue(idusuario)
+        return usuarioRepository.findById(idusuario)
                 .map(existing -> {
-                    existing.setName(usuarioDto.getName());
-                    existing.setEmail(usuarioDto.getEmail());
-                    existing.setFirstName(usuarioDto.getFirstName());
-                    existing.setLastName(usuarioDto.getLastName());
-                    existing.setDocumentType(usuarioDto.getDocumentType());
-                    existing.setDocumentNumber(usuarioDto.getDocumentNumber());
-                    existing.setPhone(usuarioDto.getPhone());
-                    existing.setAddress(usuarioDto.getAddress());
-                    existing.setRole(usuarioDto.getRole());
-                    if (StringUtils.hasText(usuarioDto.getPassword())) {
-                        // Codificar la contraseña antes de guardarla
-                        existing.setPassword(passwordEncoder.encode(usuarioDto.getPassword()));
+                    // Solo actualizar el rol si viene en el DTO
+                    if (usuarioDto.getRole() != null) {
+                        existing.setRole(usuarioDto.getRole());
                     }
+                    // No actualizar otros campos si no vienen en el DTO
                     Usuario actualizado = usuarioRepository.save(existing);
-                    return modelMapper.map(actualizado, UsuarioDto.class);
+                    UsuarioDto dto = modelMapper.map(actualizado, UsuarioDto.class);
+                    dto.setEstado(actualizado.getEstado());
+                    return dto;
+                })
+                .orElse(null);
+    }
+
+    @Override
+    @Transactional
+    public UsuarioDto actualizarPerfil(Long idusuario, UsuarioDto usuarioDto) {
+        return usuarioRepository.findById(idusuario)
+                .map(existing -> {
+                    // Actualizar campos del perfil
+                    if (usuarioDto.getName() != null) {
+                        existing.setName(usuarioDto.getName());
+                    }
+                    if (usuarioDto.getFirstName() != null) {
+                        existing.setFirstName(usuarioDto.getFirstName());
+                    }
+                    if (usuarioDto.getLastName() != null) {
+                        existing.setLastName(usuarioDto.getLastName());
+                    }
+                    if (usuarioDto.getEmail() != null) {
+                        existing.setEmail(usuarioDto.getEmail());
+                    }
+                    if (usuarioDto.getDocumentType() != null) {
+                        existing.setDocumentType(usuarioDto.getDocumentType());
+                    }
+                    if (usuarioDto.getDocumentNumber() != null) {
+                        existing.setDocumentNumber(usuarioDto.getDocumentNumber());
+                    }
+                    if (usuarioDto.getPhone() != null) {
+                        existing.setPhone(usuarioDto.getPhone());
+                    }
+                    if (usuarioDto.getAddress() != null) {
+                        existing.setAddress(usuarioDto.getAddress());
+                    }
+                    // Actualizar contraseña solo si se proporciona una nueva
+                    if (usuarioDto.getPassword() != null && !usuarioDto.getPassword().trim().isEmpty()) {
+                        String encodedPassword = passwordEncoder.encode(usuarioDto.getPassword());
+                        existing.setPassword(encodedPassword);
+                    }
+                    // No actualizar el rol en la actualización de perfil
+                    
+                    Usuario actualizado = usuarioRepository.save(existing);
+                    UsuarioDto dto = modelMapper.map(actualizado, UsuarioDto.class);
+                    dto.setEstado(actualizado.getEstado());
+                    return dto;
                 })
                 .orElse(null);
     }
@@ -88,6 +159,18 @@ public class UsuarioServiceImpl implements UsuarioService {
         return usuarioRepository.findById(idusuario)
                 .map(usuario -> {
                     usuario.setEstado(false); 
+                    usuarioRepository.save(usuario);
+                    return true;
+                })
+                .orElse(false);
+    }
+
+    @Override
+    @Transactional
+    public boolean activarDesactivarUsuario(Long idusuario, boolean activar) {
+        return usuarioRepository.findById(idusuario)
+                .map(usuario -> {
+                    usuario.setEstado(activar); 
                     usuarioRepository.save(usuario);
                     return true;
                 })

@@ -77,14 +77,24 @@ public class AtencionClienteController {
 
     
     @PutMapping("/{id}/responder")
-    public ResponseEntity<AtencionClienteDto> responderTicket(
+    public ResponseEntity<?> responderTicket(
             @PathVariable Integer id,
-            @RequestParam String respuesta) {
-        AtencionClienteDto ticketRespondido = atencionClienteService.responder(id, respuesta);
-        if (ticketRespondido == null) {
-            return ResponseEntity.notFound().build();
+            @RequestBody java.util.Map<String, String> request) {
+        try {
+            String respuesta = request.get("respuesta");
+            if (respuesta == null || respuesta.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("La respuesta no puede estar vacía");
+            }
+            AtencionClienteDto ticketRespondido = atencionClienteService.responder(id, respuesta);
+            if (ticketRespondido == null) {
+                return ResponseEntity.notFound().build();
+            }
+            return ResponseEntity.ok(ticketRespondido);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Error interno del servidor: " + e.getMessage());
         }
-        return ResponseEntity.ok(ticketRespondido);
     }
 
     @PutMapping("/{id}/cerrar")

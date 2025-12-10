@@ -286,12 +286,23 @@ public class PerfilController {
         usuarioDto.setId(usuarioAutenticado.getId());
         usuarioDto.setRole(usuarioAutenticado.getRole()); // No permitir cambiar el rol
         
+        // Si el usuario es admin, solo permitir actualizar teléfono, dirección y contraseña
+        if ("admin".equalsIgnoreCase(usuarioAutenticado.getRole())) {
+            // Mantener los valores originales para los campos que no se pueden modificar
+            usuarioDto.setName(usuarioAutenticado.getName());
+            usuarioDto.setFirstName(usuarioAutenticado.getFirstName());
+            usuarioDto.setLastName(usuarioAutenticado.getLastName());
+            usuarioDto.setEmail(usuarioAutenticado.getEmail());
+            usuarioDto.setDocumentType(usuarioAutenticado.getDocumentType());
+            usuarioDto.setDocumentNumber(usuarioAutenticado.getDocumentNumber());
+        }
+        
         // Si la contraseña está vacía, no actualizarla
         if (usuarioDto.getPassword() == null || usuarioDto.getPassword().trim().isEmpty()) {
             usuarioDto.setPassword(null);
         }
         
-        UsuarioDto usuarioActualizado = usuarioService.actualizarUsuario(usuarioAutenticado.getId(), usuarioDto);
+        UsuarioDto usuarioActualizado = usuarioService.actualizarPerfil(usuarioAutenticado.getId(), usuarioDto);
         
         if (usuarioActualizado != null) {
             redirectAttributes.addFlashAttribute("mensaje", "Perfil actualizado correctamente");

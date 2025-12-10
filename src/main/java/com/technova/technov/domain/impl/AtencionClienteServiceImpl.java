@@ -78,6 +78,12 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
     public List<AtencionClienteDto> listarPorUsuario(Integer usuarioId) {
         List<AtencionCliente> tickets = atencionClienteRepository.findByUsuario_Id(Long.valueOf(usuarioId));
         return tickets.stream()
+                .sorted((t1, t2) -> {
+                    if (t1.getFechaConsulta() == null && t2.getFechaConsulta() == null) return 0;
+                    if (t1.getFechaConsulta() == null) return 1;
+                    if (t2.getFechaConsulta() == null) return -1;
+                    return t2.getFechaConsulta().compareTo(t1.getFechaConsulta());
+                })
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
@@ -87,6 +93,27 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
     public List<AtencionClienteDto> listarPorEstado(String estado) {
         List<AtencionCliente> tickets = atencionClienteRepository.findByEstadoIgnoreCase(estado);
         return tickets.stream()
+                .sorted((t1, t2) -> {
+                    if (t1.getFechaConsulta() == null && t2.getFechaConsulta() == null) return 0;
+                    if (t1.getFechaConsulta() == null) return 1;
+                    if (t2.getFechaConsulta() == null) return -1;
+                    return t2.getFechaConsulta().compareTo(t1.getFechaConsulta());
+                })
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<AtencionClienteDto> listarTodos() {
+        List<AtencionCliente> tickets = atencionClienteRepository.findAll();
+        return tickets.stream()
+                .sorted((t1, t2) -> {
+                    if (t1.getFechaConsulta() == null && t2.getFechaConsulta() == null) return 0;
+                    if (t1.getFechaConsulta() == null) return 1;
+                    if (t2.getFechaConsulta() == null) return -1;
+                    return t2.getFechaConsulta().compareTo(t1.getFechaConsulta());
+                })
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
@@ -129,6 +156,7 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
         AtencionClienteDto dto = modelMapper.map(ticket, AtencionClienteDto.class);
         if (ticket.getUsuario() != null) {
             dto.setUsuarioId(ticket.getUsuario().getId().intValue());
+            dto.setEmailUsuario(ticket.getUsuario().getEmail());
         }
         return dto;
     }

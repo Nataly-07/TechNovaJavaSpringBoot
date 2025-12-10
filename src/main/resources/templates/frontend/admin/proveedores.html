@@ -147,6 +147,52 @@
             background: #f5f5f5;
         }
 
+        .table-proveedores tbody tr.desactivado {
+            opacity: 0.6;
+            background-color: #f8f8f8;
+        }
+
+        .table-proveedores tbody tr.desactivado td {
+            color: #999;
+        }
+
+        .badge-estado {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-activo {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .badge-inactivo {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .btn-activar {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-activar:hover {
+            background: #218838;
+        }
+
+        .btn-desactivar {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-desactivar:hover {
+            background: #c82333;
+        }
+
         .acciones-proveedor {
             display: flex;
             gap: 8px;
@@ -457,11 +503,12 @@
                 <th>Empresa</th>
                 <th>Teléfono</th>
                 <th>Correo</th>
+                <th>Estado</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              <tr th:each="proveedor : ${proveedores}">
+              <tr th:each="proveedor : ${proveedores}" th:classappend="${proveedor.estado == false ? 'desactivado' : ''}">
                 <td th:text="${proveedor.id}">-</td>
                 <td th:text="${proveedor.identificacion ?: 'N/A'}">N/A</td>
                 <td th:text="${proveedor.nombre}">-</td>
@@ -469,12 +516,23 @@
                 <td th:text="${proveedor.telefono ?: 'N/A'}">N/A</td>
                 <td th:text="${proveedor.correo ?: 'N/A'}">N/A</td>
                 <td>
+                  <span th:if="${proveedor.estado == true}" class="badge-estado badge-activo">Activo</span>
+                  <span th:if="${proveedor.estado == false}" class="badge-estado badge-inactivo">Inactivo</span>
+                </td>
+                <td>
                   <div class="acciones-proveedor">
                     <button class="btn-accion btn-editar" th:onclick="'editarProveedor(' + ${proveedor.id} + ')'">
                       <i class='bx bx-edit'></i> Editar
                     </button>
-                    <button class="btn-accion btn-eliminar" th:onclick="'eliminarProveedor(' + ${proveedor.id} + ')'">
-                      <i class='bx bx-trash'></i> Eliminar
+                    <button th:if="${proveedor.estado == true}" 
+                            class="btn-accion btn-desactivar" 
+                            th:onclick="'activarDesactivarProveedor(' + ${proveedor.id} + ', false)'">
+                      <i class='bx bx-x-circle'></i> Desactivar
+                    </button>
+                    <button th:if="${proveedor.estado == false}" 
+                            class="btn-accion btn-activar" 
+                            th:onclick="'activarDesactivarProveedor(' + ${proveedor.id} + ', true)'">
+                      <i class='bx bx-check-circle'></i> Activar
                     </button>
                   </div>
                 </td>
@@ -490,6 +548,54 @@
         </div>
       </div>
     </main>
+  </div>
+
+  <!-- Modal para editar proveedor -->
+  <div id="modalEditar" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class='bx bx-edit'></i> Editar Proveedor</h3>
+        <button class="close-modal" onclick="cerrarModalEditar()">&times;</button>
+      </div>
+      <form id="formEditarProveedor">
+        <input type="hidden" id="editId" name="id" />
+        <div class="form-group">
+          <label><i class='bx bx-id-card'></i> Identificación *</label>
+          <input type="text" name="identificacion" id="editIdentificacion" placeholder="Número de identificación" required />
+        </div>
+
+        <div class="form-group">
+          <label><i class='bx bx-user'></i> Nombre *</label>
+          <input type="text" name="nombre" id="editNombre" placeholder="Nombre completo" required />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label><i class='bx bx-building'></i> Empresa</label>
+            <input type="text" name="empresa" id="editEmpresa" placeholder="Nombre de la empresa (opcional)" />
+          </div>
+
+          <div class="form-group">
+            <label><i class='bx bx-phone'></i> Teléfono *</label>
+            <input type="tel" name="telefono" id="editTelefono" placeholder="Número de teléfono" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label><i class='bx bx-envelope'></i> Correo Electrónico *</label>
+          <input type="email" name="correo" id="editCorreo" placeholder="correo@ejemplo.com" required />
+        </div>
+
+        <div class="modal-actions">
+          <button type="submit" class="btn-modal btn-modal-primary">
+            <i class='bx bx-save'></i> Guardar Cambios
+          </button>
+          <button type="button" class="btn-modal btn-modal-secondary" onclick="cerrarModalEditar()">
+            <i class='bx bx-x'></i> Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 
   <!-- Modal para agregar proveedor -->
@@ -554,55 +660,82 @@
     }
 
     function editarProveedor(id) {
-      Swal.fire({
-        title: 'Editar Proveedor',
-        text: 'Esta funcionalidad estará disponible próximamente',
-        icon: 'info',
-        confirmButtonText: 'OK'
-      });
+      fetch('/api/proveedores/' + id)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('No se pudo cargar la información del proveedor');
+          }
+          return response.json();
+        })
+        .then(proveedor => {
+          document.getElementById('editId').value = proveedor.id;
+          document.getElementById('editIdentificacion').value = proveedor.identificacion || '';
+          document.getElementById('editNombre').value = proveedor.nombre || '';
+          document.getElementById('editEmpresa').value = proveedor.empresa || '';
+          document.getElementById('editTelefono').value = proveedor.telefono || '';
+          document.getElementById('editCorreo').value = proveedor.correo || '';
+          
+          abrirModalEditar();
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          Swal.fire({
+            title: 'Error',
+            text: 'No se pudo cargar la información del proveedor',
+            icon: 'error',
+            confirmButtonText: 'OK'
+          });
+        });
     }
 
-    function eliminarProveedor(id) {
+    function activarDesactivarProveedor(id, activar) {
+      const accion = activar ? 'activar' : 'desactivar';
+      const texto = activar ? 'activar' : 'desactivar';
+      
       Swal.fire({
-        title: '¿Estás seguro?',
-        text: 'Esta acción no se puede deshacer',
+        title: `¿Estás seguro?`,
+        text: `¿Deseas ${texto} este proveedor?`,
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#dc3545',
+        confirmButtonColor: activar ? '#28a745' : '#dc3545',
         cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Sí, eliminar',
+        confirmButtonText: `Sí, ${texto}`,
         cancelButtonText: 'Cancelar'
       }).then((result) => {
         if (result.isConfirmed) {
-          fetch('/api/proveedores/' + id, {
-            method: 'DELETE',
+          const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
+          const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || '';
+          
+          fetch('/api/proveedores/' + id + '/estado', {
+            method: 'PATCH',
             headers: {
-              'Content-Type': 'application/json'
-            }
+              'Content-Type': 'application/json',
+              [csrfHeader]: csrfToken
+            },
+            body: JSON.stringify({ activar: activar })
           })
           .then(response => {
             if (response.ok) {
-              Swal.fire({
-                title: 'Eliminado',
-                text: 'El proveedor ha sido eliminado correctamente',
-                icon: 'success',
-                confirmButtonText: 'OK'
-              }).then(() => {
-                location.reload();
-              });
+              return response.json();
             } else {
-              Swal.fire({
-                title: 'Error',
-                text: 'No se pudo eliminar el proveedor',
-                icon: 'error',
-                confirmButtonText: 'OK'
-              });
+              throw new Error('No se pudo ' + accion + ' el proveedor');
             }
           })
+          .then(() => {
+            Swal.fire({
+              title: 'Éxito',
+              text: `El proveedor ha sido ${texto}do correctamente`,
+              icon: 'success',
+              confirmButtonText: 'OK'
+            }).then(() => {
+              location.reload();
+            });
+          })
           .catch(error => {
+            console.error('Error:', error);
             Swal.fire({
               title: 'Error',
-              text: 'Ocurrió un error al eliminar el proveedor',
+              text: error.message || `Ocurrió un error al ${texto} el proveedor`,
               icon: 'error',
               confirmButtonText: 'OK'
             });
@@ -706,6 +839,96 @@
           }
         });
       }
+
+      // Manejar envío del formulario de editar proveedor
+      const formEditarProveedor = document.getElementById('formEditarProveedor');
+      if (formEditarProveedor) {
+        formEditarProveedor.addEventListener('submit', function(e) {
+          e.preventDefault();
+          
+          const formData = new FormData(this);
+          const data = {};
+          formData.forEach((value, key) => {
+            data[key] = value;
+          });
+
+          // Validar campos requeridos
+          if (!data.identificacion || !data.nombre || !data.telefono || !data.correo) {
+            Swal.fire({
+              title: 'Error',
+              text: 'Por favor completa todos los campos requeridos',
+              icon: 'error',
+              confirmButtonText: 'OK'
+            });
+            return;
+          }
+
+          // Validar formato de email
+          const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+          if (!emailRegex.test(data.correo)) {
+            Swal.fire({
+              title: 'Error',
+              text: 'Por favor ingresa un correo electrónico válido',
+              icon: 'error',
+              confirmButtonText: 'OK'
+            });
+            return;
+          }
+
+          const proveedorId = data.id;
+          const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
+          const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || '';
+
+          // Enviar a la API
+          fetch('/api/proveedores/' + proveedorId, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              [csrfHeader]: csrfToken
+            },
+            body: JSON.stringify(data)
+          })
+          .then(response => {
+            if (response.ok) {
+              return response.json();
+            } else {
+              return response.json().then(err => {
+                throw new Error(err.message || 'Error al actualizar el proveedor');
+              });
+            }
+          })
+          .then(data => {
+            Swal.fire({
+              title: 'Éxito',
+              text: 'Proveedor actualizado correctamente',
+              icon: 'success',
+              confirmButtonText: 'OK'
+            }).then(() => {
+              cerrarModalEditar();
+              location.reload();
+            });
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+              title: 'Error',
+              text: error.message || 'Ocurrió un error al actualizar el proveedor',
+              icon: 'error',
+              confirmButtonText: 'OK'
+            });
+          });
+        });
+      }
+
+      // Cerrar modal de editar al hacer clic fuera de él
+      const modalEditar = document.getElementById('modalEditar');
+      if (modalEditar) {
+        modalEditar.addEventListener('click', function(e) {
+          if (e.target === this) {
+            cerrarModalEditar();
+          }
+        });
+      }
     });
 
     function abrirModalAgregar() {
@@ -722,6 +945,26 @@
         modal.classList.remove('show');
         document.body.style.overflow = 'auto';
         const form = document.getElementById('formAgregarProveedor');
+        if (form) {
+          form.reset();
+        }
+      }
+    }
+
+    function abrirModalEditar() {
+      const modal = document.getElementById('modalEditar');
+      if (modal) {
+        modal.classList.add('show');
+        document.body.style.overflow = 'hidden';
+      }
+    }
+
+    function cerrarModalEditar() {
+      const modal = document.getElementById('modalEditar');
+      if (modal) {
+        modal.classList.remove('show');
+        document.body.style.overflow = 'auto';
+        const form = document.getElementById('formEditarProveedor');
         if (form) {
           form.reset();
         }

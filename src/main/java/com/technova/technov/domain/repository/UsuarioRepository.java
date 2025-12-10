@@ -13,4 +13,6 @@ public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
     java.util.Optional<Usuario> findByIdAndEstadoTrue(Long id);
     Optional<Usuario> findByEmailAndPasswordAndEstadoTrue(String email, String password);
     Optional<Usuario> findByEmailAndEstadoTrue(String email);
+    Optional<Usuario> findByEmail(String email); // Buscar por email sin filtrar por estado
+    java.util.List<Usuario> findByRoleIgnoreCase(String role); // Buscar por rol sin filtrar por estado
 }

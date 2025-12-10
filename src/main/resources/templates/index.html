@@ -29,19 +29,17 @@
       <li class="submenu">
       <a href="#">Categorías ▾</a>
       <ul class="submenu-lista">
-        <li><a th:href="@{/categoria/celulares}">📱 Celulares</a></li>
-        <li><a th:href="@{/categoria/portatiles}">💻 Portátiles</a></li>
+        <li th:each="categoria : ${categorias}">
+          <a th:href="@{'/categoria/' + ${#strings.toLowerCase(categoria)}}" th:text="${categoria}">Categoría</a>
+        </li>
       </ul>
     </li>
     <li class="submenu">
       <a href="#">Marcas ▾</a>
       <ul class="submenu-lista">
-        <li><a th:href="@{/marca/apple}">🍎 Apple</a></li>
-        <li><a th:href="@{/marca/samsung}">📱 Samsung</a></li>
-        <li><a th:href="@{/marca/motorola}">📞 Motorola</a></li>
-        <li><a th:href="@{/marca/xiaomi}">🧡 Xiaomi</a></li>
-        <li><a th:href="@{/marca/oppo}">📲 OPPO</a></li>
-        <li><a th:href="@{/marca/lenovo}">💻 Lenovo</a></li>
+        <li th:each="marca : ${marcas}">
+          <a th:href="@{'/marca/' + ${#strings.toLowerCase(marca)}}" th:text="${marca}">Marca</a>
+        </li>
       </ul>
     </li>
   </ul>
@@ -162,8 +160,10 @@
 <section class="navegacion-categorias">
   <h2>Explora por Categoría</h2>
   <div class="categorias-grid">
-    <a th:href="@{/categoria/celulares}" class="categoria-item">📱 Celulares</a>
-    <a th:href="@{/categoria/portatiles}" class="categoria-item">💻 Portátiles</a>
+    <a th:each="categoria : ${categorias}" 
+       th:href="@{'/categoria/' + ${#strings.toLowerCase(categoria)}}" 
+       class="categoria-item" 
+       th:text="${categoria}">Categoría</a>
   </div>
 </section>
 
@@ -180,12 +180,10 @@
 <section class="navegacion-marcas">
   <h2>Busca por Marca</h2>
   <div class="marcas-grid">
-    <a th:href="@{/marca/apple}" class="marca-item">🍎 Apple</a>
-    <a th:href="@{/marca/samsung}" class="marca-item">📱 Samsung</a>
-    <a th:href="@{/marca/xiaomi}" class="marca-item">🧡 Xiaomi</a>
-    <a th:href="@{/marca/motorola}" class="marca-item">📞 Motorola</a>
-    <a th:href="@{/marca/lenovo}" class="marca-item">💻 Lenovo</a>
-    <a th:href="@{/marca/oppo}" class="marca-item">📲 OPPO</a>
+    <a th:each="marca : ${marcas}" 
+       th:href="@{'/marca/' + ${#strings.toLowerCase(marca)}}" 
+       class="marca-item" 
+       th:text="${marca}">Marca</a>
   </div>
 </section>
 

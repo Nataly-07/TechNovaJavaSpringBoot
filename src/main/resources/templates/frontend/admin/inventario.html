@@ -7,6 +7,7 @@
     <title>Gestión de Inventario - Technova</title>
     <meta name="_csrf" th:content="${_csrf.token}"/>
     <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <meta name="_csrf_parameter" th:content="${_csrf.parameterName}"/>
 
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" th:href="@{/frontend/css/estilodas.css}">
@@ -182,6 +183,39 @@
         .stock-badge.agotado {
             background: #dc3545;
             color: white;
+        }
+
+        .estado-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .estado-activo {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .estado-inactivo {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Estilo para filas de productos inactivos */
+        .table-inventario tbody tr[data-estado="false"] {
+            opacity: 0.7;
+            background-color: #f8f9fa;
+        }
+
+        .table-inventario tbody tr[data-estado="false"]:hover {
+            opacity: 0.9;
+            background-color: #e9ecef;
         }
 
         .empty-state {
@@ -552,33 +586,87 @@
                   <th>ID</th>
                   <th>Código</th>
                   <th>Nombre</th>
+                  <th>Imagen</th>
                   <th>Categoría</th>
+                  <th>Color</th>
+                  <th>Descripción</th>
+                  <th>Precio Compra</th>
+                  <th>Precio Venta</th>
                   <th>Marca</th>
+                  <th>Ingreso</th>
+                  <th>Salida</th>
                   <th>Stock</th>
                   <th>Estado</th>
+                  <th>Acciones</th>
                 </tr>
               </thead>
               <tbody>
-                <tr th:each="producto : ${productos}">
+                <tr th:each="producto : ${productos}" th:data-estado="${producto.estado != null ? producto.estado : true}">
                   <td th:text="${producto.id}">-</td>
                   <td th:text="${producto.codigo}">-</td>
                   <td th:text="${producto.nombre}">-</td>
+                  <td>
+                    <img th:if="${producto.imagen != null && !producto.imagen.isEmpty()}" th:src="${producto.imagen}" style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;" alt="Imagen producto" />
+                    <span th:if="${producto.imagen == null || producto.imagen.isEmpty()}">-</span>
+                  </td>
                   <td th:text="${producto.caracteristica != null ? producto.caracteristica.categoria : 'N/A'}">N/A</td>
+                  <td th:text="${producto.caracteristica != null ? producto.caracteristica.color : 'N/A'}">N/A</td>
+                  <td th:text="${producto.caracteristica != null ? producto.caracteristica.descripcion : 'N/A'}">N/A</td>
+                  <td>
+                    <span th:if="${producto.caracteristica != null && producto.caracteristica.precioCompra != null}">
+                      $<span th:text="${#numbers.formatDecimal(producto.caracteristica.precioCompra, 0, 'POINT', 2, 'POINT')}">0.00</span>
+                    </span>
+                    <span th:if="${producto.caracteristica == null || producto.caracteristica.precioCompra == null}">N/A</span>
+                  </td>
+                  <td>
+                    <span th:if="${producto.caracteristica != null && producto.caracteristica.precioVenta != null}">
+                      $<span th:text="${#numbers.formatDecimal(producto.caracteristica.precioVenta, 0, 'POINT', 2, 'POINT')}">0.00</span>
+                    </span>
+                    <span th:if="${producto.caracteristica == null || producto.caracteristica.precioVenta == null}">N/A</span>
+                  </td>
                   <td th:text="${producto.caracteristica != null ? producto.caracteristica.marca : 'N/A'}">N/A</td>
+                  <td th:text="${producto.ingreso != null ? producto.ingreso : 0}">0</td>
+                  <td th:text="${producto.salida != null ? producto.salida : 0}">0</td>
                   <td th:text="${producto.stock != null ? producto.stock : 0}">0</td>
                   <td>
-                    <th:block th:if="${producto.stock == null || producto.stock == 0}">
-                      <span class="stock-badge agotado">Agotado</span>
+                    <span th:if="${producto.estado != null && producto.estado}" class="estado-badge estado-activo">
+                      <i class='bx bx-check-circle'></i> Activo
+                    </span>
+                    <span th:if="${producto.estado != null && !producto.estado}" class="estado-badge estado-inactivo">
+                      <i class='bx bx-x-circle'></i> Inactivo
+                    </span>
+                    <th:block th:if="${producto.estado == null || producto.estado}">
+                      <th:block th:if="${producto.stock == null || producto.stock == 0}">
+                        <span class="stock-badge agotado">Agotado</span>
+                      </th:block>
+                      <th:block th:if="${producto.stock != null && producto.stock > 0 && producto.stock < 10}">
+                        <span class="stock-badge bajo">Bajo Stock</span>
+                      </th:block>
+                      <th:block th:if="${producto.stock != null && producto.stock >= 10 && producto.stock < 50}">
+                        <span class="stock-badge medio">Stock Medio</span>
+                      </th:block>
+                      <th:block th:if="${producto.stock != null && producto.stock >= 50}">
+                        <span class="stock-badge alto">Stock Alto</span>
+                      </th:block>
                     </th:block>
-                    <th:block th:if="${producto.stock != null && producto.stock > 0 && producto.stock < 10}">
-                      <span class="stock-badge bajo">Bajo Stock</span>
-                    </th:block>
-                    <th:block th:if="${producto.stock != null && producto.stock >= 10 && producto.stock < 50}">
-                      <span class="stock-badge medio">Stock Medio</span>
-                    </th:block>
-                    <th:block th:if="${producto.stock != null && producto.stock >= 50}">
-                      <span class="stock-badge alto">Stock Alto</span>
-                    </th:block>
+                  </td>
+                  <td>
+                    <div style="display: flex; gap: 8px;">
+                      <button class="btn-accion btn-editar" th:data-producto-id="${producto.id}" onclick="editarProducto(this.getAttribute('data-producto-id'))" style="padding: 6px 12px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">
+                        <i class='bx bx-edit'></i> Editar
+                      </button>
+                      <button 
+                        class="btn-accion" 
+                        th:classappend="${producto.estado != null && producto.estado ? 'btn-desactivar' : 'btn-activar'}"
+                        th:data-producto-id="${producto.id}"
+                        th:data-producto-estado="${producto.estado != null ? producto.estado : true}"
+                        onclick="activarDesactivarProducto(this.getAttribute('data-producto-id'), this.getAttribute('data-producto-estado') === 'true')"
+                        style="padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem;"
+                        th:style="${producto.estado != null && producto.estado} ? 'background: #e74c3c; color: white;' : 'background: #27ae60; color: white;'">
+                        <i th:class="${producto.estado != null && producto.estado ? 'bx bx-x-circle' : 'bx bx-check-circle'}"></i>
+                        <span th:text="${producto.estado != null && producto.estado ? 'Desactivar' : 'Activar'}">Activar/Desactivar</span>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               </tbody>
@@ -812,9 +900,39 @@
           </div>
         </div>
 
+        <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #2196f3;">
+          <h4 style="margin: 0 0 10px 0; color: #1976d2;"><i class='bx bx-info-circle'></i> Información del Sistema</h4>
+          <p style="margin: 0; color: #333; font-size: 0.9em;">
+            <strong>Ingreso:</strong> Solo el administrador puede registrar productos que ingresan al inventario.<br>
+            <strong>Salida:</strong> Se actualiza automáticamente cuando los clientes realizan compras.<br>
+            <strong>Stock:</strong> Se calcula automáticamente como Ingreso - Salida.
+          </p>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label><i class='bx bx-box'></i> Ingreso de Artículos *</label>
+            <input type="number" name="ingreso" id="ingreso" placeholder="Cantidad de productos que ingresan" min="0" required />
+            <small style="color: #666; font-size: 0.85rem; margin-top: 5px; display: block;">
+              Artículos que el administrador registra como ingresados al inventario
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label><i class='bx bx-box'></i> Salida de Artículos</label>
+            <input type="number" name="salida" id="salida" placeholder="Cantidad de productos que salen" min="0" value="0" />
+            <small style="color: #666; font-size: 0.85rem; margin-top: 5px; display: block;">
+              Artículos que salen por compras (se actualizará automáticamente)
+            </small>
+          </div>
+        </div>
+
         <div class="form-group">
-          <label><i class='bx bx-box'></i> Stock Inicial *</label>
-          <input type="number" name="stock" id="stock" placeholder="Cantidad en stock" min="0" required />
+          <label><i class='bx bx-box'></i> Stock Actual</label>
+          <input type="number" name="stock" id="stock" placeholder="Stock calculado automáticamente" readonly style="background-color: #f5f5f5; cursor: not-allowed;" />
+          <small style="color: #666; font-size: 0.85rem; margin-top: 5px; display: block;">
+            Stock = Ingreso - Salida (no editable por el administrador)
+          </small>
         </div>
 
         <div class="form-row">
@@ -867,9 +985,17 @@
           </div>
 
           <div class="form-group">
-            <label><i class='bx bx-money'></i> Precio de Venta *</label>
-            <input type="number" name="precioVenta" id="precioVenta" placeholder="0.00" step="0.01" min="0" required />
+            <label><i class='bx bx-percent'></i> Porcentaje de Ganancia *</label>
+            <input type="number" name="porcentajeGanancia" id="porcentajeGanancia" placeholder="Ej: 30" step="0.01" min="0" required />
+            <small style="color: #666; font-size: 0.85rem; margin-top: 5px; display: block;">
+              El precio de venta se calculará automáticamente
+            </small>
           </div>
+        </div>
+
+        <div class="form-group">
+          <label><i class='bx bx-money'></i> Precio de Venta (Calculado) *</label>
+          <input type="number" name="precioVenta" id="precioVenta" placeholder="0.00" step="0.01" min="0" required readonly style="background-color: #f5f5f5; cursor: not-allowed;" />
         </div>
 
         <div class="form-group">
@@ -887,6 +1013,129 @@
             <i class='bx bx-save'></i> Guardar Producto
           </button>
           <button type="button" class="btn-modal btn-modal-secondary" onclick="cerrarModalAgregar()">
+            <i class='bx bx-x'></i> Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal para editar producto -->
+  <div id="modalEditar" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class='bx bx-edit'></i> Editar Producto</h3>
+        <button class="close-modal" onclick="cerrarModalEditar()">&times;</button>
+      </div>
+      
+      <form id="formEditarProducto" method="POST" th:action="@{/admin/inventario/editar}">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        <input type="hidden" name="id" id="editProductoId" />
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label><i class='bx bx-barcode'></i> Código *</label>
+            <input type="text" name="codigo" id="editCodigo" placeholder="Código del producto" required />
+          </div>
+
+          <div class="form-group">
+            <label><i class='bx bx-package'></i> Nombre *</label>
+            <input type="text" name="nombre" id="editNombre" placeholder="Nombre del producto" required />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label><i class='bx bx-box'></i> Ingreso de Artículos *</label>
+          <input type="number" name="ingreso" id="editIngreso" placeholder="Cantidad de productos que ingresan" min="0" required />
+          <small style="color: #666; font-size: 0.85rem; margin-top: 5px; display: block;">
+            Artículos que el administrador registra como ingresados al inventario
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label><i class='bx bx-box'></i> Salida de Artículos</label>
+          <input type="number" id="editSalida" placeholder="Cantidad de productos que salen" readonly style="background-color: #f5f5f5; cursor: not-allowed;" />
+          <small style="color: #666; font-size: 0.85rem; margin-top: 5px; display: block;">
+            Artículos que salen por compras (se actualiza automáticamente, no editable)
+          </small>
+        </div>
+
+        <div class="form-group">
+          <label><i class='bx bx-box'></i> Stock Actual</label>
+          <input type="number" name="stock" id="editStock" placeholder="Stock calculado automáticamente" readonly style="background-color: #f5f5f5; cursor: not-allowed;" />
+          <small style="color: #666; font-size: 0.85rem; margin-top: 5px; display: block;">
+            Stock = Ingreso - Salida (no editable por el administrador)
+          </small>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label><i class='bx bx-category'></i> Categoría *</label>
+            <select name="categoria" id="editCategoria" required>
+              <option value="">Selecciona una categoría</option>
+              <option th:each="categoriaItem : ${categorias}" th:value="${categoriaItem}" th:text="${#strings.capitalize(categoriaItem)}">Categoría</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label><i class='bx bx-tag'></i> Marca *</label>
+            <select name="marca" id="editMarca" required>
+              <option value="">Selecciona una marca</option>
+              <option th:each="marcaItem : ${marcas}" th:value="${marcaItem}" th:text="${marcaItem}">Marca</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label><i class='bx bx-palette'></i> Color *</label>
+            <input type="text" name="color" id="editColor" placeholder="Color del producto" required />
+          </div>
+
+          <div class="form-group">
+            <label><i class='bx bx-store'></i> Proveedor</label>
+            <select name="proveedor" id="editProveedor">
+              <option value="">Selecciona un proveedor (opcional)</option>
+              <option th:each="proveedor : ${proveedores}" th:value="${proveedor.nombre}" th:text="${proveedor.nombre}">Proveedor</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label><i class='bx bx-dollar'></i> Precio de Compra *</label>
+            <input type="number" name="precioCompra" id="editPrecioCompra" placeholder="0.00" step="0.01" min="0" required />
+          </div>
+
+          <div class="form-group">
+            <label><i class='bx bx-percent'></i> Porcentaje de Ganancia *</label>
+            <input type="number" name="porcentajeGanancia" id="editPorcentajeGanancia" placeholder="Ej: 30" step="0.01" min="0" required />
+            <small style="color: #666; font-size: 0.85rem; margin-top: 5px; display: block;">
+              El precio de venta se calculará automáticamente
+            </small>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label><i class='bx bx-money'></i> Precio de Venta (Calculado) *</label>
+          <input type="number" name="precioVenta" id="editPrecioVenta" placeholder="0.00" step="0.01" min="0" required readonly style="background-color: #f5f5f5; cursor: not-allowed;" />
+        </div>
+
+        <div class="form-group">
+          <label><i class='bx bx-file-blank'></i> Descripción</label>
+          <textarea name="descripcion" id="editDescripcion" placeholder="Descripción del producto (opcional)"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label><i class='bx bx-image'></i> URL de Imagen</label>
+          <input type="url" name="imagen" id="editImagen" placeholder="https://ejemplo.com/imagen.jpg (opcional)" />
+        </div>
+
+        <div class="modal-actions">
+          <button type="submit" class="btn-modal btn-modal-primary">
+            <i class='bx bx-save'></i> Guardar Cambios
+          </button>
+          <button type="button" class="btn-modal btn-modal-secondary" onclick="cerrarModalEditar()">
             <i class='bx bx-x'></i> Cancelar
           </button>
         </div>
@@ -966,13 +1215,17 @@
           form.action = '/admin/inventario/eliminar-categoria';
           
           // Agregar CSRF token
-          const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
-          const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
-          const csrfInput = document.createElement('input');
-          csrfInput.type = 'hidden';
-          csrfInput.name = csrfHeader || '_csrf';
-          csrfInput.value = csrfToken;
-          form.appendChild(csrfInput);
+          const csrfTokenMeta = document.querySelector('meta[name="_csrf"]');
+          const csrfParameterMeta = document.querySelector('meta[name="_csrf_parameter"]');
+          if (csrfTokenMeta && csrfParameterMeta) {
+            const csrfToken = csrfTokenMeta.getAttribute('content');
+            const csrfParamName = csrfParameterMeta.getAttribute('content');
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = csrfParamName;
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
+          }
           
           // Agregar nombre de categoría
           const categoriaInput = document.createElement('input');
@@ -1005,13 +1258,17 @@
           form.action = '/admin/inventario/eliminar-marca';
           
           // Agregar CSRF token
-          const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content');
-          const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content');
-          const csrfInput = document.createElement('input');
-          csrfInput.type = 'hidden';
-          csrfInput.name = csrfHeader || '_csrf';
-          csrfInput.value = csrfToken;
-          form.appendChild(csrfInput);
+          const csrfTokenMeta = document.querySelector('meta[name="_csrf"]');
+          const csrfParameterMeta = document.querySelector('meta[name="_csrf_parameter"]');
+          if (csrfTokenMeta && csrfParameterMeta) {
+            const csrfToken = csrfTokenMeta.getAttribute('content');
+            const csrfParamName = csrfParameterMeta.getAttribute('content');
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = csrfParamName;
+            csrfInput.value = csrfToken;
+            form.appendChild(csrfInput);
+          }
           
           // Agregar nombre de marca
           const marcaInput = document.createElement('input');
@@ -1113,6 +1370,18 @@
       }
     }
 
+    function cerrarModalEditar() {
+      const modal = document.getElementById('modalEditar');
+      if (modal) {
+        modal.classList.remove('show');
+        document.body.style.overflow = 'auto';
+        const form = document.getElementById('formEditarProducto');
+        if (form) {
+          form.reset();
+        }
+      }
+    }
+
     // Esperar a que el DOM esté completamente cargado para los event listeners
     document.addEventListener('DOMContentLoaded', function() {
       // Cerrar modal al hacer clic fuera de él
@@ -1123,6 +1392,65 @@
             cerrarModalAgregar();
           }
         });
+      }
+
+      // Cerrar modal de editar al hacer clic fuera de él
+      const modalEditar = document.getElementById('modalEditar');
+      if (modalEditar) {
+        modalEditar.addEventListener('click', function(e) {
+          if (e.target === this) {
+            cerrarModalEditar();
+          }
+        });
+      }
+
+      // Calcular precio de venta automáticamente
+      const precioCompraInput = document.getElementById('precioCompra');
+      const porcentajeGananciaInput = document.getElementById('porcentajeGanancia');
+      const precioVentaInput = document.getElementById('precioVenta');
+      
+      function calcularPrecioVenta() {
+        if (precioCompraInput && porcentajeGananciaInput && precioVentaInput) {
+          const precioCompra = parseFloat(precioCompraInput.value) || 0;
+          const porcentaje = parseFloat(porcentajeGananciaInput.value) || 0;
+          
+          if (precioCompra > 0 && porcentaje >= 0) {
+            const precioVenta = precioCompra * (1 + porcentaje / 100);
+            precioVentaInput.value = precioVenta.toFixed(2);
+          } else {
+            precioVentaInput.value = '';
+          }
+        }
+      }
+      
+      if (precioCompraInput) {
+        precioCompraInput.addEventListener('input', calcularPrecioVenta);
+      }
+      
+      if (porcentajeGananciaInput) {
+        porcentajeGananciaInput.addEventListener('input', calcularPrecioVenta);
+      }
+
+      // Calcular stock automáticamente (Ingreso - Salida)
+      const ingresoInput = document.getElementById('ingreso');
+      const salidaInput = document.getElementById('salida');
+      const stockInput = document.getElementById('stock');
+      
+      function calcularStock() {
+        if (ingresoInput && salidaInput && stockInput) {
+          const ingreso = parseInt(ingresoInput.value) || 0;
+          const salida = parseInt(salidaInput.value) || 0;
+          const stock = ingreso - salida;
+          stockInput.value = stock >= 0 ? stock : 0;
+        }
+      }
+      
+      if (ingresoInput && salidaInput && stockInput) {
+        ingresoInput.addEventListener('input', calcularStock);
+        salidaInput.addEventListener('input', calcularStock);
+        
+        // Calcular stock inicial
+        calcularStock();
       }
 
       // Manejar envío del formulario de agregar producto
@@ -1138,8 +1466,8 @@
           });
 
           // Validar campos requeridos
-          if (!data.codigo || !data.nombre || !data.stock || !data.categoria || 
-              !data.marca || !data.color || !data.precioCompra || !data.precioVenta) {
+          if (!data.codigo || !data.nombre || !data.ingreso || !data.categoria || 
+              !data.marca || !data.color || !data.precioCompra || !data.porcentajeGanancia || !data.precioVenta) {
             Swal.fire({
               title: 'Error',
               text: 'Por favor completa todos los campos requeridos',
@@ -1148,6 +1476,12 @@
             });
             return;
           }
+
+          // Calcular stock antes de enviar
+          const ingreso = parseInt(data.ingreso) || 0;
+          const salida = parseInt(data.salida) || 0;
+          const stock = ingreso - salida;
+          data.stock = stock >= 0 ? stock : 0;
 
           // Validar que el precio de venta sea mayor que el de compra
           if (parseFloat(data.precioVenta) <= parseFloat(data.precioCompra)) {
@@ -1164,6 +1498,77 @@
           const form = document.createElement('form');
           form.method = 'POST';
           form.action = '/admin/inventario/crear';
+          
+          // Agregar CSRF token
+          const csrfTokenMeta = document.querySelector('meta[name="_csrf"]');
+          const csrfHeaderMeta = document.querySelector('meta[name="_csrf_header"]');
+          if (csrfTokenMeta) {
+            const csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = csrfHeaderMeta ? csrfHeaderMeta.getAttribute('content') : '_csrf';
+            csrfInput.value = csrfTokenMeta.getAttribute('content');
+            form.appendChild(csrfInput);
+          }
+
+          // Agregar todos los campos
+          Object.keys(data).forEach(key => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = data[key];
+            form.appendChild(input);
+          });
+
+          document.body.appendChild(form);
+          form.submit();
+        });
+      }
+
+      // Manejar envío del formulario de editar producto
+      const formEditarProducto = document.getElementById('formEditarProducto');
+      if (formEditarProducto) {
+        formEditarProducto.addEventListener('submit', function(e) {
+          e.preventDefault();
+          
+          const formData = new FormData(this);
+          const data = {};
+          formData.forEach((value, key) => {
+            data[key] = value;
+          });
+
+          // Validar campos requeridos
+          if (!data.id || !data.codigo || !data.nombre || !data.ingreso || !data.categoria || 
+              !data.marca || !data.color || !data.precioCompra || !data.porcentajeGanancia || !data.precioVenta) {
+            Swal.fire({
+              title: 'Error',
+              text: 'Por favor completa todos los campos requeridos',
+              icon: 'error',
+              confirmButtonText: 'OK'
+            });
+            return;
+          }
+
+          // Calcular stock antes de enviar (Ingreso - Salida existente)
+          // La salida no se envía en el formulario, se mantiene del producto existente
+          const ingreso = parseInt(data.ingreso) || 0;
+          const stock = ingreso; // El stock se calculará en el backend con la salida existente
+          data.stock = stock;
+
+          // Validar que el precio de venta sea mayor que el de compra
+          if (parseFloat(data.precioVenta) <= parseFloat(data.precioCompra)) {
+            Swal.fire({
+              title: 'Error',
+              text: 'El precio de venta debe ser mayor que el precio de compra',
+              icon: 'error',
+              confirmButtonText: 'OK'
+            });
+            return;
+          }
+
+          // Crear un formulario oculto para enviar con CSRF
+          const form = document.createElement('form');
+          form.method = 'POST';
+          form.action = '/admin/inventario/editar';
           
           // Agregar CSRF token
           const csrfTokenMeta = document.querySelector('meta[name="_csrf"]');
@@ -1210,6 +1615,258 @@
         });
       }
     });
+
+    // Funciones globales para editar y activar/desactivar productos
+    window.editarProducto = function(id) {
+      const productoId = parseInt(id, 10);
+      if (isNaN(productoId)) {
+        Swal.fire({
+          title: 'Error',
+          text: 'ID de producto inválido',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
+        return;
+      }
+
+      // Verificar que el modal y los elementos del formulario existan
+      const modalEditar = document.getElementById('modalEditar');
+      if (!modalEditar) {
+        Swal.fire({
+          title: 'Error',
+          text: 'El formulario de edición no está disponible',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
+        return;
+      }
+
+      // Obtener información del producto
+      fetch(`/api/productos/${productoId}`)
+        .then(response => {
+          console.log('Response status:', response.status);
+          if (!response.ok) {
+            if (response.status === 404) {
+              throw new Error('Producto no encontrado');
+            }
+            return response.text().then(text => {
+              console.error('Error response:', text);
+              throw new Error('Error al cargar el producto: ' + response.status);
+            });
+          }
+          return response.json();
+        })
+        .then(producto => {
+          console.log('Producto recibido:', producto);
+          
+          // Verificar que el producto tenga datos
+          if (!producto) {
+            throw new Error('No se recibieron datos del producto');
+          }
+
+          // Llenar el formulario de edición con los datos del producto
+          const editProductoId = document.getElementById('editProductoId');
+          const editCodigo = document.getElementById('editCodigo');
+          const editNombre = document.getElementById('editNombre');
+          const editIngreso = document.getElementById('editIngreso');
+          const editSalida = document.getElementById('editSalida');
+          const editStock = document.getElementById('editStock');
+          const editCategoria = document.getElementById('editCategoria');
+          const editMarca = document.getElementById('editMarca');
+          const editColor = document.getElementById('editColor');
+          const editDescripcion = document.getElementById('editDescripcion');
+          const editPrecioCompra = document.getElementById('editPrecioCompra');
+          const editPorcentajeGanancia = document.getElementById('editPorcentajeGanancia');
+          const editPrecioVenta = document.getElementById('editPrecioVenta');
+          const editProveedor = document.getElementById('editProveedor');
+          const editImagen = document.getElementById('editImagen');
+
+          if (editProductoId) editProductoId.value = producto.id || '';
+          if (editCodigo) editCodigo.value = producto.codigo || '';
+          if (editNombre) editNombre.value = producto.nombre || '';
+          if (editIngreso) editIngreso.value = producto.ingreso || 0;
+          if (editSalida) editSalida.value = producto.salida || 0;
+          
+          // Calcular stock automáticamente
+          if (editIngreso && editSalida && editStock) {
+            const ingreso = parseInt(editIngreso.value) || 0;
+            const salida = parseInt(editSalida.value) || 0;
+            const stock = ingreso - salida;
+            editStock.value = stock >= 0 ? stock : 0;
+          } else if (editStock) {
+            editStock.value = producto.stock || 0;
+          }
+          
+          if (producto.caracteristica) {
+            if (editCategoria) editCategoria.value = producto.caracteristica.categoria || '';
+            if (editMarca) editMarca.value = producto.caracteristica.marca || '';
+            if (editColor) editColor.value = producto.caracteristica.color || '';
+            if (editDescripcion) editDescripcion.value = producto.caracteristica.descripcion || '';
+            
+            // Manejar precios (pueden ser BigDecimal que vienen como números)
+            const precioCompra = producto.caracteristica.precioCompra;
+            const precioVenta = producto.caracteristica.precioVenta;
+            
+            if (editPrecioCompra && precioCompra != null) {
+              editPrecioCompra.value = parseFloat(precioCompra) || 0;
+            }
+            
+            // Calcular porcentaje de ganancia
+            if (precioCompra != null && precioVenta != null && editPorcentajeGanancia && editPrecioVenta) {
+              const precioCompraNum = parseFloat(precioCompra);
+              const precioVentaNum = parseFloat(precioVenta);
+              
+              if (precioCompraNum > 0) {
+                const porcentaje = ((precioVentaNum / precioCompraNum) - 1) * 100;
+                editPorcentajeGanancia.value = porcentaje.toFixed(2);
+                editPrecioVenta.value = precioVentaNum.toFixed(2);
+              } else {
+                editPorcentajeGanancia.value = '';
+                editPrecioVenta.value = '';
+              }
+            }
+          } else {
+            console.warn('El producto no tiene características asociadas');
+            if (editCategoria) editCategoria.value = '';
+            if (editMarca) editMarca.value = '';
+            if (editColor) editColor.value = '';
+            if (editDescripcion) editDescripcion.value = '';
+            if (editPrecioCompra) editPrecioCompra.value = '';
+            if (editPorcentajeGanancia) editPorcentajeGanancia.value = '';
+            if (editPrecioVenta) editPrecioVenta.value = '';
+          }
+          
+          if (editProveedor) editProveedor.value = producto.proveedor || '';
+          if (editImagen) editImagen.value = producto.imagen || '';
+          
+          // Abrir modal de edición
+          modalEditar.classList.add('show');
+          document.body.style.overflow = 'hidden';
+        })
+        .catch(error => {
+          console.error('Error completo:', error);
+          Swal.fire({
+            title: 'Error',
+            text: error.message || 'No se pudo cargar la información del producto',
+            icon: 'error',
+            confirmButtonText: 'OK'
+          });
+        });
+    };
+
+    window.activarDesactivarProducto = function(id, estaActivo) {
+      const productoId = parseInt(id, 10);
+      if (isNaN(productoId)) {
+        Swal.fire({
+          title: 'Error',
+          text: 'ID de producto inválido',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
+        return;
+      }
+
+      const accion = estaActivo ? 'desactivar' : 'activar';
+      const textoAccion = estaActivo ? 'desactivar' : 'activar';
+      
+      Swal.fire({
+        title: `¿${textoAccion.charAt(0).toUpperCase() + textoAccion.slice(1)} producto?`,
+        text: `¿Estás seguro de que deseas ${textoAccion} este producto?`,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: estaActivo ? '#e74c3c' : '#27ae60',
+        cancelButtonColor: '#95a5a6',
+        confirmButtonText: `Sí, ${textoAccion}`,
+        cancelButtonText: 'Cancelar'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          const csrfToken = document.querySelector('meta[name="_csrf"]').content;
+          const csrfHeader = document.querySelector('meta[name="_csrf_header"]').content;
+          
+          fetch(`/api/productos/${productoId}/estado?activar=${!estaActivo}`, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              [csrfHeader]: csrfToken
+            }
+          })
+          .then(response => {
+            if (!response.ok) {
+              throw new Error('Error al cambiar el estado del producto');
+            }
+            return response.json();
+          })
+          .then(() => {
+            Swal.fire({
+              title: '¡Éxito!',
+              text: `Producto ${estaActivo ? 'desactivado' : 'activado'} correctamente`,
+              icon: 'success',
+              confirmButtonText: 'OK'
+            }).then(() => {
+              location.reload();
+            });
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            Swal.fire({
+              title: 'Error',
+              text: error.message || 'No se pudo cambiar el estado del producto',
+              icon: 'error',
+              confirmButtonText: 'OK'
+            });
+          });
+        }
+      });
+    };
+
+    // Calcular precio de venta en modal de edición
+    document.addEventListener('DOMContentLoaded', function() {
+      const editPrecioCompra = document.getElementById('editPrecioCompra');
+      const editPorcentajeGanancia = document.getElementById('editPorcentajeGanancia');
+      const editPrecioVenta = document.getElementById('editPrecioVenta');
+      
+      function calcularPrecioVentaEditar() {
+        if (editPrecioCompra && editPorcentajeGanancia && editPrecioVenta) {
+          const precioCompra = parseFloat(editPrecioCompra.value) || 0;
+          const porcentaje = parseFloat(editPorcentajeGanancia.value) || 0;
+          
+          if (precioCompra > 0 && porcentaje >= 0) {
+            const precioVenta = precioCompra * (1 + porcentaje / 100);
+            editPrecioVenta.value = precioVenta.toFixed(2);
+          } else {
+            editPrecioVenta.value = '';
+          }
+        }
+      }
+      
+      if (editPrecioCompra) {
+        editPrecioCompra.addEventListener('input', calcularPrecioVentaEditar);
+      }
+      
+      if (editPorcentajeGanancia) {
+        editPorcentajeGanancia.addEventListener('input', calcularPrecioVentaEditar);
+      }
+
+      // Calcular stock automáticamente en modal de edición (Ingreso - Salida)
+      const editIngreso = document.getElementById('editIngreso');
+      const editSalida = document.getElementById('editSalida');
+      const editStock = document.getElementById('editStock');
+      
+      function calcularStockEditar() {
+        if (editIngreso && editSalida && editStock) {
+          const ingreso = parseInt(editIngreso.value) || 0;
+          const salida = parseInt(editSalida.value) || 0;
+          const stock = ingreso - salida;
+          editStock.value = stock >= 0 ? stock : 0;
+        }
+      }
+      
+      if (editIngreso && editSalida && editStock) {
+        editIngreso.addEventListener('input', calcularStockEditar);
+        editSalida.addEventListener('input', calcularStockEditar);
+      }
+    });
+
   </script>
 </body>
 </html>

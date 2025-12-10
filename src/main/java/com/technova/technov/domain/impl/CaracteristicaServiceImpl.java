@@ -77,4 +77,16 @@ public class CaracteristicaServiceImpl implements CaracteristicaService {
                 })
                 .orElse(false);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<String> listarCategorias() {
+        return caracteristicaRepository.listarCategorias();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<String> listarMarcas() {
+        return caracteristicaRepository.listarMarcas();
+    }
 }

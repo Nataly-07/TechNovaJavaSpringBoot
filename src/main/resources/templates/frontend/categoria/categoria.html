@@ -128,19 +128,17 @@
     <li class="submenu">
       <a href="#">Categorías ▾</a>
       <ul class="submenu-lista">
-        <li><a th:href="@{/categoria/celulares}">📱 Celulares</a></li>
-        <li><a th:href="@{/categoria/portatiles}">💻 Portátiles</a></li>
+        <li th:each="cat : ${categorias}">
+          <a th:href="@{'/categoria/' + ${#strings.toLowerCase(cat)}}" th:text="${cat}">Categoría</a>
+        </li>
       </ul>
     </li>
     <li class="submenu">
       <a href="#">Marcas ▾</a>
       <ul class="submenu-lista">
-        <li><a th:href="@{/marca/apple}">🍎 Apple</a></li>
-        <li><a th:href="@{/marca/samsung}">📱 Samsung</a></li>
-        <li><a th:href="@{/marca/motorola}">📞 Motorola</a></li>
-        <li><a th:href="@{/marca/xiaomi}">🧡 Xiaomi</a></li>
-        <li><a th:href="@{/marca/oppo}">📲 OPPO</a></li>
-        <li><a th:href="@{/marca/lenovo}">💻 Lenovo</a></li>
+        <li th:each="marca : ${marcas}">
+          <a th:href="@{'/marca/' + ${#strings.toLowerCase(marca)}}" th:text="${marca}">Marca</a>
+        </li>
       </ul>
     </li>
   </ul>

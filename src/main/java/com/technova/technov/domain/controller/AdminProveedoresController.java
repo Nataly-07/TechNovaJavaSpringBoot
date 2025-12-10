@@ -40,7 +40,7 @@ public class AdminProveedoresController {
             return "redirect:/login";
         }
 
-        List<ProveedorDto> proveedores = proveedorService.listarProveedores();
+        List<ProveedorDto> proveedores = proveedorService.listarTodosProveedores();
         
         // Aplicar filtro de búsqueda
         if (busqueda != null && !busqueda.isEmpty()) {
@@ -56,7 +56,7 @@ public class AdminProveedoresController {
         model.addAttribute("proveedores", proveedores);
         model.addAttribute("busqueda", busqueda);
         model.addAttribute("usuario", usuario);
-        model.addAttribute("totalProveedores", proveedorService.listarProveedores().size());
+        model.addAttribute("totalProveedores", proveedorService.listarTodosProveedores().size());
         
         return "frontend/admin/proveedores";
     }

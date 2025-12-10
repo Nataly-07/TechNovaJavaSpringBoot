@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reactivar Usuario - Emergencia</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            width: 90%;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        .warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        button:hover {
+            transform: translateY(-2px);
+        }
+        .info {
+            margin-top: 20px;
+            padding: 15px;
+            background: #e3f2fd;
+            border-left: 4px solid #667eea;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔓 Reactivar Usuario</h1>
+        <div class="warning">
+            <strong>⚠️ Advertencia:</strong> Este es un endpoint de emergencia. Úsalo solo si un administrador fue desactivado accidentalmente.
+        </div>
+        
+        <form method="POST" action="/admin/usuarios/emergencia/reactivar">
+            <div class="form-group">
+                <label for="email">Email del Usuario a Reactivar:</label>
+                <input type="email" id="email" name="email" value="admin@technova.com" required>
+            </div>
+            
+            <div class="form-group">
+                <label for="token">Token de Emergencia:</label>
+                <input type="text" id="token" name="token" value="EMERGENCIA2025" required>
+            </div>
+            
+            <button type="submit">Reactivar Usuario</button>
+        </form>
+        
+        <div class="info">
+            <strong>Instrucciones:</strong><br>
+            1. Ingresa el email del usuario a reactivar<br>
+            2. Usa el token: <strong>EMERGENCIA2025</strong><br>
+            3. Haz clic en "Reactivar Usuario"<br>
+            4. Serás redirigido al login para iniciar sesión
+        </div>
+    </div>
+</body>
+</html>

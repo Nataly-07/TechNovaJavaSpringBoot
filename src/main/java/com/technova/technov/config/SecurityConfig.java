@@ -62,6 +62,8 @@ public class SecurityConfig {
                                                 .requestMatchers("/categoria/**", "/marca/**", "/producto/**",
                                                                 "/ofertas")
                                                 .permitAll()
+                                                // Endpoint de emergencia para reactivar usuarios (TEMPORAL - eliminar después de usar)
+                                                .requestMatchers("/admin/usuarios/emergencia/**").permitAll()
                                                 // API de registro de usuarios (debe ir ANTES de /api/**)
                                                 .requestMatchers("/api/usuarios", "/api/usuarios/**").permitAll()
                                                 // Rutas protegidas por rol
@@ -75,8 +77,8 @@ public class SecurityConfig {
                                                 // Todas las demás URLs requieren autenticación
                                                 .anyRequest().authenticated())
                                 .csrf(csrf -> csrf
-                                                .ignoringRequestMatchers("/login", "/logout", "/api/usuarios",
-                                                                "/api/usuarios/**", "/api/atencion-cliente",
+                                                .ignoringRequestMatchers("/login", "/logout", "/admin/usuarios/emergencia/**",
+                                                                "/api/usuarios", "/api/usuarios/**", "/api/atencion-cliente",
                                                                 "/api/favoritos/**", "/api/carrito/**"))
                                 .formLogin(form -> form
                                                 .loginPage("/login")

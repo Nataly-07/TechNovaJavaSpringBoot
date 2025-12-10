@@ -14,6 +14,7 @@ import com.technova.technov.domain.service.UsuarioService;
 import com.technova.technov.util.SecurityUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -61,11 +62,17 @@ public class AdminUsuariosController {
                     .collect(Collectors.toList());
         }
 
-        // Obtener todos los usuarios para las estadísticas totales
+        // Obtener solo usuarios activos para las estadísticas totales
         List<UsuarioDto> todosLosUsuarios = usuarioService.listarUsuarios();
-        long totalClientes = todosLosUsuarios.stream().filter(u -> "cliente".equalsIgnoreCase(u.getRole())).count();
-        long totalAdmin = todosLosUsuarios.stream().filter(u -> "admin".equalsIgnoreCase(u.getRole())).count();
-        long totalEmpleados = todosLosUsuarios.stream().filter(u -> "empleado".equalsIgnoreCase(u.getRole())).count();
+        long totalClientes = todosLosUsuarios.stream()
+                .filter(u -> "cliente".equalsIgnoreCase(u.getRole()) && u.getEstado() != null && u.getEstado())
+                .count();
+        long totalAdmin = todosLosUsuarios.stream()
+                .filter(u -> "admin".equalsIgnoreCase(u.getRole()) && u.getEstado() != null && u.getEstado())
+                .count();
+        long totalEmpleados = todosLosUsuarios.stream()
+                .filter(u -> "empleado".equalsIgnoreCase(u.getRole()) && u.getEstado() != null && u.getEstado())
+                .count();
 
         model.addAttribute("usuarios", usuarios);
         model.addAttribute("rol", rol);
@@ -135,6 +142,92 @@ public class AdminUsuariosController {
         }
         
         return "redirect:/admin/usuarios";
+    }
+
+    @PostMapping("/admin/usuarios/reactivar")
+    public String reactivarUsuarioPorEmail(
+            @RequestParam String email,
+            RedirectAttributes redirectAttributes) {
+        
+        UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
+        
+        if (usuario == null || !"admin".equalsIgnoreCase(usuario.getRole())) {
+            return "redirect:/login";
+        }
+
+        try {
+            Optional<UsuarioDto> usuarioInactivo = usuarioService.usuarioPorEmail(email);
+            if (usuarioInactivo.isPresent()) {
+                UsuarioDto u = usuarioInactivo.get();
+                boolean resultado = usuarioService.activarDesactivarUsuario(u.getId(), true);
+                if (resultado) {
+                    redirectAttributes.addFlashAttribute("mensaje", "Usuario " + email + " reactivado correctamente");
+                    redirectAttributes.addFlashAttribute("tipoMensaje", "success");
+                } else {
+                    redirectAttributes.addFlashAttribute("mensaje", "Error al reactivar el usuario");
+                    redirectAttributes.addFlashAttribute("tipoMensaje", "error");
+                }
+            } else {
+                redirectAttributes.addFlashAttribute("mensaje", "Usuario no encontrado: " + email);
+                redirectAttributes.addFlashAttribute("tipoMensaje", "error");
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("mensaje", "Error al reactivar el usuario: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("tipoMensaje", "error");
+        }
+        
+        return "redirect:/admin/usuarios";
+    }
+
+    /**
+     * Página de emergencia para reactivar usuarios desactivados.
+     */
+    @GetMapping("/admin/usuarios/emergencia")
+    public String paginaEmergencia() {
+        return "emergencia-reactivar";
+    }
+
+    /**
+     * Endpoint de emergencia para reactivar usuarios desactivados.
+     * IMPORTANTE: Este endpoint debe ser eliminado o protegido después de usar.
+     */
+    @PostMapping("/admin/usuarios/emergencia/reactivar")
+    public String reactivarUsuarioEmergencia(
+            @RequestParam String email,
+            @RequestParam(required = false) String token,
+            RedirectAttributes redirectAttributes) {
+        
+        // Token simple de emergencia (cambiar por algo más seguro en producción)
+        String tokenEsperado = "EMERGENCIA2025";
+        
+        if (token == null || !tokenEsperado.equals(token)) {
+            redirectAttributes.addFlashAttribute("mensaje", "Token de emergencia inválido");
+            redirectAttributes.addFlashAttribute("tipoMensaje", "error");
+            return "redirect:/login";
+        }
+
+        try {
+            Optional<UsuarioDto> usuarioInactivo = usuarioService.usuarioPorEmail(email);
+            if (usuarioInactivo.isPresent()) {
+                UsuarioDto u = usuarioInactivo.get();
+                boolean resultado = usuarioService.activarDesactivarUsuario(u.getId(), true);
+                if (resultado) {
+                    redirectAttributes.addFlashAttribute("mensaje", "Usuario " + email + " reactivado correctamente. Por favor, inicia sesión.");
+                    redirectAttributes.addFlashAttribute("tipoMensaje", "success");
+                } else {
+                    redirectAttributes.addFlashAttribute("mensaje", "Error al reactivar el usuario");
+                    redirectAttributes.addFlashAttribute("tipoMensaje", "error");
+                }
+            } else {
+                redirectAttributes.addFlashAttribute("mensaje", "Usuario no encontrado: " + email);
+                redirectAttributes.addFlashAttribute("tipoMensaje", "error");
+            }
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("mensaje", "Error al reactivar el usuario: " + e.getMessage());
+            redirectAttributes.addFlashAttribute("tipoMensaje", "error");
+        }
+        
+        return "redirect:/login";
     }
 }
 

@@ -5,6 +5,8 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Gestión de Mensajes - Technova</title>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
 
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" th:href="@{/frontend/css/estilodas.css}">
@@ -351,8 +353,15 @@
             <div class="ticket-body">
               <p th:text="${ticket.descripcion}">Descripción</p>
               <div class="ticket-meta">
-                <span><i class='bx bx-calendar'></i> <span th:text="${ticket.fechaConsulta != null ? ticket.fechaConsulta : 'N/A'}">Fecha</span></span>
+                <span><i class='bx bx-calendar'></i> 
+                  <span th:if="${ticket.fechaConsulta != null}" 
+                        th:text="${#temporals.format(ticket.fechaConsulta, 'dd/MM/yyyy HH:mm')}">Fecha</span>
+                  <span th:if="${ticket.fechaConsulta == null}">N/A</span>
+                </span>
                 <span><i class='bx bx-user'></i> Usuario ID: <span th:text="${ticket.usuarioId != null ? ticket.usuarioId : 'N/A'}">-</span></span>
+                <span th:if="${ticket.emailUsuario != null && !ticket.emailUsuario.isEmpty()}">
+                  <i class='bx bx-envelope'></i> Email: <span th:text="${ticket.emailUsuario}">-</span>
+                </span>
               </div>
               <th:block th:if="${ticket.respuesta != null && !ticket.respuesta.isEmpty()}">
                 <div class="respuesta-section">
@@ -421,16 +430,23 @@
         }
       }).then((result) => {
         if (result.isConfirmed) {
-          const formData = new URLSearchParams();
-          formData.append('respuesta', result.value);
+          const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
+          const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || '';
           
-          fetch('/api/atencion-cliente/' + id + '/responder?' + formData.toString(), {
+          const headers = {
+            'Content-Type': 'application/json'
+          };
+          
+          if (csrfToken && csrfHeader) {
+            headers[csrfHeader] = csrfToken;
+          }
+          
+          fetch('/api/atencion-cliente/' + id + '/responder', {
             method: 'PUT',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded'
-            }
+            headers: headers,
+            body: JSON.stringify({ respuesta: result.value })
           })
-          .then(response => {
+          .then(async response => {
             if (response.ok) {
               Swal.fire({
                 title: 'Respuesta enviada',
@@ -441,18 +457,29 @@
                 location.reload();
               });
             } else {
+              let errorMessage = 'No se pudo enviar la respuesta';
+              try {
+                const errorText = await response.text();
+                if (errorText) {
+                  errorMessage = errorText;
+                }
+              } catch (e) {
+                // Si no se puede leer el error, usar el mensaje por defecto
+              }
+              console.error('Error al responder ticket:', response.status, errorMessage);
               Swal.fire({
                 title: 'Error',
-                text: 'No se pudo enviar la respuesta',
+                text: errorMessage,
                 icon: 'error',
                 confirmButtonText: 'OK'
               });
             }
           })
           .catch(error => {
+            console.error('Error al responder ticket:', error);
             Swal.fire({
               title: 'Error',
-              text: 'Ocurrió un error al enviar la respuesta',
+              text: 'Ocurrió un error al enviar la respuesta: ' + error.message,
               icon: 'error',
               confirmButtonText: 'OK'
             });
@@ -473,11 +500,20 @@
         cancelButtonText: 'Cancelar'
       }).then((result) => {
         if (result.isConfirmed) {
+          const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
+          const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || '';
+          
+          const headers = {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          };
+          
+          if (csrfToken && csrfHeader) {
+            headers[csrfHeader] = csrfToken;
+          }
+          
           fetch('/api/atencion-cliente/' + id + '/cerrar', {
             method: 'PUT',
-            headers: {
-              'Content-Type': 'application/x-www-form-urlencoded'
-            }
+            headers: headers
           })
           .then(response => {
             if (response.ok) {
