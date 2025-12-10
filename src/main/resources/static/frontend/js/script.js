@@ -6,6 +6,13 @@ function guardarCarrito() {
 
 function actualizarCarrito() {
   const lista = document.querySelector("#lista-carrito");
+  const totalElement = document.querySelector("#total");
+  
+  // Verificar que los elementos existan antes de usarlos
+  if (!lista || !totalElement) {
+    return; // Salir si los elementos no existen en esta página
+  }
+  
   lista.innerHTML = "";
 
   let total = 0;
@@ -18,20 +25,40 @@ function actualizarCarrito() {
     total += item.precio;
   });
 
-  document.querySelector("#total").textContent = total.toLocaleString();
+  totalElement.textContent = total.toLocaleString();
   guardarCarrito();
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  // Verificar si hay un usuario autenticado (si existe la variable usuarioId)
+  const tieneUsuario = typeof usuarioId !== 'undefined' && usuarioId !== null;
+  
   document.querySelectorAll(".carrito-btn").forEach((boton) => {
-    boton.addEventListener("click", () => {
+    // Si el botón es un enlace a /login o tiene href que incluye /login, es para usuarios no autenticados
+    const href = boton.getAttribute('href') || boton.href || '';
+    const esBotonNoAutenticado = href.includes('/login') || href === '/login';
+    
+    // Solo agregar funcionalidad de carrito si hay usuario autenticado y no es botón de login
+    if (!tieneUsuario || esBotonNoAutenticado) {
+      return; // No hacer nada, dejar que el script de index.html maneje el clic
+    }
+    
+    boton.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      
       const producto = boton.closest(".producto");
-      const nombre = producto.querySelector("h3").textContent.trim();
+      if (!producto) return;
+      
+      const nombreElement = producto.querySelector("h3");
+      if (!nombreElement) return;
+      
+      const nombre = nombreElement.textContent.trim();
 
-      let precio = producto
-        .querySelector(".precio-descuento")
-        .textContent.trim()
-        .replace("$", "");
+      const precioElement = producto.querySelector(".precio-descuento");
+      if (!precioElement) return;
+      
+      let precio = precioElement.textContent.trim().replace("$", "");
       precio = parseInt(precio.split(".").join(""), 10);
 
       carrito.push({ nombre, precio });
@@ -39,14 +66,16 @@ document.addEventListener("DOMContentLoaded", () => {
       actualizarCarrito();
 
       // confirmación visual
-      Swal.fire({
-        icon: "success",
-        title: "¡Agregado al carrito!",
-        text: nombre,
-        confirmButtonColor: "#00cc44",
-        timer: 1500,
-        showConfirmButton: false,
-      });
+      if (typeof Swal !== 'undefined') {
+        Swal.fire({
+          icon: "success",
+          title: "¡Agregado al carrito!",
+          text: nombre,
+          confirmButtonColor: "#00cc44",
+          timer: 1500,
+          showConfirmButton: false,
+        });
+      }
     });
   });
 

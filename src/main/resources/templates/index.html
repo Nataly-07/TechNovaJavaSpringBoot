@@ -62,8 +62,21 @@
                             ? '/frontend/imagenes/' + producto.imagen 
                             : '/frontend/imagenes/placeholder.png')}"
                th:alt="${producto.nombre}">
-          <a href="javascript:void(0)"><span class="detalles">Ver Más Detalles</span></a>
+          <a th:href="@{'/producto/' + ${producto.id}}"><span class="detalles">Ver Más Detalles</span></a>
           <h3 th:text="${producto.nombre}">Producto</h3>
+          <!-- Indicador de disponibilidad -->
+          <div style="margin: 5px 0; display: block;">
+            <th:block th:with="stock=${producto.stock != null ? producto.stock : 0}">
+              <span th:if="${stock != null and stock > 0}" style="display: inline-flex !important; align-items: center; gap: 3px; background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 15px; font-size: 11px; font-weight: 600;">
+                <span>✓</span>
+                <span>Disponible</span>
+              </span>
+              <span th:if="${stock == null or stock == 0}" style="display: inline-flex !important; align-items: center; gap: 3px; background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 15px; font-size: 11px; font-weight: 600;">
+                <span>✗</span>
+                <span>Agotado</span>
+              </span>
+            </th:block>
+          </div>
           <p>4.5 ⭐</p>
           <th:block th:if="${producto.precioOriginal != null and producto.precioDescuento != null}">
             <p class="precio-original">
@@ -97,6 +110,58 @@
     </div>
 </div>
 
+<th:block th:if="${productosRecientes != null and !productosRecientes.isEmpty()}">
+<div class="mas-vendido-container">
+    <div class="mas-vendido-header">
+        <span class="vendido">🆕 Productos Agregados Recientemente</span>
+        <a href="#" class="ver-mas">Ver más</a>
+    </div>
+
+    <div class="carrusel-productos-contenedor">
+        <button class="carrusel-btn prev">&#10094;</button>
+
+        <div class="carrusel-track">
+            <div class="producto" th:each="producto : ${productosRecientes}">
+                <img th:src="${producto.imagen != null and !#strings.isEmpty(producto.imagen) and #strings.startsWith(producto.imagen, 'http') 
+                              ? producto.imagen 
+                              : (producto.imagen != null and !#strings.isEmpty(producto.imagen) 
+                                  ? '/frontend/imagenes/' + producto.imagen 
+                                  : '/frontend/imagenes/placeholder.png')}"
+                     th:alt="${producto.nombre}">
+                <a th:href="@{'/producto/' + ${producto.id}}"><span class="detalles">Ver Más Detalles</span></a>
+                <h3 th:text="${producto.nombre}">Producto</h3>
+                <!-- Indicador de disponibilidad -->
+                <div style="margin: 5px 0; display: block;">
+                  <th:block th:with="stock=${producto.stock != null ? producto.stock : 0}">
+                    <span th:if="${stock != null and stock > 0}" style="display: inline-flex !important; align-items: center; gap: 3px; background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 15px; font-size: 11px; font-weight: 600;">
+                      <span>✓</span>
+                      <span>Disponible</span>
+                    </span>
+                    <span th:if="${stock == null or stock == 0}" style="display: inline-flex !important; align-items: center; gap: 3px; background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 15px; font-size: 11px; font-weight: 600;">
+                      <span>✗</span>
+                      <span>Agotado</span>
+                    </span>
+                  </th:block>
+                </div>
+                <p>4.5 ⭐</p>
+                <th:block th:if="${producto.precioOriginal != null and producto.precioDescuento != null}">
+                    <p class="precio-original">
+                        $<span th:text="${producto.precioOriginal}">0</span>
+                    </p>
+                    <p class="precio-descuento">
+                        $<span th:text="${producto.precioDescuento}">0</span>
+                        <span class="descuento">-5%</span>
+                    </p>
+                </th:block>
+                <a th:href="@{/login}" class="carrito-btn" style="text-decoration: none; color: white; display: inline-flex; align-items: center; justify-content: center; background: var(--gradient-secondary); border: none; border-radius: 50%; width: 40px; height: 40px; font-size: 18px; cursor: pointer;">&#128722;</a>
+            </div>
+        </div>
+
+        <button class="carrusel-btn next">&#10095;</button>
+    </div>
+</div>
+</th:block>
+
 <div class="ofertas-container" style="background: var(--gradient-light); padding: 20px 25px; border-radius: 10px; overflow: hidden; max-width: 100%; box-sizing: border-box; display: flex; gap: 25px; justify-content: center; flex-wrap: nowrap;">
     <div class="bloque" style="margin-bottom: 40px; overflow: hidden; flex: 0 0 300px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
         <span class="vendido1" style="background: var(--gradient-secondary); color: white; padding: 6px 15px; border-radius: 15px; font-weight: bold; font-size: 1em; align-self: flex-start;">Oferta del dia</span>
@@ -107,8 +172,21 @@
                               ? '/frontend/imagenes/' + productos[0].imagen 
                               : '/frontend/imagenes/placeholder.png')}"
                  th:alt="${productos[0].nombre}" style="width: 180px; height: auto; margin: 0 auto; display: block; border-radius: 10px;">
-            <a href="javascript:void(0)" style="display: inline-block; margin: 15px 0; background: var(--gradient-secondary); color: white; padding: 8px 15px; border-radius: 12px; font-weight: bold; font-size: 1em; text-decoration: none;">Ver Más Detalles</a>
+            <a th:href="@{'/producto/' + ${productos[0].id}}" style="display: inline-block; margin: 15px 0; background: var(--gradient-secondary); color: white; padding: 8px 15px; border-radius: 12px; font-weight: bold; font-size: 1em; text-decoration: none;">Ver Más Detalles</a>
             <h3 style="font-weight: bold; margin: 12px 0 8px; font-size: 1.2em;" th:text="${productos[0].nombre}">Producto</h3>
+            <!-- Indicador de disponibilidad -->
+            <div style="margin: 5px 0; display: block;">
+              <th:block th:with="stock=${productos[0].stock != null ? productos[0].stock : 0}">
+                <span th:if="${stock != null and stock > 0}" style="display: inline-flex !important; align-items: center; gap: 3px; background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 15px; font-size: 11px; font-weight: 600;">
+                  <span>✓</span>
+                  <span>Disponible</span>
+                </span>
+                <span th:if="${stock == null or stock == 0}" style="display: inline-flex !important; align-items: center; gap: 3px; background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 15px; font-size: 11px; font-weight: 600;">
+                  <span>✗</span>
+                  <span>Agotado</span>
+                </span>
+              </th:block>
+            </div>
             <p style="margin: 8px 0; font-size: 1em;">4.9 ⭐</p>
             <th:block th:if="${productos[0].precioOriginal != null and productos[0].precioDescuento != null}">
               <p class="precio-original" style="text-decoration: line-through; color: gray; margin: 8px 0; font-size: 0.9em;">
@@ -137,8 +215,21 @@
                                   ? '/frontend/imagenes/' + producto.imagen 
                                   : '/frontend/imagenes/placeholder.png')}"
                      th:alt="${producto.nombre}" style="width: 140px; height: auto; margin: 0 auto; display: block; border-radius: 10px;">
-                <a href="javascript:void(0)" style="display: inline-block; margin: 12px 0; background: var(--gradient-secondary); color: white; padding: 6px 12px; border-radius: 12px; font-weight: bold; font-size: 0.9em; text-decoration: none;">Ver Más Detalles</a>
+                <a th:href="@{'/producto/' + ${producto.id}}" style="display: inline-block; margin: 12px 0; background: var(--gradient-secondary); color: white; padding: 6px 12px; border-radius: 12px; font-weight: bold; font-size: 0.9em; text-decoration: none;">Ver Más Detalles</a>
                 <h3 style="font-weight: bold; margin: 10px 0 6px; font-size: 1em;" th:text="${producto.nombre}">Producto</h3>
+                <!-- Indicador de disponibilidad -->
+                <div style="margin: 5px 0; display: block;">
+                  <th:block th:with="stock=${producto.stock != null ? producto.stock : 0}">
+                    <span th:if="${stock != null and stock > 0}" style="display: inline-flex !important; align-items: center; gap: 3px; background: #d4edda; color: #155724; padding: 4px 8px; border-radius: 15px; font-size: 11px; font-weight: 600;">
+                      <span>✓</span>
+                      <span>Disponible</span>
+                    </span>
+                    <span th:if="${stock == null or stock == 0}" style="display: inline-flex !important; align-items: center; gap: 3px; background: #f8d7da; color: #721c24; padding: 4px 8px; border-radius: 15px; font-size: 11px; font-weight: 600;">
+                      <span>✗</span>
+                      <span>Agotado</span>
+                    </span>
+                  </th:block>
+                </div>
                 <p style="margin: 6px 0; font-size: 0.9em;">4.9 ⭐</p>
                 <th:block th:if="${producto.precioOriginal != null and producto.precioDescuento != null}">
                   <p class="precio-original" style="text-decoration: line-through; color: gray; margin: 6px 0; font-size: 0.8em;">
@@ -192,6 +283,69 @@
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script>
+// Interceptar clics en botones de carrito para usuarios no autenticados
+// Este script debe ejecutarse ANTES que script.js para prevenir el comportamiento por defecto
+(function() {
+    function interceptarBotonesCarrito() {
+        const botonesCarrito = document.querySelectorAll('.carrito-btn');
+        
+        botonesCarrito.forEach(boton => {
+            // Verificar si el botón apunta a /login (usuarios no autenticados)
+            const href = boton.getAttribute('href') || boton.href || '';
+            if (!href.includes('/login')) {
+                return; // No es un botón de login, dejarlo pasar
+            }
+            
+            // Remover cualquier listener existente
+            const nuevoBoton = boton.cloneNode(true);
+            boton.parentNode.replaceChild(nuevoBoton, boton);
+            
+            nuevoBoton.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                e.stopImmediatePropagation();
+                
+                // Mostrar mensaje con SweetAlert2
+                if (typeof Swal !== 'undefined') {
+                    Swal.fire({
+                        icon: 'info',
+                        title: 'Iniciar Sesión Requerido',
+                        html: '<p style="font-size: 16px; margin-bottom: 20px;">Debes iniciar sesión primero para agregar productos al carrito.</p>',
+                        showCancelButton: true,
+                        confirmButtonText: 'Iniciar Sesión',
+                        cancelButtonText: 'Cancelar',
+                        confirmButtonColor: '#00d4ff',
+                        cancelButtonColor: '#999',
+                        reverseButtons: true
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = '/login';
+                        }
+                    });
+                } else {
+                    if (confirm('Debes iniciar sesión primero para agregar productos al carrito. ¿Deseas ir a la página de inicio de sesión?')) {
+                        window.location.href = '/login';
+                    }
+                }
+                return false;
+            }, true);
+        });
+    }
+    
+    // Ejecutar inmediatamente
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', interceptarBotonesCarrito);
+    } else {
+        interceptarBotonesCarrito();
+    }
+    
+    // También interceptar después de que se carguen otros scripts
+    setTimeout(interceptarBotonesCarrito, 200);
+    setTimeout(interceptarBotonesCarrito, 500);
+})();
+</script>
 <script th:src="@{/frontend/js/script.js}" defer></script>
+<script th:src="@{/frontend/js/carrusel.js}" defer></script>
 </body>
 </html>

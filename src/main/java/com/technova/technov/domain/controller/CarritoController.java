@@ -1,10 +1,14 @@
 package com.technova.technov.domain.controller;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -34,12 +38,25 @@ public class CarritoController {
     }
 
     @PostMapping("/{usuarioId}/agregar")
-    public ResponseEntity<List<CarritoItemDto>> agregar(
+    public ResponseEntity<?> agregar(
             @PathVariable Integer usuarioId,
             @RequestParam Integer productoId,
             @RequestParam(required = false, defaultValue = "1") Integer cantidad) {
-        List<CarritoItemDto> items = carritoService.agregar(usuarioId, productoId, cantidad);
-        return ResponseEntity.ok(items);
+        try {
+            List<CarritoItemDto> items = carritoService.agregar(usuarioId, productoId, cantidad);
+            return ResponseEntity.ok(items);
+        } catch (IllegalArgumentException e) {
+            Map<String, String> error = new HashMap<>();
+            error.put("message", e.getMessage());
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+        }
+    }
+    
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException e) {
+        Map<String, String> error = new HashMap<>();
+        error.put("message", e.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
     }
     
     @PutMapping("/{usuarioId}/actualizar")

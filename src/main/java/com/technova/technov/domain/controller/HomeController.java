@@ -118,6 +118,10 @@ public class HomeController {
         model.addAttribute("categorias", categorias);
         model.addAttribute("marcas", marcas);
         
+        // Obtener productos recientes para todos los usuarios
+        List<ProductoDto> productosRecientes = productoService.listarProductosRecientes(6);
+        model.addAttribute("productosRecientes", enriquecerProductos(productosRecientes));
+        
         // Si hay un usuario autenticado y es cliente, mostrar index autenticado
         if (usuario != null && "cliente".equalsIgnoreCase(usuario.getRole())) {
             // Obtener datos adicionales para el cliente autenticado
@@ -462,6 +466,27 @@ public class HomeController {
         List<ProductoDto> productoList = List.of(producto);
         List<ProductoDto> productosEnriquecidos = enriquecerProductos(productoList);
         model.addAttribute("producto", productosEnriquecidos.get(0));
+        
+        // Si hay un usuario autenticado, agregar información adicional
+        UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
+        if (usuario != null && "cliente".equalsIgnoreCase(usuario.getRole())) {
+            model.addAttribute("usuario", usuario);
+            if (usuario.getId() != null) {
+                try {
+                    List<CarritoItemDto> itemsCarrito = carritoService.listar(usuario.getId().intValue());
+                    model.addAttribute("carritoCount", itemsCarrito != null ? itemsCarrito.size() : 0);
+                } catch (Exception e) {
+                    model.addAttribute("carritoCount", 0);
+                }
+                try {
+                    List<FavoritoDto> favoritos = favoritoService.listarPorUsuario(usuario.getId());
+                    model.addAttribute("favoritosCount", favoritos != null ? favoritos.size() : 0);
+                } catch (Exception e) {
+                    model.addAttribute("favoritosCount", 0);
+                }
+            }
+        }
+        
         return "frontend/producto/detalle-producto";
     }
 

@@ -19,4 +19,5 @@ public interface ProductoService {
     boolean eliminarProducto(Integer id);
     boolean activarDesactivarProducto(Integer id, boolean activar);
     List<ProductoDto> listarTodosProductos(); // Incluye activos e inactivos
+    List<ProductoDto> listarProductosRecientes(int cantidad); // Obtiene los productos más recientes
 }

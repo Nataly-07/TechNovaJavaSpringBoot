@@ -49,4 +49,11 @@ public interface ProductoRepository extends JpaRepository<Producto, Integer> {
     @org.springframework.data.jpa.repository.Query("SELECT p FROM Producto p WHERE p.estado = true AND (LOWER(p.nombre) LIKE LOWER(CONCAT('%', :q, '%')) OR (p.caracteristica IS NOT NULL AND LOWER(p.caracteristica.descripcion) LIKE LOWER(CONCAT('%', :q, '%'))))")
     Page<Producto> buscarProductosNoEliminados(@org.springframework.data.repository.query.Param("q") String q, Pageable pageable);
     Page<Producto> findByCaracteristica_PrecioVentaBetweenAndEstadoTrue(java.math.BigDecimal min, java.math.BigDecimal max, Pageable pageable);
+    
+    /**
+     * Obtiene los productos más recientes ordenados por ID descendente (los últimos creados).
+     * @param pageable información de paginación
+     * @return página de productos ordenados por ID descendente
+     */
+    Page<Producto> findByEstadoTrueOrderByIdDesc(Pageable pageable);
 }
