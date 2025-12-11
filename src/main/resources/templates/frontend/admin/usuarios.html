@@ -638,22 +638,20 @@
             <option value="admin">Administrador</option>
             <option value="empleado">Empleado</option>
           </select>
-        </div>
-
-        <div class="form-group">
-          <label><i class='bx bx-user-circle'></i> Nombre Completo *</label>
-          <input type="text" name="name" id="name" placeholder="Nombre completo" required />
+          <div class="error-message d-none" id="roleError" style="color: #ef4444; font-size: 0.85rem; margin-top: 5px;"></div>
         </div>
 
         <div class="form-row">
           <div class="form-group">
             <label><i class='bx bx-user-circle'></i> Primer Nombre *</label>
             <input type="text" name="firstName" id="firstName" placeholder="Primer nombre" required />
+            <div class="error-message d-none" id="firstNameError" style="color: #ef4444; font-size: 0.85rem; margin-top: 5px;"></div>
           </div>
 
           <div class="form-group">
             <label><i class='bx bx-user-circle'></i> Apellido *</label>
             <input type="text" name="lastName" id="lastName" placeholder="Apellido" required />
+            <div class="error-message d-none" id="lastNameError" style="color: #ef4444; font-size: 0.85rem; margin-top: 5px;"></div>
           </div>
         </div>
 
@@ -663,6 +661,7 @@
           <small style="color: #667eea; font-size: 0.85rem; margin-top: 5px; display: block;">
             <i class='bx bx-info-circle'></i> Formato: nombreadmin.tech@gmail.com (admin) o nombreempleado.tech@gmail.com (empleado)
           </small>
+          <div class="error-message d-none" id="emailError" style="color: #ef4444; font-size: 0.85rem; margin-top: 5px;"></div>
         </div>
 
         <div class="form-group">
@@ -675,6 +674,7 @@
             <p class="requisito" data-req="digit" style="margin: 2px 0;">✗ Número</p>
             <p class="requisito" data-req="special" style="margin: 2px 0;">✗ Carácter especial</p>
           </div>
+          <div class="error-message d-none" id="passwordError" style="color: #ef4444; font-size: 0.85rem; margin-top: 5px;"></div>
         </div>
 
         <div class="form-group">
@@ -686,7 +686,8 @@
         <div class="form-row">
           <div class="form-group">
             <label><i class='bx bx-phone'></i> Teléfono *</label>
-            <input type="tel" name="phone" id="phone" placeholder="Número de teléfono" required />
+            <input type="tel" name="phone" id="phone" placeholder="Número de teléfono (10 dígitos)" required />
+            <div class="error-message d-none" id="phoneError" style="color: #ef4444; font-size: 0.85rem; margin-top: 5px;"></div>
           </div>
         </div>
 
@@ -700,17 +701,20 @@
               <option value="PA">Pasaporte</option>
               <option value="TI">Tarjeta de Identidad</option>
             </select>
+            <div class="error-message d-none" id="documentTypeError" style="color: #ef4444; font-size: 0.85rem; margin-top: 5px;"></div>
           </div>
 
           <div class="form-group">
             <label><i class='bx bx-id-card'></i> Número de Documento *</label>
-            <input type="text" name="documentNumber" id="documentNumber" placeholder="Número de documento" required />
+            <input type="text" name="documentNumber" id="documentNumber" placeholder="Número de documento (7-10 dígitos)" required />
+            <div class="error-message d-none" id="documentNumberError" style="color: #ef4444; font-size: 0.85rem; margin-top: 5px;"></div>
           </div>
         </div>
 
         <div class="form-group">
           <label><i class='bx bx-home'></i> Dirección *</label>
-          <input type="text" name="address" id="address" placeholder="Dirección de residencia" required />
+          <input type="text" name="address" id="address" placeholder="Dirección de residencia (mínimo 8 caracteres)" required />
+          <div class="error-message d-none" id="addressError" style="color: #ef4444; font-size: 0.85rem; margin-top: 5px;"></div>
         </div>
 
         <div class="modal-actions">
@@ -1193,6 +1197,182 @@
       confirmPasswordInput.addEventListener('input', validarConfirmacionPassword);
     }
 
+    // Funciones de validación y estilos para campos
+    function mostrarError(campoId, mensaje) {
+      const campo = document.getElementById(campoId);
+      const errorDiv = document.getElementById(campoId + 'Error');
+      
+      if (campo) {
+        campo.style.borderColor = '#ef4444';
+        campo.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
+        if (campo.tagName === 'SELECT') {
+          campo.style.background = '#fef2f2';
+        } else {
+          campo.style.background = '#fef2f2';
+        }
+      }
+      
+      if (errorDiv) {
+        errorDiv.textContent = mensaje;
+        errorDiv.style.display = 'block';
+        errorDiv.classList.remove('d-none');
+      }
+    }
+
+    function mostrarExito(campoId) {
+      const campo = document.getElementById(campoId);
+      const errorDiv = document.getElementById(campoId + 'Error');
+      
+      if (campo) {
+        campo.style.borderColor = '#10b981';
+        campo.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.1)';
+        if (campo.tagName === 'SELECT') {
+          campo.style.background = '#f0fdf4';
+        } else {
+          campo.style.background = '#f0fdf4';
+        }
+      }
+      
+      if (errorDiv) {
+        errorDiv.style.display = 'none';
+        errorDiv.classList.add('d-none');
+      }
+    }
+
+    function resetearEstilo(campoId) {
+      const campo = document.getElementById(campoId);
+      const errorDiv = document.getElementById(campoId + 'Error');
+      
+      if (campo) {
+        campo.style.borderColor = '#e2e8f0';
+        campo.style.boxShadow = 'none';
+        if (campo.tagName === 'SELECT') {
+          campo.style.background = '#ffffff';
+        } else {
+          campo.style.background = '#f8fafc';
+        }
+      }
+      
+      if (errorDiv) {
+        errorDiv.style.display = 'none';
+        errorDiv.classList.add('d-none');
+      }
+    }
+
+    // Validar primer nombre
+    const firstNameInput = document.getElementById('firstName');
+    if (firstNameInput) {
+      firstNameInput.addEventListener('input', function() {
+        const valor = this.value.trim();
+        if (valor.length === 0) {
+          resetearEstilo('firstName');
+        } else if (valor.length < 2 || !/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(valor)) {
+          mostrarError('firstName', 'El nombre debe tener al menos 2 caracteres y solo letras.');
+        } else {
+          mostrarExito('firstName');
+        }
+      });
+    }
+
+    // Validar apellido
+    const lastNameInput = document.getElementById('lastName');
+    if (lastNameInput) {
+      lastNameInput.addEventListener('input', function() {
+        const valor = this.value.trim();
+        if (valor.length === 0) {
+          resetearEstilo('lastName');
+        } else if (valor.length < 2 || !/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(valor)) {
+          mostrarError('lastName', 'El apellido debe tener al menos 2 caracteres y solo letras.');
+        } else {
+          mostrarExito('lastName');
+        }
+      });
+    }
+
+    // Validar email
+    const emailInput = document.getElementById('email');
+    if (emailInput) {
+      emailInput.addEventListener('input', function() {
+        const valor = this.value.trim();
+        if (valor.length === 0) {
+          resetearEstilo('email');
+        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(valor)) {
+          mostrarError('email', 'Ingresa un correo electrónico válido.');
+        } else {
+          mostrarExito('email');
+        }
+      });
+    }
+
+    // Validar teléfono
+    const phoneInput = document.getElementById('phone');
+    if (phoneInput) {
+      phoneInput.addEventListener('input', function() {
+        const valor = this.value.trim();
+        if (valor.length === 0) {
+          resetearEstilo('phone');
+        } else if (valor.length !== 10 || !/^\d+$/.test(valor)) {
+          mostrarError('phone', 'El teléfono debe tener exactamente 10 dígitos.');
+        } else {
+          mostrarExito('phone');
+        }
+      });
+    }
+
+    // Validar tipo de documento
+    const documentTypeInput = document.getElementById('documentType');
+    if (documentTypeInput) {
+      documentTypeInput.addEventListener('change', function() {
+        if (this.value === '') {
+          resetearEstilo('documentType');
+        } else {
+          mostrarExito('documentType');
+        }
+      });
+    }
+
+    // Validar número de documento
+    const documentNumberInput = document.getElementById('documentNumber');
+    if (documentNumberInput) {
+      documentNumberInput.addEventListener('input', function() {
+        const valor = this.value.trim();
+        if (valor.length === 0) {
+          resetearEstilo('documentNumber');
+        } else if (valor.length < 7 || valor.length > 10 || !/^\d+$/.test(valor)) {
+          mostrarError('documentNumber', 'El documento debe tener entre 7 y 10 dígitos.');
+        } else {
+          mostrarExito('documentNumber');
+        }
+      });
+    }
+
+    // Validar dirección
+    const addressInput = document.getElementById('address');
+    if (addressInput) {
+      addressInput.addEventListener('input', function() {
+        const valor = this.value.trim();
+        if (valor.length === 0) {
+          resetearEstilo('address');
+        } else if (valor.length < 8) {
+          mostrarError('address', 'La dirección debe tener al menos 8 caracteres.');
+        } else {
+          mostrarExito('address');
+        }
+      });
+    }
+
+    // Validar rol
+    const roleInput = document.getElementById('role');
+    if (roleInput) {
+      roleInput.addEventListener('change', function() {
+        if (this.value === '') {
+          resetearEstilo('role');
+        } else {
+          mostrarExito('role');
+        }
+      });
+    }
+
     // Manejar envío del formulario
     document.getElementById('formAgregarUsuario').addEventListener('submit', function(e) {
       e.preventDefault();
@@ -1203,44 +1383,107 @@
         data[key] = value;
       });
 
-      // Validar que el rol sea admin o empleado
-      if (data.role !== 'admin' && data.role !== 'empleado') {
-        Swal.fire({
-          title: 'Error',
-          text: 'Solo se pueden crear administradores o empleados',
-          icon: 'error',
-          confirmButtonText: 'OK'
-        });
-        return;
+      // Validar todos los campos antes de enviar
+      let hasErrors = false;
+      const errors = [];
+
+      // Validar rol
+      if (!data.role || (data.role !== 'admin' && data.role !== 'empleado')) {
+        errors.push('Selecciona un rol válido (Administrador o Empleado)');
+        mostrarError('role', 'Selecciona un rol válido');
+        hasErrors = true;
+      }
+
+      // Validar primer nombre
+      const firstName = (data.firstName || '').trim();
+      if (firstName.length < 2 || !/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(firstName)) {
+        errors.push('El primer nombre debe tener al menos 2 caracteres y solo letras');
+        mostrarError('firstName', 'El primer nombre debe tener al menos 2 caracteres y solo letras');
+        hasErrors = true;
+      }
+
+      // Validar apellido
+      const lastName = (data.lastName || '').trim();
+      if (lastName.length < 2 || !/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(lastName)) {
+        errors.push('El apellido debe tener al menos 2 caracteres y solo letras');
+        mostrarError('lastName', 'El apellido debe tener al menos 2 caracteres y solo letras');
+        hasErrors = true;
+      }
+
+      // Validar email
+      const email = (data.email || '').trim();
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        errors.push('Ingresa un correo electrónico válido');
+        mostrarError('email', 'Ingresa un correo electrónico válido');
+        hasErrors = true;
+      }
+
+      // Validar teléfono
+      const phone = (data.phone || '').trim();
+      if (phone.length !== 10 || !/^\d+$/.test(phone)) {
+        errors.push('El teléfono debe tener exactamente 10 dígitos');
+        mostrarError('phone', 'El teléfono debe tener exactamente 10 dígitos');
+        hasErrors = true;
+      }
+
+      // Validar tipo de documento
+      if (!data.documentType) {
+        errors.push('Selecciona un tipo de documento');
+        mostrarError('documentType', 'Selecciona un tipo de documento');
+        hasErrors = true;
+      }
+
+      // Validar número de documento
+      const documentNumber = (data.documentNumber || '').trim();
+      if (documentNumber.length < 7 || documentNumber.length > 10 || !/^\d+$/.test(documentNumber)) {
+        errors.push('El documento debe tener entre 7 y 10 dígitos');
+        mostrarError('documentNumber', 'El documento debe tener entre 7 y 10 dígitos');
+        hasErrors = true;
+      }
+
+      // Validar dirección
+      const address = (data.address || '').trim();
+      if (address.length < 8) {
+        errors.push('La dirección debe tener al menos 8 caracteres');
+        mostrarError('address', 'La dirección debe tener al menos 8 caracteres');
+        hasErrors = true;
       }
 
       // Validar contraseña
       const password = data.password || '';
       const confirmPassword = data.confirmPassword || '';
       
-      if (password.length > 0) {
+      if (password.length === 0) {
+        errors.push('La contraseña es requerida');
+        mostrarError('password', 'La contraseña es requerida');
+        hasErrors = true;
+      } else {
         const validaciones = validarPassword(password);
         const esValida = Object.values(validaciones).every(v => v);
 
         if (!esValida) {
-          Swal.fire({
-            title: 'Error',
-            text: 'La contraseña no cumple con los requisitos de seguridad. Debe tener mínimo 8 caracteres, mayúscula, minúscula, número y carácter especial.',
-            icon: 'error',
-            confirmButtonText: 'OK'
-          });
-          return;
+          errors.push('La contraseña no cumple con los requisitos de seguridad');
+          mostrarError('password', 'La contraseña no cumple con todos los requisitos');
+          hasErrors = true;
+        } else {
+          mostrarExito('password');
         }
 
         if (password !== confirmPassword) {
-          Swal.fire({
-            title: 'Error',
-            text: 'Las contraseñas no coinciden.',
-            icon: 'error',
-            confirmButtonText: 'OK'
-          });
-          return;
+          errors.push('Las contraseñas no coinciden');
+          mostrarError('confirmPassword', 'Las contraseñas no coinciden');
+          hasErrors = true;
         }
+      }
+
+      if (hasErrors) {
+        Swal.fire({
+          title: 'Error de Validación',
+          html: '<ul style="text-align: left; margin: 10px 0;"><li>' + errors.join('</li><li>') + '</li></ul>',
+          icon: 'error',
+          confirmButtonText: 'OK'
+        });
+        return;
       }
 
       // Crear un formulario oculto para enviar con CSRF

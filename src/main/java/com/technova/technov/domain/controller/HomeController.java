@@ -109,9 +109,25 @@ public class HomeController {
         // Cargar categorías y marcas dinámicamente desde la base de datos
         List<String> categorias = caracteristicaService.listarCategorias();
         List<String> marcas = caracteristicaService.listarMarcas();
-        // Filtrar la categoría "temporal"
+        // Filtrar la categoría "temporal" y capitalizar para mostrar
         categorias = categorias.stream()
-                .filter(cat -> !cat.equalsIgnoreCase("temporal"))
+                .filter(cat -> cat != null && !cat.equalsIgnoreCase("temporal"))
+                .map(cat -> {
+                    if (cat == null || cat.isEmpty()) return cat;
+                    return cat.substring(0, 1).toUpperCase() + cat.substring(1).toLowerCase();
+                })
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+        // Filtrar la marca "Temporal" y capitalizar para mostrar
+        marcas = marcas.stream()
+                .filter(m -> m != null && !m.isEmpty() && !m.equalsIgnoreCase("Temporal"))
+                .map(m -> {
+                    if (m == null || m.isEmpty()) return m;
+                    return m.substring(0, 1).toUpperCase() + m.substring(1).toLowerCase();
+                })
+                .distinct()
+                .sorted()
                 .collect(Collectors.toList());
         model.addAttribute("categorias", categorias);
         model.addAttribute("marcas", marcas);
@@ -169,9 +185,25 @@ public class HomeController {
         // Cargar categorías y marcas dinámicamente desde la base de datos
         List<String> categorias = caracteristicaService.listarCategorias();
         List<String> marcas = caracteristicaService.listarMarcas();
-        // Filtrar la categoría "temporal"
+        // Filtrar la categoría "temporal" y capitalizar para mostrar
         categorias = categorias.stream()
-                .filter(cat -> !cat.equalsIgnoreCase("temporal"))
+                .filter(cat -> cat != null && !cat.equalsIgnoreCase("temporal"))
+                .map(cat -> {
+                    if (cat == null || cat.isEmpty()) return cat;
+                    return cat.substring(0, 1).toUpperCase() + cat.substring(1).toLowerCase();
+                })
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+        // Filtrar la marca "Temporal" y capitalizar para mostrar
+        marcas = marcas.stream()
+                .filter(m -> m != null && !m.isEmpty() && !m.equalsIgnoreCase("Temporal"))
+                .map(m -> {
+                    if (m == null || m.isEmpty()) return m;
+                    return m.substring(0, 1).toUpperCase() + m.substring(1).toLowerCase();
+                })
+                .distinct()
+                .sorted()
                 .collect(Collectors.toList());
         model.addAttribute("categorias", categorias);
         model.addAttribute("marcas", marcas);
@@ -271,9 +303,25 @@ public class HomeController {
         // Cargar categorías y marcas dinámicamente desde la base de datos
         List<String> categorias = caracteristicaService.listarCategorias();
         List<String> marcas = caracteristicaService.listarMarcas();
-        // Filtrar la categoría "temporal"
+        // Filtrar la categoría "temporal" y capitalizar para mostrar
         categorias = categorias.stream()
-                .filter(cat -> !cat.equalsIgnoreCase("temporal"))
+                .filter(cat -> cat != null && !cat.equalsIgnoreCase("temporal"))
+                .map(cat -> {
+                    if (cat == null || cat.isEmpty()) return cat;
+                    return cat.substring(0, 1).toUpperCase() + cat.substring(1).toLowerCase();
+                })
+                .distinct()
+                .sorted()
+                .collect(Collectors.toList());
+        // Filtrar la marca "Temporal" y capitalizar para mostrar
+        marcas = marcas.stream()
+                .filter(m -> m != null && !m.isEmpty() && !m.equalsIgnoreCase("Temporal"))
+                .map(m -> {
+                    if (m == null || m.isEmpty()) return m;
+                    return m.substring(0, 1).toUpperCase() + m.substring(1).toLowerCase();
+                })
+                .distinct()
+                .sorted()
                 .collect(Collectors.toList());
         model.addAttribute("categorias", categorias);
         model.addAttribute("marcas", marcas);
