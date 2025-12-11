@@ -239,6 +239,15 @@
             margin-bottom: 20px;
             opacity: 0.5;
         }
+
+        .btn-ver-detalle {
+            transition: all 0.3s ease;
+        }
+
+        .btn-ver-detalle:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
     </style>
 </head>
 <body>
@@ -265,7 +274,7 @@
     <main class="main-content">
       <div class="pagos-container">
         <div class="pagos-header">
-          <h2><i class='bx bx-credit-card'></i> Gestión de Pagos</h2>
+          <h2><i class='bx bx-credit-card'></i> Sus Pagos</h2>
         </div>
 
         <div class="stats-bar">
@@ -306,8 +315,15 @@
             <input type="date" id="filtroFechaHasta" name="fechaHasta" th:value="${fechaHasta != null ? fechaHasta : ''}">
           </div>
           <div class="filtro-group">
-            <label for="filtroBusqueda">Buscar Factura</label>
-            <input type="text" id="filtroBusqueda" name="busqueda" placeholder="Número de factura" th:value="${busqueda != null ? busqueda : ''}">
+            <label for="filtroBusqueda">Buscar</label>
+            <input type="text" id="filtroBusqueda" name="busqueda" placeholder="Factura, cliente o email" th:value="${busqueda != null ? busqueda : ''}">
+          </div>
+          <div class="filtro-group">
+            <label for="filtroOrden">Ordenar por</label>
+            <select id="filtroOrden" name="orden">
+              <option value="reciente" th:selected="${orden == null || orden == 'reciente'}">Más reciente primero</option>
+              <option value="antiguo" th:selected="${orden == 'antiguo'}">Más antiguo primero</option>
+            </select>
           </div>
           <div class="filtro-group">
             <button type="button" class="btn-filtrar" onclick="aplicarFiltros()">
@@ -322,18 +338,35 @@
               <tr>
                 <th>ID</th>
                 <th>Número de Factura</th>
+                <th>Pedido #</th>
+                <th>Cliente</th>
+                <th>Email</th>
                 <th>Fecha de Pago</th>
-                <th>Fecha de Factura</th>
                 <th>Monto</th>
                 <th>Estado</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              <tr th:each="pago : ${pagos}">
+              <tr th:each="pago : ${pagos}" 
+                  th:with="venta=${ventasPorPago != null && ventasPorPago.containsKey(pago.id) ? ventasPorPago.get(pago.id) : null}">
                 <td th:text="${pago.id}"></td>
                 <td th:text="${pago.numeroFactura != null ? pago.numeroFactura : 'N/A'}"></td>
+                <td>
+                  <span th:if="${venta != null && venta.ventaId != null}"
+                        th:text="'#' + ${venta.ventaId}"
+                        style="color: #00d4ff; font-weight: 600;">N/A</span>
+                  <span th:if="${venta == null || venta.ventaId == null}">N/A</span>
+                </td>
+                <td>
+                  <span th:text="${nombresClientes != null && nombresClientes.containsKey(pago.id) ? nombresClientes.get(pago.id) : 'N/A'}" 
+                        style="font-weight: 600; color: #2c3e50;">N/A</span>
+                </td>
+                <td>
+                  <span th:text="${emailsClientes != null && emailsClientes.containsKey(pago.id) ? emailsClientes.get(pago.id) : 'N/A'}" 
+                        style="color: #667eea; font-size: 0.9em;">N/A</span>
+                </td>
                 <td th:text="${pago.fechaPago != null ? pago.fechaPago : 'N/A'}"></td>
-                <td th:text="${pago.fechaFactura != null ? pago.fechaFactura : 'N/A'}"></td>
                 <td style="color: #00cc44; font-weight: 600;">
                   $<span th:text="${pago.monto != null ? #numbers.formatDecimal(pago.monto, 0, 'POINT', 2, 'POINT') : '0.00'}">0.00</span>
                 </td>
@@ -341,10 +374,22 @@
                   <span class="status-badge" 
                         th:classappend="${pago.estadoPago != null && #strings.toLowerCase(pago.estadoPago) == 'confirmado'} ? 'confirmado' : 
                                        (${pago.estadoPago != null && #strings.toLowerCase(pago.estadoPago) == 'pendiente'} ? 'pendiente' : 
-                                       (${pago.estadoPago != null && #strings.toLowerCase(pago.estadoPago) == 'cancelado'} ? 'cancelado' : 'pendiente'))"
-                        th:text="${pago.estadoPago != null ? pago.estadoPago : 'N/A'}">
+                                       (${pago.estadoPago != null && #strings.toLowerCase(pago.estadoPago) == 'cancelado'} ? 'cancelado' : 
+                                       (${pago.estadoPago != null && #strings.toLowerCase(pago.estadoPago) == 'procesado'} ? 'confirmado' : 
+                                       (${pago.estadoPago != null && #strings.toLowerCase(pago.estadoPago) == 'aprobado'} ? 'confirmado' : 
+                                       (${pago.estadoPago != null && #strings.toLowerCase(pago.estadoPago) == 'rechazado'} ? 'cancelado' : 'pendiente')))))"
+                        th:text="${pago.estadoPago != null ? pago.estadoPago.toUpperCase() : 'N/A'}">
                     Estado
                   </span>
+                </td>
+                <td>
+                  <a th:if="${venta != null && venta.ventaId != null}"
+                     th:href="@{'/admin/pagos/detalle/' + ${pago.id}}"
+                     class="btn-ver-detalle"
+                     style="padding: 6px 12px; background: var(--gradient-primary); color: white; text-decoration: none; border-radius: 6px; font-size: 0.85em; font-weight: 600; display: inline-block;">
+                    <i class='bx bx-show'></i> Ver Detalles
+                  </a>
+                  <span th:if="${venta == null || venta.ventaId == null}" style="color: #999;">-</span>
                 </td>
               </tr>
             </tbody>
@@ -371,11 +416,13 @@
       const fechaHasta = document.getElementById('filtroFechaHasta').value;
       const busqueda = document.getElementById('filtroBusqueda').value;
       
+      const orden = document.getElementById('filtroOrden').value;
       let url = '/admin/pagos?';
       if (estado) url += 'estado=' + encodeURIComponent(estado) + '&';
       if (fechaDesde) url += 'fechaDesde=' + encodeURIComponent(fechaDesde) + '&';
       if (fechaHasta) url += 'fechaHasta=' + encodeURIComponent(fechaHasta) + '&';
-      if (busqueda) url += 'busqueda=' + encodeURIComponent(busqueda);
+      if (busqueda) url += 'busqueda=' + encodeURIComponent(busqueda) + '&';
+      if (orden) url += 'orden=' + encodeURIComponent(orden);
       
       window.location.href = url;
     }

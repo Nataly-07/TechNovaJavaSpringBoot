@@ -25,9 +25,18 @@ public class PagoServiceImpl implements PagoService {
     @Override
     @Transactional
     public PagoDto registrar(PagoDto dto) {
-        if (dto == null) return null;
+        if (dto == null) {
+            System.err.println("ERROR: PagoDto es null");
+            return null;
+        }
+        
+        System.out.println("=== PagoServiceImpl.registrar ===");
+        System.out.println("  -> DTO recibido - Factura: " + dto.getNumeroFactura() + ", Monto: " + dto.getMonto());
+        
         Pago pago = modelMapper.map(dto, Pago.class);
         pago.setId(null);
+        
+        // Validar y establecer valores por defecto
         if (pago.getEstadoPago() == null) {
             pago.setEstadoPago("CONFIRMADO");
         }
@@ -37,8 +46,23 @@ public class PagoServiceImpl implements PagoService {
         if (pago.getFechaFactura() == null) {
             pago.setFechaFactura(LocalDate.now());
         }
+        
+        // Validar que el número de factura no sea null
+        if (pago.getNumeroFactura() == null || pago.getNumeroFactura().trim().isEmpty()) {
+            System.err.println("ERROR: Número de factura es null o vacío");
+            throw new IllegalArgumentException("El número de factura no puede ser null o vacío");
+        }
+        
+        System.out.println("  -> Pago entity antes de guardar - Factura: " + pago.getNumeroFactura() + ", Monto: " + pago.getMonto());
+        
         Pago saved = pagoRepository.save(pago);
-        return modelMapper.map(saved, PagoDto.class);
+        
+        System.out.println("  -> Pago guardado - ID: " + saved.getId() + ", Factura: " + saved.getNumeroFactura());
+        
+        PagoDto result = modelMapper.map(saved, PagoDto.class);
+        System.out.println("  -> DTO resultado - ID: " + result.getId() + ", Factura: " + result.getNumeroFactura());
+        
+        return result;
     }
 
     @Override
