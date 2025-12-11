@@ -812,11 +812,15 @@ public class PerfilController {
 
     @GetMapping("/empleado/perfil/edit")
     public String editarPerfilEmpleado(Model model) {
-        UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
+        UsuarioDto usuarioAutenticado = securityUtil.getUsuarioAutenticado().orElse(null);
         
-        if (usuario == null || !"empleado".equalsIgnoreCase(usuario.getRole())) {
+        if (usuarioAutenticado == null || !"empleado".equalsIgnoreCase(usuarioAutenticado.getRole())) {
             return "redirect:/login";
         }
+        
+        // Cargar los datos más recientes de la base de datos para asegurar que se muestren los cambios actualizados
+        UsuarioDto usuario = usuarioService.usuarioPorId(usuarioAutenticado.getId())
+                .orElse(usuarioAutenticado);
         
         model.addAttribute("usuario", usuario);
         return "frontend/empleado/perfil-edit";
@@ -890,8 +894,8 @@ public class PerfilController {
                 usuarioActual.setPassword(password.trim());
             }
             
-            // Actualizar usuario (el servicio codificará la contraseña si se proporciona)
-            UsuarioDto usuarioActualizado = usuarioService.actualizarUsuario(usuarioActual.getId(), usuarioActual);
+            // Actualizar perfil usando el método correcto que actualiza phone, address y password
+            UsuarioDto usuarioActualizado = usuarioService.actualizarPerfil(usuarioActual.getId(), usuarioActual);
             
             redirectAttributes.addFlashAttribute("success", "Perfil actualizado exitosamente");
             redirectAttributes.addFlashAttribute("showModal", "true");
