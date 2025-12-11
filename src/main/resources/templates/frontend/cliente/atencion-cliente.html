@@ -783,33 +783,33 @@
         </div>
 
           <div th:if="${tickets != null && !tickets.isEmpty()}"><div class="ticket-card" th:each="ticket : ${tickets}" th:data-ticket-id="${ticket.id}">
-    <div class="ticket-header">
+              <div class="ticket-header">
         <h3 th:text="${ticket.tema != null ? ticket.tema : 'Sin tema'}">Tema</h3>
-        <span th:classappend="'status-' + ${ticket.estado != null ? #strings.toLowerCase(ticket.estado) : 'pendiente'}" class="status-badge">
-            <th:block th:if="${ticket.estado == 'abierto'}">
-                <i class='bx bx-time-five'></i> Abierto
-            </th:block>
-            <th:block th:if="${ticket.estado == 'en_proceso'}">
-                <i class='bx bx-loader'></i> En Proceso
-            </th:block>
-            <th:block th:if="${ticket.estado == 'resuelto' || ticket.estado == 'cerrado'}">
-                <i class='bx bx-check-circle'></i> Resuelto
-            </th:block>
-            <th:block th:if="${ticket.estado != null && ticket.estado != 'abierto' && ticket.estado != 'en_proceso' && ticket.estado != 'resuelto' && ticket.estado != 'cerrado'}">
-                <i class='bx bx-info-circle'></i> <span th:text="${ticket.estado}">Estado</span>
-            </th:block>
-            <th:block th:if="${ticket.estado == null}">
-                <i class='bx bx-time-five'></i> Pendiente
-            </th:block>
-        </span>
-    </div>
-    <div class="ticket-body">
+                <span th:classappend="'status-' + ${ticket.estado != null ? #strings.toLowerCase(ticket.estado) : 'pendiente'}" class="status-badge">
+                  <th:block th:if="${ticket.estado == 'abierto'}">
+                    <i class='bx bx-time-five'></i> Abierto
+                  </th:block>
+                  <th:block th:if="${ticket.estado == 'en_proceso'}">
+                    <i class='bx bx-loader'></i> En Proceso
+                  </th:block>
+                  <th:block th:if="${ticket.estado == 'resuelto' || ticket.estado == 'cerrado'}">
+                    <i class='bx bx-check-circle'></i> Resuelto
+                  </th:block>
+                  <th:block th:if="${ticket.estado != null && ticket.estado != 'abierto' && ticket.estado != 'en_proceso' && ticket.estado != 'resuelto' && ticket.estado != 'cerrado'}">
+                    <i class='bx bx-info-circle'></i> <span th:text="${ticket.estado}">Estado</span>
+                  </th:block>
+                  <th:block th:if="${ticket.estado == null}">
+                    <i class='bx bx-time-five'></i> Pendiente
+                  </th:block>
+                </span>
+              </div>
+              <div class="ticket-body">
         <p th:text="${ticket.descripcion != null ? ticket.descripcion : 'Sin descripción'}">Descripción</p>
-        <div class="ticket-meta">
+                <div class="ticket-meta">
             <span><i class='bx bx-calendar'></i> 
                 <span th:text="${ticket.fechaConsulta != null ? #temporals.format(ticket.fechaConsulta, 'dd/MM/yyyy HH:mm') : 'N/A'}">Fecha</span>
             </span>
-        </div>
+                </div>
         <th:block th:if="${ticket.respuesta != null && !ticket.respuesta.isEmpty()}">
             <div class="respuesta-section" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e0e0e0;">
                 <h4 style="color: #667eea; margin-bottom: 10px; font-size: 1rem;">
@@ -820,8 +820,8 @@
             </div>
         </th:block>
     </div>
-</div>
-  </div>
+              </div>
+            </div>
           </div>
           <div th:if="${tickets == null || tickets.isEmpty()}" class="empty-state">
                       <i class='bx bx-clipboard'></i>
@@ -1277,18 +1277,18 @@
         
         if (!asunto || !prioridad || !mensaje) {
           alert('Error: No se encontraron los campos del formulario');
-          return;
-        }
-
+        return;
+      }
+      
         var asuntoValor = asunto.value.trim();
         var prioridadValor = prioridad.value.trim();
         var mensajeValor = mensaje.value.trim();
-
+      
         if (!asuntoValor || !mensajeValor) {
-          alert('Por favor completa todos los campos');
-          return;
-        }
-
+        alert('Por favor completa todos los campos');
+        return;
+      }
+      
         var formData = new URLSearchParams();
         formData.append('userId', estado.usuarioId.toString());
         formData.append('asunto', asuntoValor);
@@ -1318,7 +1318,7 @@
         })
         .then(function(response) {
           var contentType = response.headers.get('content-type');
-          if (response.ok) {
+        if (response.ok) {
             if (contentType && contentType.includes('application/json')) {
               return response.json();
             } else {
@@ -1389,7 +1389,7 @@
                     escapeHtml(ticket.respuesta) +
                   '</p>' +
                 '</div>';
-            } else {
+        } else {
               htmlRespuesta = 
                 '<div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 2px dashed #dee2e6; text-align: center; margin-top: 20px;">' +
                   '<i class="bx bx-time" style="font-size: 2rem; color: #6c757d; margin-bottom: 10px; display: block;"></i>' +
@@ -1465,7 +1465,7 @@
             mostrarMensajesConversacion(mensajes);
           })
           .catch(function(error) {
-            console.error('Error:', error);
+        console.error('Error:', error);
             var mensajesContainer = document.getElementById('conversationMessages');
             if (mensajesContainer) {
               mensajesContainer.innerHTML = 

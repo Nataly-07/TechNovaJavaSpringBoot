@@ -30,6 +30,9 @@ public class GlobalExceptionHandler {
         if (requestURI != null && requestURI.contains("/cliente/atencion-cliente")) {
             return new ModelAndView("redirect:/cliente/perfil");
         }
+        if (requestURI != null && requestURI.contains("/empleado/atencion-cliente")) {
+            return new ModelAndView("redirect:/empleado/perfil");
+        }
         
         return new ModelAndView("redirect:/login");
     }
@@ -45,6 +48,9 @@ public class GlobalExceptionHandler {
             String requestURI = request.getRequestURI();
             if (requestURI != null && requestURI.contains("/cliente/atencion-cliente")) {
                 return new ModelAndView("redirect:/cliente/perfil");
+            }
+            if (requestURI != null && requestURI.contains("/empleado/atencion-cliente")) {
+                return new ModelAndView("redirect:/empleado/perfil");
             }
         }
         

@@ -1198,15 +1198,17 @@
             }
             window.location.href = url;
           } else if (filtro === 'todas') {
-            // Mostrar todas las consultas
+            // Mostrar TODAS las consultas - limpiar búsqueda y filtros
             estado.estadoFiltro = 'todas';
+            estado.busqueda = ''; // Limpiar búsqueda
             marcarFiltroActivo('todas');
-            // Recargar la página sin filtro de estado
-            var url = '/empleado/atencion-cliente?estado=todas';
-            if (estado.busqueda) {
-              url += '&busqueda=' + encodeURIComponent(estado.busqueda);
+            // Limpiar el campo de búsqueda visualmente
+            var searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+              searchInput.value = '';
             }
-            window.location.href = url;
+            // Recargar la página sin filtros ni búsqueda para mostrar TODAS las consultas
+            window.location.href = '/empleado/atencion-cliente?estado=todas';
           }
         }
       }
