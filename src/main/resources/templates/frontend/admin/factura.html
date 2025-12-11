@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Factura - Technova</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        @media print {
+            body { margin: 0; }
+            .acciones { display: none; }
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            min-height: 100vh;
+        }
+        
+        * {
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
+        }
+        
+        .factura-container {
+            background: white;
+            padding: 50px 60px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            width: 550px;
+            margin: 0 auto;
+            position: relative;
+            overflow: visible;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            box-sizing: border-box;
+        }
+        
+        @media print {
+            .factura-container {
+                box-shadow: none;
+                padding: 40px 50px;
+                width: 550px;
+                margin: 0 auto;
+            }
+        }
+        
+        
+        .factura-header {
+            text-align: center;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+            width: 100%;
+        }
+        
+        .factura-header h1 {
+            color: #667eea;
+            margin: 0;
+            font-size: 2em;
+        }
+        
+        .factura-header p {
+            color: #666;
+            margin: 5px 0;
+        }
+        
+        .factura-info {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 30px;
+            margin-bottom: 30px;
+            width: 100%;
+        }
+        
+        .info-section {
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        
+        .info-section h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .info-item {
+            margin-bottom: 10px;
+            text-align: center;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .info-label {
+            font-weight: 600;
+            color: #666;
+            text-align: right;
+        }
+        
+        .info-value {
+            color: #2c3e50;
+            text-align: left;
+        }
+        
+        .productos-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 30px auto;
+            max-width: 100%;
+        }
+        
+        .productos-table th,
+        .productos-table td {
+            text-align: center;
+        }
+        
+        .productos-table th.text-right,
+        .productos-table td.text-right {
+            text-align: right;
+        }
+        
+        .productos-table thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+        
+        .productos-table th,
+        .productos-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .productos-table th {
+            font-weight: 600;
+        }
+        
+        .text-right {
+            text-align: right;
+        }
+        
+        .total-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 3px solid #667eea;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .total-label {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        
+        .total-amount {
+            font-size: 1.8em;
+            font-weight: 700;
+            color: #00cc44;
+        }
+        
+        .acciones {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .btn {
+            padding: 12px 30px;
+            border-radius: 8px;
+            text-decoration: none;
+            display: inline-block;
+            margin: 0 10px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .btn-print {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-back {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-download {
+            background: linear-gradient(135deg, #00cc44 0%, #00a638 100%);
+            color: white;
+        }
+
+        .btn-download:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 204, 68, 0.4);
+        }
+    </style>
+    <script>
+        function descargarPDF() {
+            const elemento = document.querySelector('.factura-container');
+            const numeroFactura = document.querySelector('.factura-header p:last-child')?.textContent?.trim() || 'factura';
+            
+            // Ocultar botones antes de generar PDF
+            const acciones = document.querySelector('.acciones');
+            const displayOriginal = acciones ? acciones.style.display : '';
+            if (acciones) {
+                acciones.style.display = 'none';
+            }
+            
+            // Scroll al inicio
+            window.scrollTo(0, 0);
+            
+            // Esperar a que se estabilice
+            setTimeout(() => {
+                // Asegurar que el elemento esté completamente visible
+                elemento.style.position = 'relative';
+                elemento.style.visibility = 'visible';
+                elemento.style.opacity = '1';
+                elemento.style.transform = 'none';
+                
+                // Obtener dimensiones exactas
+                const rect = elemento.getBoundingClientRect();
+                const computedStyle = window.getComputedStyle(elemento);
+                const width = parseFloat(computedStyle.width);
+                const height = elemento.scrollHeight;
+                
+                const opciones = {
+                    margin: [0.5, 0.5, 0.5, 0.5],
+                    filename: 'factura-' + numeroFactura + '.pdf',
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { 
+                        scale: 2,
+                        useCORS: true,
+                        logging: true,
+                        letterRendering: true,
+                        backgroundColor: '#ffffff',
+                        allowTaint: false,
+                        scrollX: -window.scrollX,
+                        scrollY: -window.scrollY,
+                        windowWidth: document.documentElement.scrollWidth,
+                        windowHeight: document.documentElement.scrollHeight,
+                        x: rect.left,
+                        y: rect.top,
+                        width: width,
+                        height: height
+                    },
+                    jsPDF: { 
+                        unit: 'in', 
+                        format: 'a4', 
+                        orientation: 'portrait',
+                        compress: true
+                    },
+                    pagebreak: { mode: ['avoid-all', 'css', 'legacy'] }
+                };
+                
+                html2pdf().set(opciones).from(elemento).save().then(() => {
+                    // Mostrar botones nuevamente
+                    if (acciones) {
+                        acciones.style.display = displayOriginal || 'block';
+                    }
+                }).catch((error) => {
+                    console.error('Error al generar PDF:', error);
+                    alert('Error al generar el PDF. Por favor, intente nuevamente.');
+                    if (acciones) {
+                        acciones.style.display = displayOriginal || 'block';
+                    }
+                });
+            }, 300);
+        }
+    </script>
+</head>
+<body>
+    <div class="factura-container">
+        <div class="factura-header">
+            <h1>TECHNOVA</h1>
+            <p>FACTURA</p>
+            <p th:text="${pago.numeroFactura != null ? pago.numeroFactura : 'N/A'}">N/A</p>
+        </div>
+        
+        <div class="factura-info">
+            <div class="info-section">
+                <h3>Información de la Empresa</h3>
+                <div class="info-item">
+                    <span class="info-label">Empresa:</span>
+                    <span class="info-value">TECHNOVA</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Fecha:</span>
+                    <span class="info-value" th:text="${pago.fechaFactura != null ? pago.fechaFactura : 'N/A'}">N/A</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Estado:</span>
+                    <span class="info-value" th:text="${pago.estadoPago != null ? pago.estadoPago.toUpperCase() : 'N/A'}">N/A</span>
+                </div>
+            </div>
+            
+            <div class="info-section" th:if="${cliente != null}">
+                <h3>Información del Cliente</h3>
+                <div class="info-item">
+                    <span class="info-label">Cliente:</span>
+                    <span class="info-value" th:text="${cliente.name != null ? cliente.name : 'N/A'}">N/A</span>
+                </div>
+                <div class="info-item" th:if="${cliente.email != null}">
+                    <span class="info-label">Email:</span>
+                    <span class="info-value" th:text="${cliente.email}">N/A</span>
+                </div>
+                <div class="info-item" th:if="${cliente.phone != null}">
+                    <span class="info-label">Teléfono:</span>
+                    <span class="info-value" th:text="${cliente.phone}">N/A</span>
+                </div>
+                <div class="info-item" th:if="${cliente.address != null}">
+                    <span class="info-label">Dirección:</span>
+                    <span class="info-value" th:text="${cliente.address}">N/A</span>
+                </div>
+            </div>
+        </div>
+        
+        <div th:if="${venta != null && venta.items != null && !venta.items.isEmpty()}" style="width: 100%;">
+            <h3 style="color: #2c3e50; margin-bottom: 15px; text-align: center;">Productos</h3>
+            <table class="productos-table">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th class="text-right">Cantidad</th>
+                        <th class="text-right">Precio Unitario</th>
+                        <th class="text-right">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="item : ${venta.items}">
+                        <td th:text="${item.nombreProducto != null ? item.nombreProducto : 'Producto N/A'}">Producto</td>
+                        <td class="text-right" th:text="${item.cantidad != null ? item.cantidad : 1}">1</td>
+                        <td class="text-right">
+                            <span th:if="${item.precioLinea != null && item.cantidad != null && item.cantidad > 0}">
+                              $<span th:text="${#numbers.formatDecimal(item.precioLinea.doubleValue() / item.cantidad, 0, 'POINT', 2, 'POINT')}">0.00</span>
+                            </span>
+                            <span th:if="${item.cantidad == null || item.cantidad == 0}">$0.00</span>
+                        </td>
+                        <td class="text-right" style="color: #00cc44; font-weight: 600;">
+                            $<span th:text="${item.precioLinea != null ? #numbers.formatDecimal(item.precioLinea, 0, 'POINT', 2, 'POINT') : '0.00'}">0.00</span>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <div class="total-section">
+                <span class="total-label">Total:</span>
+                <span class="total-amount">
+                    $<span th:text="${pago.monto != null ? #numbers.formatDecimal(pago.monto, 0, 'POINT', 2, 'POINT') : '0.00'}">0.00</span>
+                </span>
+            </div>
+        </div>
+        
+        <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #e0e0e0; text-align: center; color: #666; font-size: 0.9em; width: 100%;">
+            <p>Gracias por su compra</p>
+            <p>TECHNOVA - Tecnología de vanguardia</p>
+        </div>
+    </div>
+    
+    <div class="acciones">
+        <button onclick="descargarPDF()" class="btn btn-download">Descargar PDF</button>
+        <a th:href="@{/admin/pagos}" class="btn btn-back">Volver a Pagos</a>
+    </div>
+</body>
+</html>
+

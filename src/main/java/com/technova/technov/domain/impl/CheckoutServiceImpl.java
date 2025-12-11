@@ -8,6 +8,7 @@ import com.technova.technov.domain.entity.DetalleVenta;
 import com.technova.technov.domain.entity.Producto;
 import com.technova.technov.domain.entity.Usuario;
 import com.technova.technov.domain.entity.Venta;
+import com.technova.technov.domain.dto.PagoDto;
 import com.technova.technov.domain.repository.CarritoRepository;
 import com.technova.technov.domain.repository.DetalleCarritoRepository;
 import com.technova.technov.domain.repository.DetalleVentaRepository;
@@ -15,6 +16,7 @@ import com.technova.technov.domain.repository.ProductoRepository;
 import com.technova.technov.domain.repository.UsuarioRepository;
 import com.technova.technov.domain.repository.VentaRepository;
 import com.technova.technov.domain.service.CheckoutService;
+import com.technova.technov.domain.service.PagoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -44,6 +46,9 @@ public class CheckoutServiceImpl implements CheckoutService {
 
     @Autowired
     private ProductoRepository productoRepository;
+
+    @Autowired
+    private PagoService pagoService;
 
     @Override
     @Transactional
@@ -106,6 +111,37 @@ public class CheckoutServiceImpl implements CheckoutService {
 
         detalleCarritoRepository.deleteByCarrito(carrito);
 
+        // Crear registro de pago automáticamente asociado a la venta
+        try {
+            String numeroFactura = generarNumeroFactura(venta.getId());
+            System.out.println("=== CHECKOUT: Creando pago para venta ID: " + venta.getId() + " ===");
+            System.out.println("  -> Número de factura generado: " + numeroFactura);
+            System.out.println("  -> Monto: $" + total);
+            
+            PagoDto pagoDto = PagoDto.builder()
+                    .numeroFactura(numeroFactura)
+                    .fechaPago(java.time.LocalDate.now())
+                    .fechaFactura(java.time.LocalDate.now())
+                    .monto(total)
+                    .estadoPago("CONFIRMADO")
+                    .build();
+            
+            PagoDto pagoCreado = pagoService.registrar(pagoDto);
+            System.out.println("=== CHECKOUT: Pago creado exitosamente ===");
+            System.out.println("  -> Pago ID: " + pagoCreado.getId());
+            System.out.println("  -> Factura: " + pagoCreado.getNumeroFactura());
+            System.out.println("  -> Monto: $" + pagoCreado.getMonto());
+            System.out.println("  -> Estado: " + pagoCreado.getEstadoPago());
+            System.out.println("  -> Fecha: " + pagoCreado.getFechaPago());
+        } catch (Exception e) {
+            System.err.println("=== ERROR: No se pudo crear el registro de pago automático ===");
+            System.err.println("  -> Venta ID: " + venta.getId());
+            System.err.println("  -> Error: " + e.getMessage());
+            e.printStackTrace();
+            // No lanzar excepción para no interrumpir el proceso de checkout
+            // El pago puede ser creado manualmente después si es necesario
+        }
+
         List<CarritoItemDto> itemsDto = items.stream().map(dc -> CarritoItemDto.builder()
                 .detalleId(dc.getId())
                 .productoId(dc.getProducto().getId())
@@ -121,5 +157,17 @@ public class CheckoutServiceImpl implements CheckoutService {
                 .total(total)
                 .items(itemsDto)
                 .build();
+    }
+
+    /**
+     * Genera un número de factura único basado en el ID de la venta.
+     * Formato: FACT-{Año}-{ID_Venta con ceros a la izquierda}
+     * Ejemplo: FACT-2025-000123
+     */
+    private String generarNumeroFactura(Integer ventaId) {
+        int año = java.time.LocalDate.now().getYear();
+        // Formatear el ID de venta con ceros a la izquierda (mínimo 6 dígitos)
+        String idFormateado = String.format("%06d", ventaId);
+        return String.format("FACT-%d-%s", año, idFormateado);
     }
 }
