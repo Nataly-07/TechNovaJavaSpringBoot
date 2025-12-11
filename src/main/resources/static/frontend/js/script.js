@@ -38,6 +38,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const href = boton.getAttribute('href') || boton.href || '';
     const esBotonNoAutenticado = href.includes('/login') || href === '/login';
     
+    // Si el botón está dentro de un formulario con action que contiene "/carrito/agregar/", 
+    // significa que usa el sistema de backend (agregar-carrito.js lo manejará)
+    const formulario = boton.closest('form');
+    const estaEnFormularioBackend = formulario !== null && 
+                                     (formulario.getAttribute('action') || '').includes('/carrito/agregar/');
+    
+    // Si el botón está dentro de un formulario del backend, no interferir
+    if (estaEnFormularioBackend) {
+      return; // No hacer nada, dejar que agregar-carrito.js maneje el clic
+    }
+    
     // Solo agregar funcionalidad de carrito si hay usuario autenticado y no es botón de login
     if (!tieneUsuario || esBotonNoAutenticado) {
       return; // No hacer nada, dejar que el script de index.html maneje el clic
