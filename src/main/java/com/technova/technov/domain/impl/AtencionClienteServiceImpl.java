@@ -106,14 +106,9 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
     @Override
     @Transactional(readOnly = true)
     public List<AtencionClienteDto> listarTodos() {
-        List<AtencionCliente> tickets = atencionClienteRepository.findAll();
+        // Usar findAllByOrderByFechaConsultaDesc para mantener consistencia con el conteo
+        List<AtencionCliente> tickets = atencionClienteRepository.findAllByOrderByFechaConsultaDesc();
         return tickets.stream()
-                .sorted((t1, t2) -> {
-                    if (t1.getFechaConsulta() == null && t2.getFechaConsulta() == null) return 0;
-                    if (t1.getFechaConsulta() == null) return 1;
-                    if (t2.getFechaConsulta() == null) return -1;
-                    return t2.getFechaConsulta().compareTo(t1.getFechaConsulta());
-                })
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }

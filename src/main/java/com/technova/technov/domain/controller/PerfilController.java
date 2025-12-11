@@ -562,18 +562,47 @@ public class PerfilController {
             @org.springframework.web.bind.annotation.RequestParam(required = false) String estado,
             @org.springframework.web.bind.annotation.RequestParam(required = false) String busqueda,
             Model model) {
-        UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
-        
-        if (usuario == null || !"empleado".equalsIgnoreCase(usuario.getRole())) {
-            return "redirect:/login";
-        }
-        
-        // Obtener todos los tickets o filtrar por estado
+        // Inicializar todas las variables con valores por defecto ANTES de cualquier operación
+        UsuarioDto usuario = null;
         List<com.technova.technov.domain.dto.AtencionClienteDto> tickets = new java.util.ArrayList<>();
+        List<com.technova.technov.domain.dto.MensajeDirectoDto> conversaciones = new java.util.ArrayList<>();
+        long totalConsultas = 0;
+        long pendientes = 0;
+        long mensajes = 0;
+        long noLeidos = 0;
+        java.util.Map<Integer, String> nombresUsuarios = new java.util.HashMap<>();
+        String estadoModelo = estado != null ? estado : "todas";
+        
+        // Agregar atributos al modelo INMEDIATAMENTE para asegurar que siempre estén presentes
+        model.addAttribute("usuario", usuario);
+        model.addAttribute("tickets", tickets);
+        model.addAttribute("conversaciones", conversaciones);
+        model.addAttribute("estado", estadoModelo);
+        model.addAttribute("busqueda", busqueda != null ? busqueda : "");
+        model.addAttribute("totalConsultas", totalConsultas);
+        model.addAttribute("pendientes", pendientes);
+        model.addAttribute("mensajes", mensajes);
+        model.addAttribute("noLeidos", noLeidos);
+        model.addAttribute("nombresUsuarios", nombresUsuarios);
+        
         try {
-            if (estado != null && !estado.isEmpty() && !"todas".equalsIgnoreCase(estado)) {
-                // Si el estado es "pendientes", filtrar por "abierto" y "en_proceso"
-                if ("pendientes".equalsIgnoreCase(estado)) {
+            usuario = securityUtil.getUsuarioAutenticado().orElse(null);
+            
+            if (usuario == null || !"empleado".equalsIgnoreCase(usuario.getRole())) {
+                return "redirect:/login";
+            }
+            
+            // Actualizar usuario en el modelo
+            model.addAttribute("usuario", usuario);
+            
+            // Obtener todos los tickets o filtrar por estado
+            try {
+                // Si el estado es "todas" o null, cargar TODOS los tickets
+                if (estado == null || estado.isEmpty() || "todas".equalsIgnoreCase(estado)) {
+                    // Usar el servicio para obtener todos los tickets (asegura mapeo correcto y transacción)
+                    tickets = atencionClienteService.listarTodos();
+                } else if ("pendientes".equalsIgnoreCase(estado)) {
+                    // Si el estado es "pendientes", filtrar por "abierto" y "en_proceso"
                     List<com.technova.technov.domain.dto.AtencionClienteDto> abiertos = atencionClienteService.listarPorEstado("abierto");
                     List<com.technova.technov.domain.dto.AtencionClienteDto> enProceso = atencionClienteService.listarPorEstado("en_proceso");
                     tickets = new java.util.ArrayList<>(abiertos);
@@ -586,85 +615,94 @@ public class PerfilController {
                         return b.getFechaConsulta().compareTo(a.getFechaConsulta());
                     });
                 } else {
+                    // Filtrar por estado específico
                     tickets = atencionClienteService.listarPorEstado(estado);
                 }
-            } else {
-                // Obtener todos los tickets ordenados por fecha descendente
-                tickets = atencionClienteRepository.findAllByOrderByFechaConsultaDesc().stream()
-                        .map(t -> {
-                            com.technova.technov.domain.dto.AtencionClienteDto dto = modelMapper.map(t, com.technova.technov.domain.dto.AtencionClienteDto.class);
-                            if (t.getUsuario() != null) {
-                                dto.setUsuarioId(t.getUsuario().getId().intValue());
-                            }
-                            return dto;
-                        })
-                        .collect(java.util.stream.Collectors.toList());
-            }
-            
-            // Ordenar tickets por fecha descendente después de aplicar filtros
-            tickets.sort((a, b) -> {
-                if (a.getFechaConsulta() == null && b.getFechaConsulta() == null) return 0;
-                if (a.getFechaConsulta() == null) return 1;
-                if (b.getFechaConsulta() == null) return -1;
-                return b.getFechaConsulta().compareTo(a.getFechaConsulta());
-            });
-            
-            // Aplicar filtro de búsqueda por nombre de cliente
-            if (busqueda != null && !busqueda.isEmpty()) {
-                final String busquedaLower = busqueda.toLowerCase();
-                List<UsuarioDto> todosUsuarios = usuarioService.listarUsuarios();
-                java.util.Map<Integer, String> nombresUsuarios = new java.util.HashMap<>();
-                for (UsuarioDto u : todosUsuarios) {
-                    if (u.getId() != null) {
-                        nombresUsuarios.put(u.getId().intValue(), u.getName() != null ? u.getName() : "");
-                    }
+                
+                // Los tickets ya vienen ordenados del servicio, pero asegurémonos de que estén ordenados
+                if (tickets != null && !tickets.isEmpty()) {
+                    tickets.sort((a, b) -> {
+                        if (a.getFechaConsulta() == null && b.getFechaConsulta() == null) return 0;
+                        if (a.getFechaConsulta() == null) return 1;
+                        if (b.getFechaConsulta() == null) return -1;
+                        return b.getFechaConsulta().compareTo(a.getFechaConsulta());
+                    });
                 }
                 
-                tickets = tickets.stream()
-                        .filter(t -> {
-                            // Buscar en tema y descripción
-                            if ((t.getTema() != null && t.getTema().toLowerCase().contains(busquedaLower)) ||
-                                (t.getDescripcion() != null && t.getDescripcion().toLowerCase().contains(busquedaLower))) {
-                                return true;
-                            }
-                            // Buscar en nombre de usuario
-                            if (t.getUsuarioId() != null && nombresUsuarios.containsKey(t.getUsuarioId())) {
-                                String nombreUsuario = nombresUsuarios.get(t.getUsuarioId());
-                                if (nombreUsuario != null && nombreUsuario.toLowerCase().contains(busquedaLower)) {
+                // Aplicar filtro de búsqueda por nombre de cliente SOLO si hay búsqueda activa
+                if (busqueda != null && !busqueda.isEmpty() && !busqueda.trim().isEmpty()) {
+                    final String busquedaLower = busqueda.toLowerCase().trim();
+                    List<UsuarioDto> todosUsuarios = usuarioService.listarUsuarios();
+                    java.util.Map<Integer, String> nombresUsuariosTemp = new java.util.HashMap<>();
+                    for (UsuarioDto u : todosUsuarios) {
+                        if (u.getId() != null) {
+                            nombresUsuariosTemp.put(u.getId().intValue(), u.getName() != null ? u.getName() : "");
+                        }
+                    }
+                    
+                    tickets = tickets.stream()
+                            .filter(t -> {
+                                // Buscar en tema y descripción
+                                if ((t.getTema() != null && t.getTema().toLowerCase().contains(busquedaLower)) ||
+                                    (t.getDescripcion() != null && t.getDescripcion().toLowerCase().contains(busquedaLower))) {
                                     return true;
                                 }
-                            }
-                            return false;
-                        })
-                        .collect(java.util.stream.Collectors.toList());
+                                // Buscar en nombre de usuario
+                                if (t.getUsuarioId() != null && nombresUsuariosTemp.containsKey(t.getUsuarioId())) {
+                                    String nombreUsuario = nombresUsuariosTemp.get(t.getUsuarioId());
+                                    if (nombreUsuario != null && nombreUsuario.toLowerCase().contains(busquedaLower)) {
+                                        return true;
+                                    }
+                                }
+                                return false;
+                            })
+                            .collect(java.util.stream.Collectors.toList());
+                }
+                
+                // Asegurar que tickets nunca sea null
+                if (tickets == null) {
+                    tickets = new java.util.ArrayList<>();
+                }
+                
+                // Actualizar tickets en el modelo
+                model.addAttribute("tickets", tickets);
+                
+            } catch (Exception e) {
+                System.err.println("Error al cargar tickets en PerfilController: " + e.getMessage());
+                e.printStackTrace();
+                tickets = new java.util.ArrayList<>();
+                model.addAttribute("tickets", tickets);
             }
-        } catch (Exception e) {
-            System.err.println("Error al cargar tickets en PerfilController: " + e.getMessage());
-            e.printStackTrace();
-            tickets = new java.util.ArrayList<>();
-        }
         
         // Calcular estadísticas de CONSULTAS (tickets de atención al cliente)
-        List<com.technova.technov.domain.dto.AtencionClienteDto> todosTickets = atencionClienteRepository.findAll().stream()
-                .map(t -> {
-                    com.technova.technov.domain.dto.AtencionClienteDto dto = modelMapper.map(t, com.technova.technov.domain.dto.AtencionClienteDto.class);
-                    if (t.getUsuario() != null) {
-                        dto.setUsuarioId(t.getUsuario().getId().intValue());
-                    }
-                    return dto;
-                })
-                .collect(java.util.stream.Collectors.toList());
-        
-        long totalConsultas = todosTickets.size();
-        // Pendientes: tickets con estado "abierto" o "en_proceso"
-        long pendientes = todosTickets.stream()
-                .filter(t -> "abierto".equalsIgnoreCase(t.getEstado()) || "en_proceso".equalsIgnoreCase(t.getEstado()))
-                .count();
+        try {
+            // Usar el mismo método que se usa para cargar los tickets para asegurar consistencia
+            List<com.technova.technov.domain.dto.AtencionClienteDto> todosTickets = atencionClienteRepository.findAllByOrderByFechaConsultaDesc().stream()
+                    .map(t -> {
+                        com.technova.technov.domain.dto.AtencionClienteDto dto = modelMapper.map(t, com.technova.technov.domain.dto.AtencionClienteDto.class);
+                        if (t.getUsuario() != null) {
+                            dto.setUsuarioId(t.getUsuario().getId().intValue());
+                        }
+                        return dto;
+                    })
+                    .collect(java.util.stream.Collectors.toList());
+            
+            totalConsultas = todosTickets.size();
+            // Pendientes: tickets con estado "abierto" o "en_proceso"
+            pendientes = todosTickets.stream()
+                    .filter(t -> "abierto".equalsIgnoreCase(t.getEstado()) || "en_proceso".equalsIgnoreCase(t.getEstado()))
+                    .count();
+            
+            model.addAttribute("totalConsultas", totalConsultas);
+            model.addAttribute("pendientes", pendientes);
+        } catch (Exception e) {
+            System.err.println("Error al calcular estadísticas de consultas: " + e.getMessage());
+            e.printStackTrace();
+            model.addAttribute("totalConsultas", 0);
+            model.addAttribute("pendientes", 0);
+        }
         
         // Calcular estadísticas de MENSAJES DIRECTOS
-        long mensajes = 0;
-        long noLeidos = 0;
-        List<com.technova.technov.domain.dto.MensajeDirectoDto> conversaciones = new java.util.ArrayList<>();
         try {
             List<com.technova.technov.domain.dto.MensajeDirectoDto> todosMensajes = mensajeDirectoService.listarTodos();
             
@@ -708,37 +746,67 @@ public class PerfilController {
                 if (b.getCreatedAt() == null) return -1;
                 return b.getCreatedAt().compareTo(a.getCreatedAt());
             });
+            
+            model.addAttribute("conversaciones", conversaciones);
+            model.addAttribute("mensajes", mensajes);
+            model.addAttribute("noLeidos", noLeidos);
         } catch (Exception e) {
             System.err.println("Error al cargar mensajes directos: " + e.getMessage());
             e.printStackTrace();
-            mensajes = 0;
-            noLeidos = 0;
             conversaciones = new java.util.ArrayList<>();
+            model.addAttribute("conversaciones", conversaciones);
+            model.addAttribute("mensajes", 0);
+            model.addAttribute("noLeidos", 0);
         }
         
         // Obtener nombres de usuarios para mostrar en la vista
-        List<UsuarioDto> todosUsuarios = usuarioService.listarUsuarios();
-        java.util.Map<Integer, String> nombresUsuarios = new java.util.HashMap<>();
-        for (UsuarioDto u : todosUsuarios) {
-            if (u.getId() != null) {
-                nombresUsuarios.put(u.getId().intValue(), u.getName() != null ? u.getName() : "Usuario sin nombre");
+        try {
+            List<UsuarioDto> todosUsuarios = usuarioService.listarUsuarios();
+            nombresUsuarios = new java.util.HashMap<>();
+            for (UsuarioDto u : todosUsuarios) {
+                if (u.getId() != null) {
+                    nombresUsuarios.put(u.getId().intValue(), u.getName() != null ? u.getName() : "Usuario sin nombre");
+                }
+            }
+            model.addAttribute("nombresUsuarios", nombresUsuarios);
+        } catch (Exception e) {
+            System.err.println("Error al cargar nombres de usuarios: " + e.getMessage());
+            e.printStackTrace();
+            nombresUsuarios = new java.util.HashMap<>();
+            model.addAttribute("nombresUsuarios", nombresUsuarios);
+        }
+        
+        } catch (Exception e) {
+            System.err.println("Error crítico en atencionClienteEmpleado: " + e.getMessage());
+            e.printStackTrace();
+            // Asegurar que el modelo siempre tenga valores válidos
+            if (!model.containsAttribute("usuario")) {
+                model.addAttribute("usuario", null);
+            }
+            if (!model.containsAttribute("tickets")) {
+                model.addAttribute("tickets", new java.util.ArrayList<>());
+            }
+            if (!model.containsAttribute("conversaciones")) {
+                model.addAttribute("conversaciones", new java.util.ArrayList<>());
+            }
+            if (!model.containsAttribute("totalConsultas")) {
+                model.addAttribute("totalConsultas", 0);
+            }
+            if (!model.containsAttribute("pendientes")) {
+                model.addAttribute("pendientes", 0);
+            }
+            if (!model.containsAttribute("mensajes")) {
+                model.addAttribute("mensajes", 0);
+            }
+            if (!model.containsAttribute("noLeidos")) {
+                model.addAttribute("noLeidos", 0);
+            }
+            if (!model.containsAttribute("nombresUsuarios")) {
+                model.addAttribute("nombresUsuarios", new java.util.HashMap<>());
             }
         }
         
-        // Normalizar el estado para el modelo (mantener "pendientes" si se envió así)
-        String estadoModelo = estado != null ? estado : "todas";
-        
-        model.addAttribute("usuario", usuario);
-        model.addAttribute("tickets", tickets);
-        model.addAttribute("conversaciones", conversaciones);
-        model.addAttribute("estado", estadoModelo);
-        model.addAttribute("busqueda", busqueda);
-        model.addAttribute("totalConsultas", totalConsultas);
-        model.addAttribute("pendientes", pendientes);
-        model.addAttribute("mensajes", mensajes);
-        model.addAttribute("noLeidos", noLeidos);
-        model.addAttribute("nombresUsuarios", nombresUsuarios);
-        
+        // SIEMPRE retornar el template, incluso si hay errores
         return "frontend/empleado/atencion-cliente";
     }
 
