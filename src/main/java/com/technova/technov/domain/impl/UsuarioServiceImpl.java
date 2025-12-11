@@ -196,6 +196,70 @@ public List<UsuarioDto> listarUsuarios() {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public boolean validarPassword(Long usuarioId, String password) {
+        return usuarioRepository.findById(usuarioId)
+                .map(usuario -> {
+                    String storedPassword = usuario.getPassword();
+                    if (storedPassword == null) {
+                        return false;
+                    }
+                    
+                    // Verificar si la contraseña está codificada con BCrypt
+                    boolean isEncoded = storedPassword.startsWith("$2a$") || 
+                                      storedPassword.startsWith("$2b$") || 
+                                      storedPassword.startsWith("$2y$");
+                    
+                    if (isEncoded) {
+                        // Contraseña codificada: usar BCrypt para verificar
+                        return passwordEncoder.matches(password, storedPassword);
+                    } else {
+                        // Contraseña en texto plano: comparar directamente
+                        return storedPassword.equals(password);
+                    }
+                })
+                .orElse(false);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean verificarIdentidad(String email, String documentType, String documentNumber, String phone) {
+        if (email == null || documentType == null || documentNumber == null || phone == null) {
+            return false;
+        }
+        
+        return usuarioRepository.findByEmailAndEstadoTrue(email)
+                .map(usuario -> {
+                    // Verificar que todos los datos coincidan
+                    boolean emailMatch = usuario.getEmail() != null && usuario.getEmail().equalsIgnoreCase(email);
+                    boolean documentTypeMatch = usuario.getDocumentType() != null && usuario.getDocumentType().equals(documentType);
+                    boolean documentNumberMatch = usuario.getDocumentNumber() != null && usuario.getDocumentNumber().equals(documentNumber);
+                    boolean phoneMatch = usuario.getPhone() != null && usuario.getPhone().equals(phone);
+                    
+                    return emailMatch && documentTypeMatch && documentNumberMatch && phoneMatch;
+                })
+                .orElse(false);
+    }
+
+    @Override
+    @Transactional
+    public boolean recuperarContrasena(String email, String newPassword) {
+        if (email == null || email.trim().isEmpty() || newPassword == null || newPassword.trim().isEmpty()) {
+            return false;
+        }
+        
+        return usuarioRepository.findByEmailAndEstadoTrue(email)
+                .map(usuario -> {
+                    // Codificar y actualizar la contraseña
+                    String encodedPassword = passwordEncoder.encode(newPassword);
+                    usuario.setPassword(encodedPassword);
+                    usuarioRepository.save(usuario);
+                    return true;
+                })
+                .orElse(false);
+    }
+
+    @Override
     @Transactional
     public boolean eliminarUsuario(Long idusuario) {
         return usuarioRepository.findById(idusuario)

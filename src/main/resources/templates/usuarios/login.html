@@ -1014,6 +1014,13 @@
           <div class="error-message d-none" id="passwordError"></div>
         </div>
 
+        <div style="text-align: right; margin-bottom: 15px;">
+          <a href="#" id="forgotPasswordLink" style="color: #667eea; text-decoration: none; font-size: 13px; font-weight: 500;">
+            <i class='bx bx-help-circle' style="margin-right: 4px;"></i>
+            ¿Olvidaste tu contraseña?
+          </a>
+        </div>
+
         <button type="submit" class="login-btn" style="width: 100% !important; padding: 12px !important; background: linear-gradient(135deg, #667eea, #764ba2) !important; color: white !important; border: none !important; border-radius: 10px !important; font-size: 14px !important; font-weight: 600 !important; cursor: pointer !important; margin-top: 8px !important; display: block !important; visibility: visible !important; opacity: 1 !important;">
           <i class='bx bx-log-in' style="margin-right: 8px;"></i>
           Iniciar Sesión
@@ -1029,6 +1036,116 @@
           <i class='bx bx-user-plus' style="margin-right: 6px;"></i>
           Crear Cuenta
         </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Recuperar Contraseña -->
+  <div id="forgotPasswordModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 20px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="margin: 0; color: #333; font-size: 24px;">
+          <i class='bx bx-lock-alt' style="color: #667eea; margin-right: 8px;"></i>
+          Recuperar Contraseña
+        </h2>
+        <button id="closeForgotPasswordModal" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">&times;</button>
+      </div>
+
+      <div id="forgotPasswordError" style="display: none; background: #fee; color: #c33; padding: 12px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #fcc;">
+        <i class='bx bx-error-circle'></i>
+        <span id="forgotPasswordErrorMessage"></span>
+      </div>
+
+      <div id="forgotPasswordSuccess" style="display: none; background: #efe; color: #3c3; padding: 12px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #cfc;">
+        <i class='bx bx-check-circle'></i>
+        <span>Contraseña actualizada correctamente. Ahora puedes iniciar sesión.</span>
+      </div>
+
+      <!-- Paso 1: Verificación de Identidad -->
+      <div id="verificationStep">
+        <p style="color: #666; margin-bottom: 20px;">Por seguridad, verifica tu identidad con los siguientes datos:</p>
+        
+        <form id="forgotPasswordForm">
+          <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 6px; color: #4a5568; font-weight: 600; font-size: 13px;">
+              <i class='bx bx-envelope'></i> Correo Electrónico *
+            </label>
+            <input type="email" id="verifyEmailForgot" name="verifyEmail" required placeholder="tu@email.com" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; box-sizing: border-box;" />
+            <div class="error-message d-none" id="verifyEmailErrorForgot" style="color: #ef4444; font-size: 0.85rem; margin-top: 5px;"></div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+            <div>
+              <label style="display: block; margin-bottom: 6px; color: #4a5568; font-weight: 600; font-size: 13px;">
+                <i class='bx bx-id-card'></i> Tipo de Documento *
+              </label>
+              <select id="verifyDocumentTypeForgot" name="verifyDocumentType" required style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; box-sizing: border-box;">
+                <option value="">Selecciona</option>
+                <option value="CC">Cédula de Ciudadanía</option>
+                <option value="CE">Cédula de Extranjería</option>
+                <option value="PA">Pasaporte</option>
+                <option value="TI">Tarjeta de Identidad</option>
+              </select>
+            </div>
+
+            <div>
+              <label style="display: block; margin-bottom: 6px; color: #4a5568; font-weight: 600; font-size: 13px;">
+                <i class='bx bx-id-card'></i> Número de Documento *
+              </label>
+              <input type="text" id="verifyDocumentNumberForgot" name="verifyDocumentNumber" required placeholder="Número de documento" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; box-sizing: border-box;" />
+              <div class="error-message d-none" id="verifyDocumentErrorForgot" style="color: #ef4444; font-size: 0.85rem; margin-top: 5px;"></div>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 6px; color: #4a5568; font-weight: 600; font-size: 13px;">
+              <i class='bx bx-phone'></i> Número de Teléfono *
+            </label>
+            <input type="tel" id="verifyPhoneForgot" name="verifyPhone" required placeholder="Número de teléfono registrado" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; box-sizing: border-box;" />
+            <div class="error-message d-none" id="verifyPhoneErrorForgot" style="color: #ef4444; font-size: 0.85rem; margin-top: 5px;"></div>
+          </div>
+
+          <button type="button" id="verifyIdentityBtnForgot" style="width: 100%; padding: 12px; background: #ffc107; color: #000; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; margin-bottom: 15px;">
+            <i class='bx bx-check-circle'></i> Verificar Identidad
+          </button>
+        </form>
+      </div>
+
+      <!-- Paso 2: Nueva Contraseña (se muestra después de verificación) -->
+      <div id="newPasswordStep" style="display: none;">
+        <div style="background: #d4edda; border-left: 4px solid #28a745; padding: 12px; border-radius: 8px; margin-bottom: 20px;">
+          <p style="margin: 0; color: #155724;">
+            <i class='bx bx-check-circle'></i> Identidad verificada. Ahora puedes crear una nueva contraseña.
+          </p>
+        </div>
+
+        <form id="resetPasswordForm">
+          <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 6px; color: #4a5568; font-weight: 600; font-size: 13px;">
+              <i class='bx bx-lock-alt'></i> Nueva Contraseña *
+            </label>
+            <input type="password" id="newPasswordForgot" name="newPassword" required placeholder="Mínimo 8 caracteres, mayúscula, minúscula, número y carácter especial" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; box-sizing: border-box;" />
+            <div class="password-requisitos" id="password-requisitos-forgot" style="margin-top: 10px; font-size: 12px; color: #666; display: none;">
+              <p class="requisito" data-req="length" style="margin: 2px 0;">✗ Mínimo 8 caracteres</p>
+              <p class="requisito" data-req="upper" style="margin: 2px 0;">✗ Mayúscula</p>
+              <p class="requisito" data-req="lower" style="margin: 2px 0;">✗ Minúscula</p>
+              <p class="requisito" data-req="digit" style="margin: 2px 0;">✗ Número</p>
+              <p class="requisito" data-req="special" style="margin: 2px 0;">✗ Carácter especial</p>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 6px; color: #4a5568; font-weight: 600; font-size: 13px;">
+              <i class='bx bx-lock-alt'></i> Confirmar Nueva Contraseña *
+            </label>
+            <input type="password" id="confirmPasswordForgot" name="confirmPassword" required placeholder="Repite la nueva contraseña" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; box-sizing: border-box;" />
+            <div class="error-message d-none" id="confirmPasswordErrorForgot" style="color: #ef4444; font-size: 0.85rem; margin-top: 5px;"></div>
+          </div>
+
+          <button type="button" id="resetPasswordBtn" style="width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer;">
+            <i class='bx bx-save'></i> Actualizar Contraseña
+          </button>
+        </form>
       </div>
     </div>
   </div>
@@ -1095,6 +1212,296 @@
 
       // Si todo está bien, el formulario se envía normalmente
     });
+
+    // Funcionalidad de recuperar contraseña
+    const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+    const forgotPasswordModal = document.getElementById('forgotPasswordModal');
+    const closeForgotPasswordModal = document.getElementById('closeForgotPasswordModal');
+    const verifyIdentityBtnForgot = document.getElementById('verifyIdentityBtnForgot');
+    const resetPasswordBtn = document.getElementById('resetPasswordBtn');
+    const verificationStep = document.getElementById('verificationStep');
+    const newPasswordStep = document.getElementById('newPasswordStep');
+    const forgotPasswordError = document.getElementById('forgotPasswordError');
+    const forgotPasswordSuccess = document.getElementById('forgotPasswordSuccess');
+    let identityVerified = false;
+    let verifiedEmail = '';
+
+    // Abrir modal
+    if (forgotPasswordLink) {
+      forgotPasswordLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        forgotPasswordModal.style.display = 'flex';
+        resetModal();
+      });
+    }
+
+    // Cerrar modal
+    if (closeForgotPasswordModal) {
+      closeForgotPasswordModal.addEventListener('click', function() {
+        forgotPasswordModal.style.display = 'none';
+        resetModal();
+      });
+    }
+
+    // Cerrar al hacer clic fuera del modal
+    forgotPasswordModal.addEventListener('click', function(e) {
+      if (e.target === forgotPasswordModal) {
+        forgotPasswordModal.style.display = 'none';
+        resetModal();
+      }
+    });
+
+    function resetModal() {
+      verificationStep.style.display = 'block';
+      newPasswordStep.style.display = 'none';
+      forgotPasswordError.style.display = 'none';
+      forgotPasswordSuccess.style.display = 'none';
+      identityVerified = false;
+      verifiedEmail = '';
+      document.getElementById('forgotPasswordForm').reset();
+      document.getElementById('resetPasswordForm').reset();
+    }
+
+    // Función para validar la contraseña (igual que en registro)
+    function validarPassword(password) {
+      return {
+        length: password.length >= 8,
+        upper: /[A-Z]/.test(password),
+        lower: /[a-z]/.test(password),
+        digit: /\d/.test(password),
+        special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+      };
+    }
+
+    // Función para actualizar la visualización de requisitos
+    function actualizarRequisitos(validaciones, requisitosDiv) {
+      const requisitoElements = requisitosDiv.querySelectorAll('.requisito');
+      let todosCompletos = true;
+
+      requisitoElements.forEach(element => {
+        const tipo = element.getAttribute('data-req');
+        const esValido = validaciones[tipo];
+
+        if (esValido) {
+          element.innerHTML = '✓ ' + element.textContent.substring(2);
+          element.style.color = '#10b981';
+          element.style.fontWeight = '600';
+        } else {
+          element.innerHTML = '✗ ' + element.textContent.substring(2);
+          element.style.color = '#ef4444';
+          element.style.fontWeight = '400';
+          todosCompletos = false;
+        }
+      });
+
+      return todosCompletos;
+    }
+
+    // Validar nueva contraseña mientras se escribe
+    const newPasswordForgot = document.getElementById('newPasswordForgot');
+    const confirmPasswordForgot = document.getElementById('confirmPasswordForgot');
+    const passwordRequisitosForgot = document.getElementById('password-requisitos-forgot');
+
+    if (newPasswordForgot && passwordRequisitosForgot) {
+      newPasswordForgot.addEventListener('input', function() {
+        const password = this.value;
+        
+        if (password.length > 0) {
+          passwordRequisitosForgot.style.display = 'block';
+          const validaciones = validarPassword(password);
+          const esValida = actualizarRequisitos(validaciones, passwordRequisitosForgot);
+          
+          if (esValida) {
+            this.style.borderColor = '#10b981';
+            this.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.1)';
+          } else {
+            this.style.borderColor = '#e2e8f0';
+            this.style.boxShadow = 'none';
+          }
+        } else {
+          passwordRequisitosForgot.style.display = 'none';
+          this.style.borderColor = '#e2e8f0';
+          this.style.boxShadow = 'none';
+        }
+        
+        // Validar confirmación si ya hay texto
+        if (confirmPasswordForgot && confirmPasswordForgot.value.length > 0) {
+          validarConfirmacionPasswordForgot();
+        }
+      });
+    }
+
+    // Validar confirmación de contraseña
+    function validarConfirmacionPasswordForgot() {
+      const newPassword = newPasswordForgot.value;
+      const confirmPassword = confirmPasswordForgot.value;
+      const errorDiv = document.getElementById('confirmPasswordErrorForgot');
+
+      if (confirmPassword.length === 0) {
+        confirmPasswordForgot.style.borderColor = '#e2e8f0';
+        confirmPasswordForgot.style.boxShadow = 'none';
+        if (errorDiv) {
+          errorDiv.style.display = 'none';
+          errorDiv.classList.add('d-none');
+        }
+        return;
+      }
+
+      if (newPassword.length > 0 && confirmPassword.length > 0) {
+        if (newPassword === confirmPassword) {
+          confirmPasswordForgot.style.borderColor = '#10b981';
+          confirmPasswordForgot.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.1)';
+          if (errorDiv) {
+            errorDiv.style.display = 'none';
+            errorDiv.classList.add('d-none');
+          }
+        } else {
+          confirmPasswordForgot.style.borderColor = '#ef4444';
+          confirmPasswordForgot.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
+          if (errorDiv) {
+            errorDiv.textContent = 'Las contraseñas no coinciden.';
+            errorDiv.style.display = 'block';
+            errorDiv.classList.remove('d-none');
+          }
+        }
+      }
+    }
+
+    if (confirmPasswordForgot) {
+      confirmPasswordForgot.addEventListener('input', validarConfirmacionPasswordForgot);
+    }
+
+    // Verificar identidad
+    if (verifyIdentityBtnForgot) {
+      verifyIdentityBtnForgot.addEventListener('click', async function() {
+        const email = document.getElementById('verifyEmailForgot').value.trim();
+        const documentType = document.getElementById('verifyDocumentTypeForgot').value;
+        const documentNumber = document.getElementById('verifyDocumentNumberForgot').value.trim();
+        const phone = document.getElementById('verifyPhoneForgot').value.trim();
+
+        // Validar campos
+        if (!email || !documentType || !documentNumber || !phone) {
+          forgotPasswordError.style.display = 'block';
+          document.getElementById('forgotPasswordErrorMessage').textContent = 'Por favor completa todos los campos';
+          return;
+        }
+
+        // Deshabilitar botón mientras se verifica
+        this.disabled = true;
+        this.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Verificando...';
+
+        try {
+          const response = await fetch('/api/usuarios/verificar-identidad', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              email: email,
+              documentType: documentType,
+              documentNumber: documentNumber,
+              phone: phone
+            })
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.valid) {
+            identityVerified = true;
+            verifiedEmail = email;
+            forgotPasswordError.style.display = 'none';
+            verificationStep.style.display = 'none';
+            newPasswordStep.style.display = 'block';
+          } else {
+            identityVerified = false;
+            forgotPasswordError.style.display = 'block';
+            document.getElementById('forgotPasswordErrorMessage').textContent = data.message || 'Los datos no coinciden con nuestros registros';
+          }
+        } catch (error) {
+          identityVerified = false;
+          forgotPasswordError.style.display = 'block';
+          document.getElementById('forgotPasswordErrorMessage').textContent = 'Error al verificar. Intenta nuevamente.';
+        } finally {
+          this.disabled = false;
+          this.innerHTML = '<i class="bx bx-check-circle"></i> Verificar Identidad';
+        }
+      });
+    }
+
+    // Actualizar contraseña
+    if (resetPasswordBtn) {
+      resetPasswordBtn.addEventListener('click', async function() {
+        if (!identityVerified) {
+          forgotPasswordError.style.display = 'block';
+          document.getElementById('forgotPasswordErrorMessage').textContent = 'Debes verificar tu identidad primero';
+          return;
+        }
+
+        const newPassword = newPasswordForgot.value;
+        const confirmPassword = confirmPasswordForgot.value;
+
+        // Validar contraseña
+        if (!newPassword || newPassword.trim() === '') {
+          forgotPasswordError.style.display = 'block';
+          document.getElementById('forgotPasswordErrorMessage').textContent = 'Debes ingresar una nueva contraseña';
+          return;
+        }
+
+        const validaciones = validarPassword(newPassword);
+        const esValida = Object.values(validaciones).every(v => v);
+
+        if (!esValida) {
+          forgotPasswordError.style.display = 'block';
+          document.getElementById('forgotPasswordErrorMessage').textContent = 'La contraseña no cumple con los requisitos de seguridad';
+          return;
+        }
+
+        if (newPassword !== confirmPassword) {
+          forgotPasswordError.style.display = 'block';
+          document.getElementById('forgotPasswordErrorMessage').textContent = 'Las contraseñas no coinciden';
+          return;
+        }
+
+        // Deshabilitar botón mientras se actualiza
+        this.disabled = true;
+        this.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Actualizando...';
+
+        try {
+          const response = await fetch('/api/usuarios/recuperar-contrasena', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              email: verifiedEmail,
+              newPassword: newPassword
+            })
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.success) {
+            forgotPasswordError.style.display = 'none';
+            forgotPasswordSuccess.style.display = 'block';
+            newPasswordStep.style.display = 'none';
+            
+            // Redirigir al login después de 2 segundos
+            setTimeout(() => {
+              window.location.href = '/login';
+            }, 2000);
+          } else {
+            forgotPasswordError.style.display = 'block';
+            document.getElementById('forgotPasswordErrorMessage').textContent = data.message || 'Error al actualizar la contraseña';
+          }
+        } catch (error) {
+          forgotPasswordError.style.display = 'block';
+          document.getElementById('forgotPasswordErrorMessage').textContent = 'Error al actualizar. Intenta nuevamente.';
+        } finally {
+          this.disabled = false;
+          this.innerHTML = '<i class="bx bx-save"></i> Actualizar Contraseña';
+        }
+      });
+    }
   </script>
 </body>
 </html>

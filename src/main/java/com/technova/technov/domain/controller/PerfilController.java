@@ -5,6 +5,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import com.technova.technov.domain.dto.UsuarioDto;
@@ -491,7 +492,7 @@ public class PerfilController {
                 }
                 
                 // Filtrar pedidos que contengan productos de la categoría seleccionada
-                final String categoriaLower = categoria.toLowerCase();
+                final String categoriaLower = categoria != null ? categoria.toLowerCase() : "";
                 pedidos = pedidos.stream()
                         .filter(p -> {
                             if (p.getItems() != null) {
@@ -499,7 +500,7 @@ public class PerfilController {
                                         .anyMatch(item -> {
                                             if (item.getProductoId() != null) {
                                                 String cat = productoIdToCategoria.get(item.getProductoId());
-                                                return cat != null && cat.equalsIgnoreCase(categoria);
+                                                return cat != null && cat.equalsIgnoreCase(categoriaLower);
                                             }
                                             return false;
                                         });
@@ -640,8 +641,9 @@ public class PerfilController {
                         }
                     }
                     
-                    tickets = tickets.stream()
-                            .filter(t -> {
+                    if (tickets != null) {
+                        tickets = tickets.stream()
+                                .filter(t -> {
                                 // Buscar en tema y descripción
                                 if ((t.getTema() != null && t.getTema().toLowerCase().contains(busquedaLower)) ||
                                     (t.getDescripcion() != null && t.getDescripcion().toLowerCase().contains(busquedaLower))) {
@@ -657,6 +659,7 @@ public class PerfilController {
                                 return false;
                             })
                             .collect(java.util.stream.Collectors.toList());
+                    }
                 }
                 
                 // Asegurar que tickets nunca sea null
@@ -708,8 +711,6 @@ public class PerfilController {
             
             // Obtener conversaciones únicas con el último mensaje de cada una
             java.util.Map<String, com.technova.technov.domain.dto.MensajeDirectoDto> ultimosMensajes = new java.util.HashMap<>();
-            // Set para rastrear conversaciones con mensajes no leídos
-            java.util.Set<String> conversacionesNoLeidas = new java.util.HashSet<>();
             
             for (com.technova.technov.domain.dto.MensajeDirectoDto mensaje : todosMensajes) {
                 if (mensaje.getConversationId() != null) {
@@ -897,7 +898,11 @@ public class PerfilController {
             // Actualizar perfil usando el método correcto que actualiza phone, address y password
             UsuarioDto usuarioActualizado = usuarioService.actualizarPerfil(usuarioActual.getId(), usuarioActual);
             
-            redirectAttributes.addFlashAttribute("success", "Perfil actualizado exitosamente");
+            if (usuarioActualizado != null) {
+                redirectAttributes.addFlashAttribute("success", "Perfil actualizado exitosamente");
+            } else {
+                redirectAttributes.addFlashAttribute("error", "Error al actualizar el perfil");
+            }
             redirectAttributes.addFlashAttribute("showModal", "true");
             return "redirect:/empleado/perfil/edit";
             
@@ -933,6 +938,8 @@ public class PerfilController {
     @PostMapping("/perfil/edit")
     public String actualizarPerfil(
             @ModelAttribute UsuarioDto usuarioDto,
+            @RequestParam(required = false) String currentPassword,
+            @RequestParam(required = false) String forgotPassword,
             RedirectAttributes redirectAttributes) {
         
         UsuarioDto usuarioAutenticado = securityUtil.getUsuarioAutenticado().orElse(null);
@@ -941,12 +948,32 @@ public class PerfilController {
             return "redirect:/login";
         }
         
+        // Si no es modo "olvidé contraseña", validar contraseña actual
+        if (forgotPassword == null || !"true".equals(forgotPassword)) {
+            // Validar que se proporcione la contraseña actual
+            if (currentPassword == null || currentPassword.trim().isEmpty()) {
+                redirectAttributes.addFlashAttribute("mensaje", "Debes ingresar tu contraseña actual para realizar cambios");
+                redirectAttributes.addFlashAttribute("tipoMensaje", "error");
+                return getRedirectUrl(usuarioAutenticado.getRole());
+            }
+            
+            // Validar la contraseña actual
+            boolean passwordValid = usuarioService.validarPassword(usuarioAutenticado.getId(), currentPassword);
+            if (!passwordValid) {
+                redirectAttributes.addFlashAttribute("mensaje", "La contraseña actual es incorrecta");
+                redirectAttributes.addFlashAttribute("tipoMensaje", "error");
+                return getRedirectUrl(usuarioAutenticado.getRole());
+            }
+        }
+        // Si es modo "olvidé contraseña", la verificación de identidad ya se hizo en el frontend
+        
         // Asegurar que solo se actualice el perfil del usuario autenticado
         usuarioDto.setId(usuarioAutenticado.getId());
         usuarioDto.setRole(usuarioAutenticado.getRole()); // No permitir cambiar el rol
         
-        // Si el usuario es admin, solo permitir actualizar teléfono, dirección y contraseña
-        if ("admin".equalsIgnoreCase(usuarioAutenticado.getRole())) {
+        // Si el usuario es admin o cliente, solo permitir actualizar teléfono, dirección y contraseña
+        if ("admin".equalsIgnoreCase(usuarioAutenticado.getRole()) || 
+            "cliente".equalsIgnoreCase(usuarioAutenticado.getRole())) {
             // Mantener los valores originales para los campos que no se pueden modificar
             usuarioDto.setName(usuarioAutenticado.getName());
             usuarioDto.setFirstName(usuarioAutenticado.getFirstName());
@@ -971,8 +998,10 @@ public class PerfilController {
             redirectAttributes.addFlashAttribute("tipoMensaje", "error");
         }
         
-        // Redirigir según el rol
-        String role = usuarioAutenticado.getRole();
+        return getRedirectUrl(usuarioAutenticado.getRole());
+    }
+    
+    private String getRedirectUrl(String role) {
         if ("admin".equalsIgnoreCase(role)) {
             return "redirect:/admin/perfil";
         } else if ("empleado".equalsIgnoreCase(role)) {
@@ -980,7 +1009,6 @@ public class PerfilController {
         } else if ("cliente".equalsIgnoreCase(role)) {
             return "redirect:/cliente/perfil";
         }
-        
         return "redirect:/login";
     }
 }
