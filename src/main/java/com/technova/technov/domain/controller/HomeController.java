@@ -266,28 +266,42 @@ public class HomeController {
         String marcaCapitalizada = marca.substring(0, 1).toUpperCase() + marca.substring(1).toLowerCase();
         List<ProductoDto> productos = productoService.porMarca(marcaCapitalizada);
         model.addAttribute("productos", enriquecerProductos(productos));
+        model.addAttribute("marca", marca);
         
-        String templateBase = "frontend/marca/" + marca.toLowerCase();
+        // Cargar categorías y marcas dinámicamente desde la base de datos
+        List<String> categorias = caracteristicaService.listarCategorias();
+        List<String> marcas = caracteristicaService.listarMarcas();
+        // Filtrar la categoría "temporal"
+        categorias = categorias.stream()
+                .filter(cat -> !cat.equalsIgnoreCase("temporal"))
+                .collect(Collectors.toList());
+        model.addAttribute("categorias", categorias);
+        model.addAttribute("marcas", marcas);
+        
         if (usuario != null && "cliente".equalsIgnoreCase(usuario.getRole())) {
             model.addAttribute("usuario", usuario);
             // Obtener contadores para el cliente
+            int carritoCount = 0;
+            int favoritosCount = 0;
             if (usuario.getId() != null) {
                 try {
                     List<CarritoItemDto> itemsCarrito = carritoService.listar(usuario.getId().intValue());
-                    model.addAttribute("carritoCount", itemsCarrito != null ? itemsCarrito.size() : 0);
+                    carritoCount = itemsCarrito != null ? itemsCarrito.size() : 0;
                 } catch (Exception e) {
-                    model.addAttribute("carritoCount", 0);
+                    carritoCount = 0;
                 }
                 try {
                     List<FavoritoDto> favoritos = favoritoService.listarPorUsuario(usuario.getId());
-                    model.addAttribute("favoritosCount", favoritos != null ? favoritos.size() : 0);
+                    favoritosCount = favoritos != null ? favoritos.size() : 0;
                 } catch (Exception e) {
-                    model.addAttribute("favoritosCount", 0);
+                    favoritosCount = 0;
                 }
             }
-            return templateBase + "-autenticado";
+            model.addAttribute("carritoCount", carritoCount);
+            model.addAttribute("favoritosCount", favoritosCount);
+            return "frontend/marca/marca-autenticado";
         }
-        return templateBase;
+        return "frontend/marca/marca";
     }
 
     @GetMapping("/marca/apple")
