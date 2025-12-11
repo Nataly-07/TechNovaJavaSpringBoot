@@ -175,6 +175,9 @@
           <p><i class='bx bx-envelope'></i> <span th:text="${usuario != null ? usuario.email : 'cliente@technova.com'}">cliente@technova.com</span></p>
           <p><i class='bx bx-shield'></i> <span th:text="${usuario != null && usuario.role != null ? usuario.role : 'cliente'}">Cliente</span></p>
           <a th:href="@{/perfil/edit}" class="edit-profile"><i class='bx bx-edit'></i> Editar perfil</a>
+          <button id="desactivarCuentaBtn" class="deactivate-account-btn" style="margin-top: 10px; padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; display: inline-flex; align-items: center; gap: 8px; transition: all 0.3s ease;">
+            <i class='bx bx-user-x'></i> Desactivar cuenta
+          </button>
         </div>
       </div>
 
@@ -304,5 +307,113 @@
   <footer>
     <p>&copy; 2025 Technova</p>
   </footer>
+
+  <!-- Modal de confirmación para desactivar cuenta -->
+  <div id="desactivarCuentaModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 20px; padding: 30px; max-width: 500px; width: 90%; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="margin: 0; color: #333; font-size: 24px;">
+          <i class='bx bx-error-circle' style="color: #dc3545; margin-right: 8px;"></i>
+          Desactivar Cuenta
+        </h2>
+        <button id="closeDesactivarModal" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">&times;</button>
+      </div>
+
+      <div id="desactivarError" style="display: none; background: #fee; color: #c33; padding: 12px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #fcc;">
+        <i class='bx bx-error-circle'></i>
+        <span id="desactivarErrorMessage"></span>
+      </div>
+
+      <p style="color: #666; margin-bottom: 20px; line-height: 1.6;">
+        ¿Estás seguro de que deseas desactivar tu cuenta? Esta acción cerrará tu sesión inmediatamente y no podrás iniciar sesión hasta que reactives tu cuenta desde la página de inicio de sesión.
+      </p>
+
+      <div style="display: flex; gap: 10px; justify-content: flex-end;">
+        <button id="cancelarDesactivarBtn" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+          Cancelar
+        </button>
+        <button id="confirmarDesactivarBtn" style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+          <i class='bx bx-user-x'></i> Sí, desactivar cuenta
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Funcionalidad para desactivar cuenta
+    const desactivarCuentaBtn = document.getElementById('desactivarCuentaBtn');
+    const desactivarCuentaModal = document.getElementById('desactivarCuentaModal');
+    const closeDesactivarModal = document.getElementById('closeDesactivarModal');
+    const cancelarDesactivarBtn = document.getElementById('cancelarDesactivarBtn');
+    const confirmarDesactivarBtn = document.getElementById('confirmarDesactivarBtn');
+    const desactivarError = document.getElementById('desactivarError');
+
+    // Abrir modal
+    if (desactivarCuentaBtn) {
+      desactivarCuentaBtn.addEventListener('click', function(e) {
+        e.preventDefault();
+        desactivarCuentaModal.style.display = 'flex';
+        desactivarError.style.display = 'none';
+      });
+    }
+
+    // Cerrar modal
+    function cerrarModal() {
+      desactivarCuentaModal.style.display = 'none';
+      desactivarError.style.display = 'none';
+    }
+
+    if (closeDesactivarModal) {
+      closeDesactivarModal.addEventListener('click', cerrarModal);
+    }
+
+    if (cancelarDesactivarBtn) {
+      cancelarDesactivarBtn.addEventListener('click', cerrarModal);
+    }
+
+    // Cerrar al hacer clic fuera del modal
+    if (desactivarCuentaModal) {
+      desactivarCuentaModal.addEventListener('click', function(e) {
+        if (e.target === desactivarCuentaModal) {
+          cerrarModal();
+        }
+      });
+    }
+
+    // Confirmar desactivación
+    if (confirmarDesactivarBtn) {
+      confirmarDesactivarBtn.addEventListener('click', async function() {
+        this.disabled = true;
+        this.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Desactivando...';
+        desactivarError.style.display = 'none';
+
+        try {
+          const response = await fetch('/cliente/perfil/desactivar', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+
+          const data = await response.json();
+
+          if (response.ok && data.success) {
+            // Redirigir al login después de desactivar
+            window.location.href = '/login?accountDeactivated=true';
+          } else {
+            desactivarError.style.display = 'block';
+            document.getElementById('desactivarErrorMessage').textContent = data.message || 'Error al desactivar la cuenta';
+            this.disabled = false;
+            this.innerHTML = '<i class=\'bx bx-user-x\'></i> Sí, desactivar cuenta';
+          }
+        } catch (error) {
+          desactivarError.style.display = 'block';
+          document.getElementById('desactivarErrorMessage').textContent = 'Error al desactivar la cuenta. Intenta nuevamente.';
+          this.disabled = false;
+          this.innerHTML = '<i class=\'bx bx-user-x\'></i> Sí, desactivar cuenta';
+        }
+      });
+    }
+  </script>
 </body>
 </html>

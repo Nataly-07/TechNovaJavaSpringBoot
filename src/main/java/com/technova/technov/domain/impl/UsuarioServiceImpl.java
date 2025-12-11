@@ -67,20 +67,8 @@ public class UsuarioServiceImpl implements UsuarioService {
                 @Override
 @Transactional(readOnly = true)
 public List<UsuarioDto> listarUsuarios() {
-    // Obtener todos los admins y empleados (activos e inactivos)
-    List<Usuario> admins = usuarioRepository.findByRoleIgnoreCase("admin");
-    List<Usuario> empleados = usuarioRepository.findByRoleIgnoreCase("empleado");
-
-    // Obtener solo clientes activos
-    List<Usuario> clientesActivos = usuarioRepository.findByEstadoTrue().stream()
-            .filter(u -> "cliente".equalsIgnoreCase(u.getRole()))
-            .collect(Collectors.toList());
-
-    // Combinar todas las listas
-    List<Usuario> todosUsuarios = new java.util.ArrayList<>();
-    todosUsuarios.addAll(admins);
-    todosUsuarios.addAll(empleados);
-    todosUsuarios.addAll(clientesActivos);
+    // Obtener todos los usuarios (activos e inactivos) sin filtrar por estado
+    List<Usuario> todosUsuarios = usuarioRepository.findAll();
 
     // Ordenar por ID descendente
     todosUsuarios.sort((a, b) -> b.getId().compareTo(a.getId()));
@@ -228,7 +216,8 @@ public List<UsuarioDto> listarUsuarios() {
             return false;
         }
         
-        return usuarioRepository.findByEmailAndEstadoTrue(email)
+        // Buscar por email sin filtrar por estado (permite verificar cuentas activas e inactivas)
+        return usuarioRepository.findByEmail(email)
                 .map(usuario -> {
                     // Verificar que todos los datos coincidan
                     boolean emailMatch = usuario.getEmail() != null && usuario.getEmail().equalsIgnoreCase(email);

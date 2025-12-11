@@ -588,11 +588,20 @@
                   </span>
                 </td>
                 <td>
-                  <div class="acciones-usuario" th:if="${usuario.role != null && !usuario.role.equalsIgnoreCase('cliente')}">
+                  <div class="acciones-usuario">
                     <button class="btn-accion btn-editar" th:data-usuario-id="${usuario.id}" onclick="verInformacionUsuario(this.getAttribute('data-usuario-id'))">
                       <i class='bx bx-info-circle'></i> Ver Información
                     </button>
+                    <!-- Para clientes: no mostrar botones de activar/desactivar -->
+                    <span th:if="${usuario.role != null && usuario.role.equalsIgnoreCase('cliente')}" 
+                          style="color: #6c757d; font-size: 0.85rem; font-style: italic; display: block; margin-top: 5px;">
+                      <i class='bx bx-info-circle'></i>
+                      <span th:if="${usuario.estado != null && !usuario.estado}">El cliente debe reactivar su cuenta desde el login</span>
+                      <span th:if="${usuario.estado == null || usuario.estado}">El cliente gestiona su cuenta desde su perfil</span>
+                    </span>
+                    <!-- Para admin y empleado: mostrar botón de activar/desactivar según estado -->
                     <button 
+                      th:if="${usuario.role != null && !usuario.role.equalsIgnoreCase('cliente')}"
                       class="btn-accion" 
                       th:classappend="${usuario.estado != null && usuario.estado ? 'btn-desactivar' : 'btn-activar'}"
                       th:data-usuario-id="${usuario.id}"
@@ -602,9 +611,6 @@
                       <span th:text="${usuario.estado != null && usuario.estado ? 'Desactivar' : 'Activar'}">Activar/Desactivar</span>
                     </button>
                   </div>
-                  <span th:if="${usuario.role != null && usuario.role.equalsIgnoreCase('cliente')}" style="color: #999; font-style: italic;">
-                    No disponible
-                  </span>
                 </td>
               </tr>
             </tbody>
