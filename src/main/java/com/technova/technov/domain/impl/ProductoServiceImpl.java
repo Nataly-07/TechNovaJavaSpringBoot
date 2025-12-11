@@ -111,6 +111,81 @@ public class ProductoServiceImpl implements ProductoService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<ProductoDto> buscarAvanzado(String termino, String marca, String categoria, BigDecimal precioMin, BigDecimal precioMax, String disponibilidad) {
+        List<Producto> productos = productoRepository.findByEstadoTrue();
+        
+        return productos.stream()
+                .filter(p -> {
+                    // Filtro por término de búsqueda (nombre o descripción)
+                    if (termino != null && !termino.trim().isEmpty()) {
+                        String terminoLower = termino.toLowerCase().trim();
+                        boolean matchNombre = p.getNombre() != null && p.getNombre().toLowerCase().contains(terminoLower);
+                        boolean matchDescripcion = p.getCaracteristica() != null && 
+                                p.getCaracteristica().getDescripcion() != null &&
+                                p.getCaracteristica().getDescripcion().toLowerCase().contains(terminoLower);
+                        if (!matchNombre && !matchDescripcion) {
+                            return false;
+                        }
+                    }
+                    
+                    // Filtro por marca
+                    if (marca != null && !marca.trim().isEmpty()) {
+                        if (p.getCaracteristica() == null || p.getCaracteristica().getMarca() == null ||
+                                !p.getCaracteristica().getMarca().equalsIgnoreCase(marca.trim())) {
+                            return false;
+                        }
+                    }
+                    
+                    // Filtro por categoría
+                    if (categoria != null && !categoria.trim().isEmpty()) {
+                        if (p.getCaracteristica() == null || p.getCaracteristica().getCategoria() == null ||
+                                !p.getCaracteristica().getCategoria().equalsIgnoreCase(categoria.trim())) {
+                            return false;
+                        }
+                    }
+                    
+                    // Filtro por rango de precio
+                    if (precioMin != null || precioMax != null) {
+                        if (p.getCaracteristica() == null || p.getCaracteristica().getPrecioVenta() == null) {
+                            return false;
+                        }
+                        BigDecimal precio = p.getCaracteristica().getPrecioVenta();
+                        if (precioMin != null && precio.compareTo(precioMin) < 0) {
+                            return false;
+                        }
+                        if (precioMax != null && precio.compareTo(precioMax) > 0) {
+                            return false;
+                        }
+                    }
+                    
+                    // Filtro por disponibilidad
+                    if (disponibilidad != null && !disponibilidad.trim().isEmpty()) {
+                        int stock = p.getStock() != null ? p.getStock() : 0;
+                        if ("disponible".equalsIgnoreCase(disponibilidad.trim())) {
+                            if (stock <= 0) {
+                                return false;
+                            }
+                        } else if ("agotado".equalsIgnoreCase(disponibilidad.trim())) {
+                            if (stock > 0) {
+                                return false;
+                            }
+                        }
+                    }
+                    
+                    return true;
+                })
+                .map(producto -> {
+                    // Forzar la carga de la relación antes de mapear
+                    if (producto.getCaracteristica() != null) {
+                        producto.getCaracteristica().getCategoria(); // Forzar lazy loading
+                    }
+                    return convertToDto(producto);
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
     @Transactional
     public ProductoDto crearProducto(ProductoDto productoDto) {
         Producto producto = modelMapper.map(productoDto, Producto.class);
