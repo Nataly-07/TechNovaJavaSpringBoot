@@ -730,9 +730,14 @@
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 30px;">
             <!-- Sección de Categorías -->
             <div>
-              <h3 style="margin-bottom: 20px; color: #2c3e50; display: flex; align-items: center; gap: 10px;">
-                <i class='bx bx-category' style="font-size: 1.5rem;"></i> Categorías
-              </h3>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0; color: #2c3e50; display: flex; align-items: center; gap: 10px;">
+                  <i class='bx bx-category' style="font-size: 1.5rem;"></i> Categorías
+                </h3>
+                <button type="button" onclick="abrirModalNuevaCategoria()" style="padding: 10px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 600; transition: transform 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                  <i class='bx bx-plus'></i> Agregar Categoría
+                </button>
+              </div>
               <div class="table-container">
                 <table class="table-inventario" th:if="${categoriasInfo != null and !categoriasInfo.isEmpty()}">
                   <thead>
@@ -774,9 +779,14 @@
 
             <!-- Sección de Marcas -->
             <div>
-              <h3 style="margin-bottom: 20px; color: #2c3e50; display: flex; align-items: center; gap: 10px;">
-                <i class='bx bx-purchase-tag' style="font-size: 1.5rem;"></i> Marcas
-              </h3>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h3 style="margin: 0; color: #2c3e50; display: flex; align-items: center; gap: 10px;">
+                  <i class='bx bx-purchase-tag' style="font-size: 1.5rem;"></i> Marcas
+                </h3>
+                <button type="button" onclick="abrirModalNuevaMarca()" style="padding: 10px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; font-weight: 600; transition: transform 0.2s ease;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                  <i class='bx bx-plus'></i> Agregar Marca
+                </button>
+              </div>
               <div class="table-container">
                 <table class="table-inventario" th:if="${marcasInfo != null and !marcasInfo.isEmpty()}">
                   <thead>
@@ -938,28 +948,24 @@
         <div class="form-row">
           <div class="form-group">
             <label><i class='bx bx-category'></i> Categoría *</label>
-            <div style="display: flex; gap: 8px; align-items: center;">
-              <select name="categoria" id="categoria" required style="flex: 1;">
-                <option value="">Selecciona una categoría</option>
-                <option th:each="categoriaItem : ${categorias}" th:value="${categoriaItem}" th:text="${#strings.capitalize(categoriaItem)}">Categoría</option>
-              </select>
-              <button type="button" onclick="abrirModalNuevaCategoria()" style="padding: 10px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Agregar nueva categoría">
-                <i class='bx bx-plus'></i>
-              </button>
-            </div>
+            <select name="categoria" id="categoria" required>
+              <option value="">Selecciona una categoría</option>
+              <option th:each="categoriaItem : ${categorias}" th:value="${categoriaItem}" th:text="${#strings.capitalize(categoriaItem)}">Categoría</option>
+            </select>
+            <small style="color: #666; font-size: 0.85rem; margin-top: 5px; display: block;">
+              Para crear una nueva categoría, ve a la pestaña "Marcas y Categorías"
+            </small>
           </div>
 
           <div class="form-group">
             <label><i class='bx bx-tag'></i> Marca *</label>
-            <div style="display: flex; gap: 8px; align-items: center;">
-              <select name="marca" id="marca" required style="flex: 1;">
-                <option value="">Selecciona una marca</option>
-                <option th:each="marcaItem : ${marcas}" th:value="${marcaItem}" th:text="${marcaItem}">Marca</option>
-              </select>
-              <button type="button" onclick="abrirModalNuevaMarca()" style="padding: 10px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;" title="Agregar nueva marca">
-                <i class='bx bx-plus'></i>
-              </button>
-            </div>
+            <select name="marca" id="marca" required>
+              <option value="">Selecciona una marca</option>
+              <option th:each="marcaItem : ${marcas}" th:value="${marcaItem}" th:text="${marcaItem}">Marca</option>
+            </select>
+            <small style="color: #666; font-size: 0.85rem; margin-top: 5px; display: block;">
+              Para crear una nueva marca, ve a la pestaña "Marcas y Categorías"
+            </small>
           </div>
         </div>
 
@@ -1285,20 +1291,17 @@
 
     // Funciones para el modal de nueva categoría
     function abrirModalNuevaCategoria() {
-      // Cerrar el modal de agregar producto temporalmente
       const modalAgregar = document.getElementById('modalAgregar');
-      const estabaAbierto = modalAgregar.classList.contains('show');
+      const estabaAbierto = modalAgregar && modalAgregar.classList.contains('show');
+      
+      // Cerrar el modal de agregar producto temporalmente si está abierto
       if (estabaAbierto) {
         modalAgregar.classList.remove('show');
+        document.getElementById('modalNuevaCategoria').dataset.restoreModal = 'modalAgregar';
       }
       
       document.getElementById('modalNuevaCategoria').classList.add('show');
       document.body.style.overflow = 'hidden';
-      
-      // Guardar estado para restaurar después
-      if (estabaAbierto) {
-        document.getElementById('modalNuevaCategoria').dataset.restoreModal = 'modalAgregar';
-      }
     }
 
     function cerrarModalNuevaCategoria() {
@@ -1318,20 +1321,17 @@
 
     // Funciones para el modal de nueva marca
     function abrirModalNuevaMarca() {
-      // Cerrar el modal de agregar producto temporalmente
       const modalAgregar = document.getElementById('modalAgregar');
-      const estabaAbierto = modalAgregar.classList.contains('show');
+      const estabaAbierto = modalAgregar && modalAgregar.classList.contains('show');
+      
+      // Cerrar el modal de agregar producto temporalmente si está abierto
       if (estabaAbierto) {
         modalAgregar.classList.remove('show');
+        document.getElementById('modalNuevaMarca').dataset.restoreModal = 'modalAgregar';
       }
       
       document.getElementById('modalNuevaMarca').classList.add('show');
       document.body.style.overflow = 'hidden';
-      
-      // Guardar estado para restaurar después
-      if (estabaAbierto) {
-        document.getElementById('modalNuevaMarca').dataset.restoreModal = 'modalAgregar';
-      }
     }
 
     function cerrarModalNuevaMarca() {

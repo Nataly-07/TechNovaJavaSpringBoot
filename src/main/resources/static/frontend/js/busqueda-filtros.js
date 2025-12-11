@@ -139,6 +139,27 @@ function crearTarjetaProducto(producto) {
     `;
 }
 
+// Función para mostrar/ocultar filtros
+function toggleFiltros() {
+    const filtrosContainer = document.getElementById('filtrosContainer');
+    const btnToggle = document.getElementById('btnFiltrosToggle');
+    
+    if (filtrosContainer && btnToggle) {
+        const isVisible = filtrosContainer.style.display === 'flex' || 
+                         filtrosContainer.classList.contains('show');
+        
+        if (isVisible) {
+            filtrosContainer.style.display = 'none';
+            filtrosContainer.classList.remove('show');
+            btnToggle.classList.remove('active');
+        } else {
+            filtrosContainer.style.display = 'flex';
+            filtrosContainer.classList.add('show');
+            btnToggle.classList.add('active');
+        }
+    }
+}
+
 // Función para limpiar filtros y mostrar productos originales
 function limpiarFiltros() {
     // Limpiar campos de búsqueda
