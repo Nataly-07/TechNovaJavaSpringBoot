@@ -45,7 +45,67 @@
   </ul>
 </nav>
 
-<div class="mas-vendido-container">
+<!-- Barra de búsqueda y filtros -->
+<div class="busqueda-filtros-container">
+    <div class="busqueda-header">
+        <div class="busqueda-input-wrapper">
+            <input type="text" id="busquedaTermino" class="busqueda-input" placeholder="Buscar productos..." 
+                   onkeypress="if(event.key === 'Enter') buscarProductos()">
+            <button onclick="buscarProductos()" class="btn-buscar">
+                <span>🔍</span>
+            </button>
+            <button onclick="limpiarFiltros()" class="btn-limpiar">
+                <span>✕</span>
+            </button>
+        </div>
+    </div>
+    
+    <div class="filtros-wrapper">
+        <div class="filtros-container">
+            <div class="filtro-item">
+                <label>Marca</label>
+                <select id="filtroMarca" class="filtro-select">
+                    <option value="">Todas</option>
+                    <option th:each="marca : ${marcas}" th:value="${marca}" th:text="${marca}">Marca</option>
+                </select>
+            </div>
+            
+            <div class="filtro-item">
+                <label>Categoría</label>
+                <select id="filtroCategoria" class="filtro-select">
+                    <option value="">Todas</option>
+                    <option th:each="categoria : ${categorias}" th:value="${categoria}" th:text="${categoria}">Categoría</option>
+                </select>
+            </div>
+            
+            <div class="filtro-item">
+                <label>Precio Mín</label>
+                <input type="number" id="filtroPrecioMin" class="filtro-input" placeholder="0" min="0" step="0.01">
+            </div>
+            
+            <div class="filtro-item">
+                <label>Precio Máx</label>
+                <input type="number" id="filtroPrecioMax" class="filtro-input" placeholder="∞" min="0" step="0.01">
+            </div>
+            
+            <div class="filtro-item">
+                <label>Disponibilidad</label>
+                <select id="filtroDisponibilidad" class="filtro-select">
+                    <option value="">Todas</option>
+                    <option value="disponible">Disponible</option>
+                    <option value="agotado">Agotado</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    
+    <div id="resultadosBusqueda" class="resultados-container">
+        <h3 class="resultados-titulo">Resultados de búsqueda</h3>
+        <div id="productosFiltrados" class="productos-grid"></div>
+    </div>
+</div>
+
+<div class="mas-vendido-container" id="productosOriginales">
     <div class="mas-vendido-header">
       <span class="vendido">Lo más vendido</span>
       <a href="#" class="ver-mas">Ver más</a>
@@ -347,5 +407,6 @@
 </script>
 <script th:src="@{/frontend/js/script.js}" defer></script>
 <script th:src="@{/frontend/js/carrusel.js}" defer></script>
+<script th:src="@{/frontend/js/busqueda-filtros.js}" defer></script>
 </body>
 </html>

@@ -148,6 +148,18 @@ public class ProductoController {
         return ResponseEntity.ok(productos);
     }
 
+    @GetMapping("/buscar-avanzado")
+    public ResponseEntity<List<ProductoDto>> buscarAvanzado(
+            @RequestParam(required = false) String termino,
+            @RequestParam(required = false) String marca,
+            @RequestParam(required = false) String categoria,
+            @RequestParam(required = false) BigDecimal precioMin,
+            @RequestParam(required = false) BigDecimal precioMax,
+            @RequestParam(required = false) String disponibilidad) {
+        List<ProductoDto> productos = productoService.buscarAvanzado(termino, marca, categoria, precioMin, precioMax, disponibilidad);
+        return ResponseEntity.ok(productos);
+    }
+
     @PostMapping
     public ResponseEntity<ProductoDto> crear(@RequestBody ProductoDto productoDto) {
         ProductoDto creado = productoService.crearProducto(productoDto);

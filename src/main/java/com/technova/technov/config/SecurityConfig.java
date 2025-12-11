@@ -66,6 +66,8 @@ public class SecurityConfig {
                                                 .requestMatchers("/admin/usuarios/emergencia/**").permitAll()
                                                 // API de registro de usuarios (debe ir ANTES de /api/**)
                                                 .requestMatchers("/api/usuarios", "/api/usuarios/**").permitAll()
+                                                // API de productos (público para búsqueda y visualización)
+                                                .requestMatchers("/api/productos/**").permitAll()
                                                 // Rutas protegidas por rol
                                                 .requestMatchers("/admin/**").hasRole("ADMIN")
                                                 .requestMatchers("/empleado/**").hasRole("EMPLEADO")
@@ -84,6 +86,7 @@ public class SecurityConfig {
         "/admin/usuarios/emergencia/**",
         "/api/usuarios",
         "/api/usuarios/**",
+        "/api/productos/**",
         "/api/atencion-cliente",
         "/api/favoritos/**",
         "/api/carrito/**",

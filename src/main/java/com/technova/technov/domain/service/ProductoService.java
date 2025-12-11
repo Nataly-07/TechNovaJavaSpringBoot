@@ -20,4 +20,5 @@ public interface ProductoService {
     boolean activarDesactivarProducto(Integer id, boolean activar);
     List<ProductoDto> listarTodosProductos(); // Incluye activos e inactivos
     List<ProductoDto> listarProductosRecientes(int cantidad); // Obtiene los productos más recientes
+    List<ProductoDto> buscarAvanzado(String termino, String marca, String categoria, BigDecimal precioMin, BigDecimal precioMax, String disponibilidad);
 }
