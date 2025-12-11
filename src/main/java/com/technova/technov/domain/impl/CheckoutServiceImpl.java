@@ -62,7 +62,10 @@ public class CheckoutServiceImpl implements CheckoutService {
         Venta venta = new Venta();
         venta.setUsuario(usuario);
         venta.setFechaVenta(LocalDate.now());
+        venta.setEstado(true); // true = activo
         venta = ventaRepository.save(venta);
+        
+        System.out.println("Venta creada con ID: " + venta.getId());
 
         BigDecimal total = BigDecimal.ZERO;
         for (DetalleCarrito dc : items) {

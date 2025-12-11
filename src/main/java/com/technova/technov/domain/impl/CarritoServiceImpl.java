@@ -36,6 +36,10 @@ public class CarritoServiceImpl implements CarritoService {
             return List.of(); // Retornar lista vacía si no existe carrito
         }
         return detalleCarritoRepository.findByCarrito(carritoOpt.get()).stream()
+                .sorted((a, b) -> {
+                    // Ordenar por ID descendente (más reciente primero)
+                    return b.getId().compareTo(a.getId());
+                })
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }

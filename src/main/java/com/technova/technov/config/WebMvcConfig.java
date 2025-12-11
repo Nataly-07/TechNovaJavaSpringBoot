@@ -21,5 +21,8 @@ public class WebMvcConfig implements WebMvcConfigurer {
                 .addResourceLocations("classpath:/static/js/");
         registry.addResourceHandler("/images/**")
                 .addResourceLocations("classpath:/static/images/");
+        // Configurar favicon para evitar error 404
+        registry.addResourceHandler("/favicon.ico")
+                .addResourceLocations("classpath:/static/");
     }
 }

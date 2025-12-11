@@ -24,6 +24,15 @@ public class MensajeEmpleadoServiceImpl implements MensajeEmpleadoService {
     @Transactional(readOnly = true)
     public List<MensajeEmpleadoDto> listarTodos() {
         return mensajeEmpleadoRepository.findAll().stream()
+                .sorted((a, b) -> {
+                    // Ordenar por fecha de creación descendente (más reciente primero)
+                    if (a.getCreatedAt() != null && b.getCreatedAt() != null) {
+                        int fechaCompare = b.getCreatedAt().compareTo(a.getCreatedAt());
+                        if (fechaCompare != 0) return fechaCompare;
+                    }
+                    // Si las fechas son iguales o nulas, ordenar por ID descendente
+                    return b.getId().compareTo(a.getId());
+                })
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }

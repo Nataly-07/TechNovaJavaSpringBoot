@@ -15,4 +15,7 @@ public interface UsuarioService {
     boolean eliminarUsuario(Long idusuario);
     boolean activarDesactivarUsuario(Long idusuario, boolean activar);
     Optional<UsuarioDto> login(String email, String password);
+    boolean validarPassword(Long usuarioId, String password);
+    boolean verificarIdentidad(String email, String documentType, String documentNumber, String phone);
+    boolean recuperarContrasena(String email, String newPassword);
 }

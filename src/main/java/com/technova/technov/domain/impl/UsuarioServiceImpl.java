@@ -27,10 +27,11 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @Override
+/*     @Override
     @Transactional(readOnly = true)
-    public List<UsuarioDto> listarUsuarios() {
-        // Obtener todos los admins y empleados (activos e inactivos)
+    public List<UsuarioDto> listarUsuarios() { */
+
+/*         // Obtener todos los admins y empleados (activos e inactivos)
         List<Usuario> admins = usuarioRepository.findByRoleIgnoreCase("admin");
         List<Usuario> empleados = usuarioRepository.findByRoleIgnoreCase("empleado");
         
@@ -51,8 +52,49 @@ public class UsuarioServiceImpl implements UsuarioService {
                     dto.setEstado(usuario.getEstado());
                     return dto;
                 })
-                .collect(Collectors.toList());
-    }
+
+        List<Usuario> usuarios = usuarioRepository.findByEstadoTrue();
+        return usuarios.stream()
+                .sorted((a, b) -> {
+                    // Ordenar por ID descendente (más reciente primero)
+                    return b.getId().compareTo(a.getId());
+                })
+                .map(usuario -> modelMapper.map(usuario, UsuarioDto.class))
+ (Cambios en Perfil de Empleado)
+                .collect(Collectors.toList()); 
+    }*/
+
+                @Override
+@Transactional(readOnly = true)
+public List<UsuarioDto> listarUsuarios() {
+    // Obtener todos los admins y empleados (activos e inactivos)
+    List<Usuario> admins = usuarioRepository.findByRoleIgnoreCase("admin");
+    List<Usuario> empleados = usuarioRepository.findByRoleIgnoreCase("empleado");
+
+    // Obtener solo clientes activos
+    List<Usuario> clientesActivos = usuarioRepository.findByEstadoTrue().stream()
+            .filter(u -> "cliente".equalsIgnoreCase(u.getRole()))
+            .collect(Collectors.toList());
+
+    // Combinar todas las listas
+    List<Usuario> todosUsuarios = new java.util.ArrayList<>();
+    todosUsuarios.addAll(admins);
+    todosUsuarios.addAll(empleados);
+    todosUsuarios.addAll(clientesActivos);
+
+    // Ordenar por ID descendente
+    todosUsuarios.sort((a, b) -> b.getId().compareTo(a.getId()));
+
+    // Mapear a DTO y devolver la lista
+    return todosUsuarios.stream()
+            .map(usuario -> {
+                UsuarioDto dto = modelMapper.map(usuario, UsuarioDto.class);
+                dto.setEstado(usuario.getEstado());
+                return dto;
+            })
+            .collect(Collectors.toList());
+}
+
 
     @Override
     @Transactional
@@ -151,6 +193,70 @@ public class UsuarioServiceImpl implements UsuarioService {
                     return dto;
                 })
                 .orElse(null);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean validarPassword(Long usuarioId, String password) {
+        return usuarioRepository.findById(usuarioId)
+                .map(usuario -> {
+                    String storedPassword = usuario.getPassword();
+                    if (storedPassword == null) {
+                        return false;
+                    }
+                    
+                    // Verificar si la contraseña está codificada con BCrypt
+                    boolean isEncoded = storedPassword.startsWith("$2a$") || 
+                                      storedPassword.startsWith("$2b$") || 
+                                      storedPassword.startsWith("$2y$");
+                    
+                    if (isEncoded) {
+                        // Contraseña codificada: usar BCrypt para verificar
+                        return passwordEncoder.matches(password, storedPassword);
+                    } else {
+                        // Contraseña en texto plano: comparar directamente
+                        return storedPassword.equals(password);
+                    }
+                })
+                .orElse(false);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public boolean verificarIdentidad(String email, String documentType, String documentNumber, String phone) {
+        if (email == null || documentType == null || documentNumber == null || phone == null) {
+            return false;
+        }
+        
+        return usuarioRepository.findByEmailAndEstadoTrue(email)
+                .map(usuario -> {
+                    // Verificar que todos los datos coincidan
+                    boolean emailMatch = usuario.getEmail() != null && usuario.getEmail().equalsIgnoreCase(email);
+                    boolean documentTypeMatch = usuario.getDocumentType() != null && usuario.getDocumentType().equals(documentType);
+                    boolean documentNumberMatch = usuario.getDocumentNumber() != null && usuario.getDocumentNumber().equals(documentNumber);
+                    boolean phoneMatch = usuario.getPhone() != null && usuario.getPhone().equals(phone);
+                    
+                    return emailMatch && documentTypeMatch && documentNumberMatch && phoneMatch;
+                })
+                .orElse(false);
+    }
+
+    @Override
+    @Transactional
+    public boolean recuperarContrasena(String email, String newPassword) {
+        if (email == null || email.trim().isEmpty() || newPassword == null || newPassword.trim().isEmpty()) {
+            return false;
+        }
+        
+        return usuarioRepository.findByEmailAndEstadoTrue(email)
+                .map(usuario -> {
+                    // Codificar y actualizar la contraseña
+                    String encodedPassword = passwordEncoder.encode(newPassword);
+                    usuario.setPassword(encodedPassword);
+                    usuarioRepository.save(usuario);
+                    return true;
+                })
+                .orElse(false);
     }
 
     @Override

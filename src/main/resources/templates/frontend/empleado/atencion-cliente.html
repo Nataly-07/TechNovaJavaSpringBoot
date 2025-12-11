@@ -1,0 +1,1805 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Atención al Cliente - Technova</title>
+    <link rel="icon" type="image/png" th:href="@{/frontend/imagenes/logo technova.png}">
+
+    <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" th:href="@{/frontend/css/estilodas.css}">
+    <link rel="stylesheet" th:href="@{/frontend/css/stilotech.css}">
+    <link rel="stylesheet" th:href="@{/frontend/css/color-palette.css}">
+    <style>
+        body {
+            background: #e8f0f8;
+        }
+
+        .main-content {
+            background: transparent;
+        }
+
+        .atencion-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 20px;
+        }
+
+        /* Header Banner */
+        .header-banner {
+            background: linear-gradient(135deg, #764ba2 0%, #4a5568 100%);
+            border-radius: 20px;
+            padding: 35px 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 24px rgba(118, 75, 162, 0.25);
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        .header-banner::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+            animation: pulse 8s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.5; }
+            50% { transform: scale(1.1); opacity: 0.8; }
+        }
+
+        .header-banner h1 {
+            color: #ffffff;
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0 0 10px 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .header-banner h1 i {
+            font-size: 2.4rem;
+            color: #ffffff;
+            filter: drop-shadow(0 2px 8px rgba(0, 0, 0, 0.3));
+        }
+
+        .header-banner .divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent 0%, #00d4ff 20%, #00d4ff 80%, transparent 100%);
+            width: 70%;
+            margin: 12px auto 10px auto;
+            border-radius: 2px;
+            position: relative;
+            z-index: 1;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+
+        .header-banner p {
+            color: #ffffff;
+            font-size: 0.95rem;
+            margin: 0;
+            font-weight: 400;
+            position: relative;
+            z-index: 1;
+            opacity: 0.95;
+            text-shadow: 0 1px 5px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        /* Stats Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 18px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 16px;
+            padding: 18px 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            border-left: 4px solid;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card.active-filter {
+            border-left-width: 6px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: inherit;
+            border-left-color: inherit;
+        }
+
+        .stat-card:hover:not(.active-filter) {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        .stat-card.total:hover:not(.active-filter) {
+            box-shadow: 0 8px 24px rgba(0, 204, 68, 0.25);
+        }
+
+        .stat-card.pendientes:hover:not(.active-filter),
+        .stat-card.no-leidos:hover:not(.active-filter) {
+            box-shadow: 0 8px 24px rgba(239, 68, 68, 0.25);
+        }
+
+        .stat-card.mensajes:hover:not(.active-filter) {
+            box-shadow: 0 8px 24px rgba(251, 191, 36, 0.25);
+        }
+
+        .stat-card.total {
+            border-left-color: #00cc44;
+        }
+
+        .stat-card.pendientes {
+            border-left-color: #ef4444;
+        }
+
+        .stat-card.mensajes {
+            border-left-color: #fbbf24;
+        }
+
+        .stat-card.no-leidos {
+            border-left-color: #ef4444;
+        }
+
+        .stat-card .number {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin: 0 0 6px 0;
+            line-height: 1;
+            transition: transform 0.3s ease;
+            text-align: center;
+        }
+
+        .stat-card:hover .number {
+            transform: scale(1.05);
+        }
+
+        .stat-card .label {
+            font-size: 0.75rem;
+            color: #1a202c;
+            margin: 0;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+            text-align: center;
+        }
+
+        /* Search Bar */
+        .search-container {
+            background: transparent;
+            border-radius: 0;
+            padding: 0;
+            margin: 0 auto 25px auto;
+            box-shadow: none;
+            border: none;
+            max-width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .search-box {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 14px 18px 14px 48px;
+            border: 1px solid #e2e8f0;
+            border-radius: 50px;
+            font-size: 15px;
+            transition: all 0.2s ease;
+            background: white;
+            color: #2d3748;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .search-box input::placeholder {
+            color: #94a3b8;
+            font-weight: 400;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #cbd5e0;
+            background: white;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 20px;
+            z-index: 1;
+        }
+
+        /* Main Content */
+        .main-content-area {
+            background: white;
+            border-radius: 16px;
+            padding: 25px 28px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            min-height: 400px;
+        }
+
+        /* Tabs */
+        .tabs-container {
+            display: flex;
+            gap: 0;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e2e8f0;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: #718096;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            position: relative;
+            text-align: center;
+        }
+
+        .tab::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            width: 0;
+            height: 3px;
+            background: #90cdf4;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .tab:hover {
+            color: #667eea;
+            background: #f7fafc;
+        }
+
+        .tab.active {
+            color: #667eea;
+            background: #f7fafc;
+        }
+
+        .tab.active::after {
+            width: 100%;
+        }
+
+        .tab i {
+            font-size: 1.15rem;
+            transition: transform 0.3s ease;
+        }
+
+        .tab:hover i {
+            transform: scale(1.1);
+        }
+
+        /* Filters */
+        .filters-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 22px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #1a202c;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .filter-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(118, 75, 162, 0.1);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
+        }
+
+        .filter-btn:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .filter-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+            border-color: #764ba2;
+            color: white;
+            box-shadow: 0 4px 16px rgba(118, 75, 162, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .filter-btn.active::before {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* Tickets List */
+        .tickets-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .ticket-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 24px;
+            border-left: 4px solid #667eea;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-bottom: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .ticket-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            transform: scaleY(0);
+            transform-origin: top;
+            transition: transform 0.3s ease;
+        }
+
+        .ticket-card:hover::before {
+            transform: scaleY(1);
+        }
+
+        .ticket-card:hover {
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.2);
+            transform: translateX(6px) translateY(-2px);
+            background: #ffffff;
+        }
+
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .ticket-header h3 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1.2rem;
+        }
+
+        .ticket-status {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .ticket-status.abierto {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .ticket-status.en_proceso {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .ticket-status.resuelto {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .ticket-body {
+            color: #4a5568;
+            margin-bottom: 15px;
+        }
+
+        .ticket-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 0.9rem;
+            color: #718096;
+        }
+
+        .ticket-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #7f8c8d;
+        }
+
+        .empty-state i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        /* Modal de Ticket */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            margin: 0;
+            font-size: 1.3rem;
+        }
+
+        .close-modal {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: background 0.3s ease;
+        }
+
+        .close-modal:hover {
+            background: rgba(255,255,255,0.2);
+        }
+
+        .modal-body {
+            padding: 25px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        /* Estilos para prioridades y estados de mensajes */
+        .priority-baja { background: #d4edda; color: #155724; }
+        .priority-normal { background: #d1ecf1; color: #0c5460; }
+        .priority-alta { background: #fff3cd; color: #856404; }
+        .priority-urgente { background: #f8d7da; color: #721c24; }
+
+        .status-enviado { background: #e2e3e5; color: #383d41; }
+        .status-leido { background: #d1ecf1; color: #0c5460; }
+        .status-respondido { background: #d4edda; color: #155724; }
+        .status-cerrado { background: #e2e3e5; color: #383d41; }
+
+        /* Estilos para Modal de Conversación */
+        .conversation-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .conversation-modal-content {
+            background: white;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+
+        .conversation-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 15px 15px 0 0;
+        }
+
+        .conversation-title {
+            margin: 0;
+            font-size: 1.3rem;
+        }
+
+        .conversation-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: background 0.3s ease;
+        }
+
+        .conversation-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .conversation-body {
+            display: flex;
+            flex-direction: column;
+            height: calc(85vh - 80px);
+            overflow: hidden;
+        }
+
+        .conversation-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .message-bubble {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            align-items: flex-start;
+        }
+
+        .message-bubble.sent {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .message-content {
+            max-width: 70%;
+            background: white;
+            padding: 12px 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .message-bubble.sent .message-content {
+            background: #667eea;
+            color: white;
+        }
+
+        .message-text {
+            margin: 0 0 5px 0;
+            line-height: 1.5;
+            word-wrap: break-word;
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            opacity: 0.7;
+            margin-top: 5px;
+        }
+
+        .conversation-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: #7f8c8d;
+        }
+
+        .conversation-empty i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            display: block;
+            opacity: 0.5;
+        }
+
+        .conversation-input {
+            padding: 15px;
+            background: white;
+            border-top: 1px solid #e2e8f0;
+            border-radius: 0 0 15px 15px;
+        }
+
+        .conversation-input-form {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .conversation-input-form textarea {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            resize: none;
+            font-family: inherit;
+            font-size: 0.9rem;
+            min-height: 50px;
+            max-height: 120px;
+        }
+
+        .conversation-input-form textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .conversation-send-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.2s ease;
+        }
+
+        .conversation-send-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+        }
+
+        .conversation-send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    </style>
+    
+</head>
+<body>
+  <header class="header">
+    <div class="logo" style="cursor: default;">
+      <img th:src="@{/frontend/imagenes/logo technova.png}" alt="Logo">
+      <span>TECHNOVA</span>
+    </div>
+
+    <div class="acciones-usuario">
+      <a th:href="@{/empleado/perfil}" class="account"><i class='bx bx-user-circle'></i> <span>Perfil</span></a>
+      <form method="POST" th:action="@{/logout}" style="display:inline;">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        <button type="submit" style="background:none;border:none;color:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:5px;" class="account">
+          <i class='bx bx-log-out'></i> <span>Cerrar Sesión</span>
+        </button>
+      </form>
+    </div>
+  </header>
+
+  <div class="dashboard-wrapper">
+    <div th:replace="~{frontend/layouts/sidebar-empleado :: sidebar}"></div>
+
+    <main class="main-content">
+      <div class="atencion-container">
+        <!-- Header Banner -->
+        <div class="header-banner">
+          <h1><i class='bx bx-headphone'></i> Atención al Cliente</h1>
+          <div class="divider"></div>
+          <p>Gestiona las consultas y mensajes de los clientes de manera eficiente</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div class="stats-grid">
+          <div class="stat-card total" data-tab="consultas" data-filtro="todas">
+            <p class="number" th:text="${totalConsultas != null ? totalConsultas : 0}">0</p>
+            <p class="label">TOTAL CONSULTAS</p>
+          </div>
+          <div class="stat-card pendientes" data-tab="consultas" data-filtro="pendientes">
+            <p class="number" th:text="${pendientes != null ? pendientes : 0}">0</p>
+            <p class="label">PENDIENTES</p>
+          </div>
+          <div class="stat-card mensajes" data-tab="mensajes" data-filtro="todos">
+            <p class="number" th:text="${mensajes != null ? mensajes : 0}">0</p>
+            <p class="label">MENSAJES</p>
+          </div>
+          <div class="stat-card no-leidos" data-tab="mensajes" data-filtro="no-leidos">
+            <p class="number" th:text="${noLeidos != null ? noLeidos : 0}">0</p>
+            <p class="label">NO LEÍDOS</p>
+          </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="search-container">
+          <div class="search-box">
+            <i class='bx bx-search'></i>
+            <input type="text" id="searchInput" placeholder="Buscar por nombre de cliente..." 
+                   th:value="${busqueda != null ? busqueda : ''}">
+          </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="main-content-area">
+          <!-- Tabs -->
+          <div class="tabs-container">
+            <button class="tab active">
+              <i class='bx bx-file-blank'></i> Consultas
+            </button>
+            <button class="tab">
+              <i class='bx bx-envelope'></i> Mensajes Directos
+            </button>
+          </div>
+
+          <!-- Filters -->
+          <div class="filters-container" id="consultasFilters">
+            <button class="filter-btn active">Todas</button>
+            <button class="filter-btn">Pendientes</button>
+            <button class="filter-btn">En Proceso</button>
+            <button class="filter-btn">Resueltas</button>
+            <button class="filter-btn">Cerradas</button>
+          </div>
+
+          <!-- Tickets List -->
+          <div class="tickets-list" id="ticketsList">
+            <div th:if="${tickets != null && !tickets.isEmpty()}">
+              <div class="ticket-card" th:each="ticket : ${tickets}" th:attr="data-ticket-id=${ticket.id}">
+                <div class="ticket-header">
+                  <h3 th:text="${ticket.tema != null ? ticket.tema : 'Sin tema'}">Tema</h3>
+                  <span th:classappend="'ticket-status ' + (ticket.estado != null ? ticket.estado : 'abierto')" class="ticket-status">
+                    <i th:if="${ticket.estado == 'abierto'}" class='bx bx-time-five'></i>
+                    <i th:if="${ticket.estado == 'en_proceso'}" class='bx bx-loader'></i>
+                    <i th:if="${ticket.estado == 'resuelto' || ticket.estado == 'cerrado'}" class='bx bx-check-circle'></i>
+                    <span th:text="${ticket.estado != null ? ticket.estado : 'Abierto'}">Estado</span>
+                  </span>
+                </div>
+                <div class="ticket-body">
+                  <p th:text="${ticket.descripcion != null ? ticket.descripcion : 'Sin descripción'}">Descripción</p>
+                  <div th:if="${ticket.respuesta != null && !#strings.isEmpty(ticket.respuesta)}" style="margin-top: 10px; padding: 10px; background: #e8f5e8; border-radius: 6px; border-left: 3px solid #28a745;">
+                    <strong style="color: #28a745;">Respuesta:</strong>
+                    <p style="margin: 5px 0 0 0; color: #2c3e50;" th:text="${ticket.respuesta}">Respuesta</p>
+                  </div>
+                </div>
+                <div class="ticket-meta">
+                  <span>
+                    <i class='bx bx-calendar'></i>
+                    <span th:text="${ticket.fechaConsulta != null ? #temporals.format(ticket.fechaConsulta, 'dd/MM/yyyy HH:mm') : 'N/A'}">Fecha</span>
+                  </span>
+                  <span>
+                    <i class='bx bx-user'></i>
+                    <span th:text="${ticket.usuarioId != null && nombresUsuarios != null && nombresUsuarios.containsKey(ticket.usuarioId) ? nombresUsuarios.get(ticket.usuarioId) : 'Usuario ID: ' + ticket.usuarioId}">Cliente</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div th:if="${tickets == null || tickets.isEmpty()}" class="empty-state">
+              <i class='bx bx-inbox'></i>
+              <h3>No hay consultas</h3>
+              <p>No se encontraron consultas con los filtros seleccionados.</p>
+            </div>
+          </div>
+
+          <!-- Mensajes Directos List -->
+          <div class="tickets-list" id="mensajesList" style="display: none;">
+            <div th:if="${conversaciones != null && !conversaciones.isEmpty()}">
+              <div class="ticket-card" th:each="conversacion : ${conversaciones}" 
+                   th:attr="data-conversation-id=${conversacion.conversationId}, data-message-id=${conversacion.id}, data-no-leido=${!conversacion.isRead && conversacion.estado != 'respondido' && conversacion.senderType != 'empleado'}">
+                <div class="ticket-header">
+                  <h3 th:text="${conversacion.asunto != null ? conversacion.asunto : 'Sin asunto'}">Asunto</h3>
+                  <div style="display: flex; gap: 8px; align-items: center;">
+                    <span th:classappend="'ticket-status priority-' + ${conversacion.prioridad != null ? #strings.toLowerCase(conversacion.prioridad) : 'normal'}" class="ticket-status" style="font-size: 0.75rem;">
+                      <span th:text="${conversacion.prioridad != null ? #strings.capitalize(conversacion.prioridad) : 'Normal'}">Prioridad</span>
+                    </span>
+                    <span th:if="${conversacion.isRead || conversacion.estado == 'respondido' || conversacion.senderType == 'empleado'}" class="ticket-status" style="font-size: 0.75rem; background: #d1ecf1; color: #0c5460; padding: 4px 8px; border-radius: 6px;">
+                      <i class='bx bx-check-circle'></i> Leído
+                    </span>
+                    <span th:if="${!conversacion.isRead && conversacion.estado != 'respondido' && conversacion.senderType != 'empleado'}" class="ticket-status" style="font-size: 0.75rem; background: #fff3cd; color: #856404; padding: 4px 8px; border-radius: 6px;">
+                      <i class='bx bx-time-five'></i> Pendiente
+                    </span>
+                    <span th:if="${!conversacion.isRead && conversacion.estado != 'respondido' && conversacion.senderType != 'empleado'}" style="width: 10px; height: 10px; background: #ef4444; border-radius: 50%; display: inline-block; margin-left: 4px;"></span>
+                  </div>
+                </div>
+                <div class="ticket-body">
+                  <p th:text="${conversacion.mensaje != null ? #strings.abbreviate(conversacion.mensaje, 150) : 'Sin mensaje'}">Mensaje</p>
+                </div>
+                <div class="ticket-meta">
+                  <span>
+                    <i class='bx bx-calendar'></i>
+                    <span th:text="${conversacion.createdAt != null ? #temporals.format(conversacion.createdAt, 'dd/MM/yyyy HH:mm') : 'N/A'}">Fecha</span>
+                  </span>
+                  <span>
+                    <i class='bx bx-user'></i>
+                    <span th:text="${conversacion.userId != null && nombresUsuarios != null ? (nombresUsuarios.containsKey(conversacion.userId.intValue()) ? nombresUsuarios.get(conversacion.userId.intValue()) : 'Usuario ID: ' + conversacion.userId) : 'Usuario desconocido'}">Cliente</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+            <div th:if="${conversaciones == null || conversaciones.isEmpty()}" class="empty-state">
+              <i class='bx bx-envelope'></i>
+              <h3>No hay mensajes directos</h3>
+              <p>No se encontraron mensajes directos.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal de Detalle de Ticket -->
+  <div id="ticketModal" class="modal" style="display: none;">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalTicketTitle">Detalle de Consulta</h3>
+        <button class="close-modal">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div id="modalTicketContent">
+          <!-- Contenido dinámico -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Conversación -->
+  <div id="conversationModal" class="conversation-modal" style="display: none;">
+    <div class="conversation-modal-content">
+      <div class="conversation-header">
+        <h3 class="conversation-title" id="conversationTitle">Conversación</h3>
+        <button class="conversation-close">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="conversation-body">
+        <div class="conversation-messages" id="conversationMessages">
+          <div class="conversation-empty">
+            <i class='bx bx-message-square-dots'></i>
+            <p>Cargando conversación...</p>
+          </div>
+        </div>
+        <div class="conversation-input">
+          <form class="conversation-input-form" id="conversationReplyForm">
+            <textarea 
+              id="conversationReplyText" 
+              placeholder="Escribe tu respuesta..." 
+              rows="1"
+              maxlength="2000"
+            ></textarea>
+            <button type="submit" class="conversation-send-btn" id="conversationSendBtn">
+              <i class='bx bx-send'></i>
+              Enviar
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 Technova</p>
+  </footer>
+
+  <!-- Script con datos del servidor -->
+  <script th:inline="javascript">
+    /*<![CDATA[*/
+    var datosIniciales = {
+      estadoActual: /*[[${estado != null ? estado : 'todas'}]]*/ 'todas',
+      busquedaActual: /*[[${busqueda != null ? busqueda : ''}]]*/ '',
+      usuarioId: /*[[${usuario != null && usuario.id != null ? usuario.id : null}]]*/ null,
+      nombresUsuarios: /*[[${nombresUsuarios}]]*/ {}
+    };
+    /*]]>*/
+  </script>
+
+  <!-- Script principal del módulo -->
+  <script>
+    /**
+     * Módulo de Gestión de Atención al Cliente
+     * Organizado y estructurado con nombres en español
+     */
+    var gestionAtencion = (function() {
+      'use strict';
+
+      // Estado interno del módulo
+      var estado = {
+        tabActual: 'consultas', // 'consultas' o 'mensajes'
+        estadoFiltro: 'todas', // 'todas', 'abierto', 'en_proceso', 'resuelto', 'cerrado', 'pendientes'
+        busqueda: '',
+        conversacionActual: null,
+        mensajeActual: null,
+        nombresUsuarios: {},
+        filtrarNoLeidos: false // Indica si se deben mostrar solo mensajes no leídos
+      };
+
+      // Inicialización
+      function inicializar() {
+        // Cargar datos iniciales del servidor
+        if (typeof datosIniciales !== 'undefined') {
+          estado.estadoFiltro = datosIniciales.estadoActual || 'todas';
+          estado.busqueda = datosIniciales.busquedaActual || '';
+          estado.usuarioId = datosIniciales.usuarioId || null;
+          if (datosIniciales.nombresUsuarios) {
+            estado.nombresUsuarios = datosIniciales.nombresUsuarios;
+          }
+        }
+
+        // Configurar event listeners
+        configurarEventListeners();
+        
+        // Aplicar estado inicial
+        aplicarEstadoInicial();
+      }
+
+      // Configurar todos los event listeners
+      function configurarEventListeners() {
+        // Tarjetas de estadísticas
+        var tarjetas = document.querySelectorAll('.stat-card');
+        tarjetas.forEach(function(tarjeta) {
+          tarjeta.addEventListener('click', function() {
+            var tab = tarjeta.getAttribute('data-tab');
+            var filtro = tarjeta.getAttribute('data-filtro');
+            filtrarPorTarjeta(tab, filtro);
+          });
+        });
+
+        // Tabs
+        var tabs = document.querySelectorAll('.tab');
+        tabs.forEach(function(tab, index) {
+          tab.addEventListener('click', function() {
+            var tabNombre = index === 0 ? 'consultas' : 'mensajes';
+            cambiarTab(tabNombre);
+          });
+        });
+
+        // Botones de filtro
+        var filtros = document.querySelectorAll('.filter-btn');
+        filtros.forEach(function(filtro) {
+          filtro.addEventListener('click', function() {
+            var textoFiltro = filtro.textContent.trim().toLowerCase();
+            var estadoFiltro = mapearTextoAEstado(textoFiltro);
+            filtrarPorEstado(estadoFiltro);
+          });
+        });
+
+        // Búsqueda
+        var inputBusqueda = document.getElementById('searchInput');
+        if (inputBusqueda) {
+          inputBusqueda.addEventListener('keyup', function(e) {
+            if (e.key === 'Enter' || e.keyCode === 13) {
+              ejecutarBusqueda();
+            }
+          });
+          // También buscar al perder el foco si hay texto
+          inputBusqueda.addEventListener('blur', function() {
+            if (inputBusqueda.value.trim() !== estado.busqueda) {
+              ejecutarBusqueda();
+            }
+          });
+        }
+
+        // Tarjetas de tickets
+        var ticketsCards = document.querySelectorAll('.ticket-card[data-ticket-id]');
+        ticketsCards.forEach(function(card) {
+          card.addEventListener('click', function() {
+            var ticketId = card.getAttribute('data-ticket-id');
+            if (ticketId) {
+              mostrarDetalleTicket(parseInt(ticketId));
+            }
+          });
+        });
+
+        // Tarjetas de conversaciones
+        var conversacionesCards = document.querySelectorAll('.ticket-card[data-conversation-id]');
+        conversacionesCards.forEach(function(card) {
+          card.addEventListener('click', function() {
+            var conversationId = card.getAttribute('data-conversation-id');
+            var messageId = card.getAttribute('data-message-id');
+            if (conversationId && messageId) {
+              mostrarConversacion(conversationId, parseInt(messageId));
+            }
+          });
+        });
+
+        // Modales
+        var modalTicket = document.getElementById('ticketModal');
+        var modalConversacion = document.getElementById('conversationModal');
+        
+        if (modalTicket) {
+          var closeTicketBtn = modalTicket.querySelector('.close-modal');
+          if (closeTicketBtn) {
+            closeTicketBtn.addEventListener('click', cerrarModalTicket);
+          }
+          modalTicket.addEventListener('click', function(e) {
+            if (e.target === modalTicket) {
+              cerrarModalTicket();
+            }
+          });
+        }
+
+        if (modalConversacion) {
+          var closeConversacionBtn = modalConversacion.querySelector('.conversation-close');
+          if (closeConversacionBtn) {
+            closeConversacionBtn.addEventListener('click', cerrarModalConversacion);
+          }
+          modalConversacion.addEventListener('click', function(e) {
+            if (e.target === modalConversacion) {
+              cerrarModalConversacion();
+            }
+          });
+        }
+
+        // Formulario de respuesta de conversación
+        var formRespuesta = document.getElementById('conversationReplyForm');
+        if (formRespuesta) {
+          formRespuesta.addEventListener('submit', function(e) {
+            e.preventDefault();
+            enviarRespuestaConversacion();
+          });
+        }
+      }
+
+      // Mapear texto del botón a estado
+      function mapearTextoAEstado(texto) {
+        var mapa = {
+          'todas': 'todas',
+          'pendientes': 'pendientes',
+          'en proceso': 'en_proceso',
+          'resueltas': 'resuelto',
+          'cerradas': 'cerrado'
+        };
+        return mapa[texto] || 'todas';
+      }
+
+      // Aplicar estado inicial
+      function aplicarEstadoInicial() {
+        // Marcar tab activo
+        cambiarTab(estado.tabActual);
+        
+        // Marcar filtro activo
+        marcarFiltroActivo(estado.estadoFiltro);
+        
+        // Si estamos en el tab de mensajes, asegurar que se muestren correctamente
+        if (estado.tabActual === 'mensajes') {
+          // Si no hay filtro activo, mostrar todos los mensajes
+          if (!estado.filtrarNoLeidos) {
+            mostrarTodosLosMensajes();
+          } else {
+            filtrarMensajesNoLeidos();
+          }
+        }
+        
+        // Marcar tarjeta activa si corresponde
+        marcarTarjetaActiva();
+        
+        // Actualizar estadísticas al cargar la página
+        actualizarEstadisticas();
+        
+        // Actualizar estadísticas periódicamente cada 30 segundos
+        setInterval(actualizarEstadisticas, 30000);
+      }
+
+      // Filtrar por tarjeta
+      function filtrarPorTarjeta(tab, filtro) {
+        if (tab === 'mensajes') {
+          cambiarTab('mensajes');
+          // Si es "no-leidos", filtrar mensajes no leídos
+          if (filtro === 'no-leidos') {
+            estado.filtrarNoLeidos = true;
+            filtrarMensajesNoLeidos();
+            marcarTarjetaActiva();
+          } else if (filtro === 'todos') {
+            estado.filtrarNoLeidos = false;
+            mostrarTodosLosMensajes();
+            marcarTarjetaActiva();
+          }
+        } else if (tab === 'consultas') {
+          cambiarTab('consultas');
+          estado.filtrarNoLeidos = false; // Desactivar filtro de no leídos al cambiar a consultas
+          if (filtro === 'pendientes') {
+            // Filtrar solo consultas pendientes (abierto + en_proceso)
+            estado.estadoFiltro = 'pendientes';
+            marcarFiltroActivo('pendientes');
+            // Recargar la página con el filtro de pendientes
+            var url = '/empleado/atencion-cliente?estado=pendientes';
+            if (estado.busqueda) {
+              url += '&busqueda=' + encodeURIComponent(estado.busqueda);
+            }
+            window.location.href = url;
+          } else if (filtro === 'todas') {
+            // Mostrar TODAS las consultas - limpiar búsqueda y filtros
+            estado.estadoFiltro = 'todas';
+            estado.busqueda = ''; // Limpiar búsqueda
+            marcarFiltroActivo('todas');
+            // Limpiar el campo de búsqueda visualmente
+            var searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+              searchInput.value = '';
+            }
+            // Recargar la página sin filtros ni búsqueda para mostrar TODAS las consultas
+            window.location.href = '/empleado/atencion-cliente?estado=todas';
+          }
+        }
+      }
+
+      // Cambiar tab
+      function cambiarTab(tab) {
+        estado.tabActual = tab;
+        
+        var tabs = document.querySelectorAll('.tab');
+        var consultasFilters = document.getElementById('consultasFilters');
+        var ticketsList = document.getElementById('ticketsList');
+        var mensajesList = document.getElementById('mensajesList');
+        
+        if (tab === 'consultas') {
+          // Activar tab de consultas
+          tabs[0].classList.add('active');
+          tabs[1].classList.remove('active');
+          
+          // Mostrar filtros y lista de consultas
+          if (consultasFilters) consultasFilters.style.display = 'flex';
+          if (ticketsList) ticketsList.style.display = 'block';
+          if (mensajesList) mensajesList.style.display = 'none';
+          
+          // Desactivar filtro de no leídos al cambiar a consultas
+          estado.filtrarNoLeidos = false;
+        } else if (tab === 'mensajes') {
+          // Activar tab de mensajes
+          tabs[0].classList.remove('active');
+          tabs[1].classList.add('active');
+          
+          // Ocultar filtros y mostrar lista de mensajes
+          if (consultasFilters) consultasFilters.style.display = 'none';
+          if (ticketsList) ticketsList.style.display = 'none';
+          if (mensajesList) mensajesList.style.display = 'block';
+          
+          // Aplicar filtro de no leídos si estaba activo
+          if (estado.filtrarNoLeidos) {
+            filtrarMensajesNoLeidos();
+          } else {
+            mostrarTodosLosMensajes();
+          }
+        }
+        
+        marcarTarjetaActiva();
+      }
+
+      // Filtrar por estado
+      function filtrarPorEstado(estadoFiltro) {
+        estado.estadoFiltro = estadoFiltro;
+        marcarFiltroActivo(estadoFiltro);
+        
+        // Construir URL con parámetros
+        var url = '/empleado/atencion-cliente?estado=' + encodeURIComponent(estadoFiltro);
+        if (estado.busqueda) {
+          url += '&busqueda=' + encodeURIComponent(estado.busqueda);
+        }
+        
+        window.location.href = url;
+      }
+
+      // Marcar filtro activo
+      function marcarFiltroActivo(estadoFiltro) {
+        var filtros = document.querySelectorAll('.filter-btn');
+        filtros.forEach(function(filtro) {
+          filtro.classList.remove('active');
+          var textoFiltro = filtro.textContent.trim().toLowerCase();
+          var estadoMapeado = mapearTextoAEstado(textoFiltro);
+          if (estadoMapeado === estadoFiltro) {
+            filtro.classList.add('active');
+          }
+        });
+      }
+
+      // Filtrar mensajes no leídos
+      function filtrarMensajesNoLeidos() {
+        var mensajesList = document.getElementById('mensajesList');
+        if (!mensajesList) return;
+        
+        var tarjetasMensajes = mensajesList.querySelectorAll('.ticket-card[data-conversation-id]');
+        var mensajesVisibles = 0;
+        var contenedorPadre = mensajesList.querySelector('div[th\\:if]');
+        
+        tarjetasMensajes.forEach(function(tarjeta) {
+          // Verificar si el mensaje está marcado como no leído usando el atributo data-no-leido
+          // Este atributo ya tiene la lógica correcta: !isRead && estado != 'respondido' && senderType != 'empleado'
+          var noLeido = tarjeta.getAttribute('data-no-leido');
+          var esNoLeido = noLeido === 'true' || noLeido === true;
+          
+          if (esNoLeido) {
+            tarjeta.style.display = 'block';
+            mensajesVisibles++;
+          } else {
+            tarjeta.style.display = 'none';
+          }
+        });
+        
+        // Ocultar el contenedor padre si no hay mensajes visibles
+        if (contenedorPadre && mensajesVisibles === 0) {
+          contenedorPadre.style.display = 'none';
+        } else if (contenedorPadre) {
+          contenedorPadre.style.display = 'block';
+        }
+        
+        // Mostrar mensaje si no hay mensajes no leídos
+        var mensajeVacio = mensajesList.querySelector('.empty-state:not([th\\:if])');
+        
+        if (mensajesVisibles === 0) {
+          if (!mensajeVacio) {
+            var nuevoMensajeVacio = document.createElement('div');
+            nuevoMensajeVacio.className = 'empty-state';
+            nuevoMensajeVacio.innerHTML = 
+              '<i class=\'bx bx-envelope\'></i>' +
+              '<h3>No hay mensajes no leídos</h3>' +
+              '<p>No se encontraron mensajes directos sin leer.</p>';
+            mensajesList.appendChild(nuevoMensajeVacio);
+          } else {
+            mensajeVacio.style.display = 'block';
+          }
+        } else {
+          if (mensajeVacio) {
+            mensajeVacio.style.display = 'none';
+          }
+        }
+      }
+
+      // Mostrar todos los mensajes
+      function mostrarTodosLosMensajes() {
+        var mensajesList = document.getElementById('mensajesList');
+        if (!mensajesList) return;
+        
+        var tarjetasMensajes = mensajesList.querySelectorAll('.ticket-card[data-conversation-id]');
+        tarjetasMensajes.forEach(function(tarjeta) {
+          tarjeta.style.display = 'block';
+        });
+        
+        // Mostrar el contenedor padre
+        var contenedorPadre = mensajesList.querySelector('div[th\\:if]');
+        if (contenedorPadre) {
+          contenedorPadre.style.display = 'block';
+        }
+        
+        // Ocultar mensaje vacío personalizado si existe
+        var mensajeVacio = mensajesList.querySelector('.empty-state:not([th\\:if])');
+        if (mensajeVacio) {
+          mensajeVacio.style.display = 'none';
+        }
+      }
+
+      // Marcar tarjeta activa
+      function marcarTarjetaActiva() {
+        var tarjetas = document.querySelectorAll('.stat-card');
+        tarjetas.forEach(function(tarjeta) {
+          tarjeta.classList.remove('active-filter');
+          var tabTarjeta = tarjeta.getAttribute('data-tab');
+          var filtroTarjeta = tarjeta.getAttribute('data-filtro');
+          
+          if (tabTarjeta === estado.tabActual) {
+            if (tabTarjeta === 'consultas') {
+              if ((estado.estadoFiltro === 'todas' && filtroTarjeta === 'todas') ||
+                  (estado.estadoFiltro === 'pendientes' && filtroTarjeta === 'pendientes')) {
+                tarjeta.classList.add('active-filter');
+              }
+            } else if (tabTarjeta === 'mensajes') {
+              // Marcar tarjeta activa según el filtro de no leídos
+              if (filtroTarjeta === 'no-leidos' && estado.filtrarNoLeidos) {
+                tarjeta.classList.add('active-filter');
+              } else if (filtroTarjeta === 'todos' && !estado.filtrarNoLeidos) {
+                tarjeta.classList.add('active-filter');
+              }
+            }
+          }
+        });
+      }
+
+      // Ejecutar búsqueda
+      function ejecutarBusqueda() {
+        var inputBusqueda = document.getElementById('searchInput');
+        if (inputBusqueda) {
+          estado.busqueda = inputBusqueda.value.trim();
+          
+          var url = '/empleado/atencion-cliente?estado=' + encodeURIComponent(estado.estadoFiltro);
+          if (estado.busqueda) {
+            url += '&busqueda=' + encodeURIComponent(estado.busqueda);
+          }
+          
+          window.location.href = url;
+        }
+      }
+
+      // Mostrar detalle de ticket
+      function mostrarDetalleTicket(ticketId) {
+        fetch('/api/atencion-cliente/' + ticketId)
+          .then(function(response) {
+            if (!response.ok) {
+              throw new Error('Error al cargar el ticket');
+            }
+            return response.json();
+          })
+          .then(function(ticket) {
+            var modal = document.getElementById('ticketModal');
+            var titulo = document.getElementById('modalTicketTitle');
+            var contenido = document.getElementById('modalTicketContent');
+            
+            if (!modal || !titulo || !contenido) return;
+            
+            titulo.textContent = ticket.tema || 'Sin tema';
+            
+            var nombreCliente = obtenerNombreUsuario(ticket.usuarioId);
+            var fecha = formatearFecha(ticket.fechaConsulta);
+            var estadoClass = ticket.estado || 'abierto';
+            var estadoTexto = formatearEstado(ticket.estado);
+            var descripcion = ticket.descripcion || 'Sin descripción';
+            
+            var htmlRespuesta = '';
+            if (ticket.respuesta) {
+              htmlRespuesta = 
+                '<div style="background: #e8f5e8; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745;">' +
+                  '<h4 style="color: #28a745; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">' +
+                    '<i class="bx bx-check-circle"></i> Respuesta:' +
+                  '</h4>' +
+                  '<p style="color: #2c3e50; line-height: 1.6; margin: 0;">' +
+                    escapeHtml(ticket.respuesta) +
+                  '</p>' +
+                '</div>';
+            } else {
+              htmlRespuesta = 
+                '<div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 2px dashed #dee2e6; text-align: center;">' +
+                  '<i class="bx bx-time" style="font-size: 2rem; color: #6c757d; margin-bottom: 10px; display: block;"></i>' +
+                  '<p style="color: #6c757d; margin: 0;">Esta consulta aún no tiene respuesta.</p>' +
+                  '<button onclick="gestionAtencion.responderTicket(' + ticket.id + ')" class="btn-primary" style="margin-top: 15px; padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer;">' +
+                    '<i class="bx bx-reply"></i> Responder' +
+                  '</button>' +
+                '</div>';
+            }
+            
+            contenido.innerHTML = 
+              '<div style="margin-bottom: 20px;">' +
+                '<div style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">' +
+                  '<span style="display: flex; align-items: center; gap: 5px; color: #6c757d; font-size: 0.9rem;">' +
+                    '<i class="bx bx-calendar"></i> ' + fecha +
+                  '</span>' +
+                  '<span style="display: flex; align-items: center; gap: 5px; color: #6c757d; font-size: 0.9rem;">' +
+                    '<i class="bx bx-user"></i> ' + escapeHtml(nombreCliente) +
+                  '</span>' +
+                  '<span class="ticket-status ' + estadoClass + '" style="font-size: 0.8rem;">' +
+                    estadoTexto +
+                  '</span>' +
+                '</div>' +
+                '<div style="margin-bottom: 20px;">' +
+                  '<h4 style="color: #2c3e50; margin-bottom: 10px;">Descripción:</h4>' +
+                  '<p style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea; color: #495057; line-height: 1.6;">' +
+                    escapeHtml(descripcion) +
+                  '</p>' +
+                '</div>' +
+                htmlRespuesta +
+              '</div>';
+            
+            modal.style.display = 'flex';
+          })
+          .catch(function(error) {
+            console.error('Error:', error);
+            alert('Error al cargar el ticket: ' + error.message);
+          });
+      }
+
+      // Responder ticket
+      function responderTicket(ticketId) {
+        var respuesta = prompt('Ingresa tu respuesta:');
+        if (!respuesta || respuesta.trim() === '') {
+          return;
+        }
+        
+        var formData = new URLSearchParams();
+        formData.append('respuesta', respuesta.trim());
+        
+        fetch('/api/atencion-cliente/' + ticketId + '/responder', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: formData.toString()
+        })
+        .then(function(response) {
+          if (!response.ok) {
+            throw new Error('Error al responder el ticket');
+          }
+          return response.json();
+        })
+        .then(function(data) {
+          alert('Respuesta enviada correctamente');
+          cerrarModalTicket();
+          // Actualizar estadísticas antes de recargar
+          actualizarEstadisticas();
+          setTimeout(function() {
+            location.reload();
+          }, 500);
+        })
+        .catch(function(error) {
+          console.error('Error:', error);
+          alert('Error al responder el ticket: ' + error.message);
+        });
+      }
+
+      // Cerrar modal de ticket
+      function cerrarModalTicket() {
+        var modal = document.getElementById('ticketModal');
+        if (modal) modal.style.display = 'none';
+      }
+
+      // Mostrar conversación
+      function mostrarConversacion(conversationId, messageId) {
+        estado.conversacionActual = conversationId;
+        estado.mensajeActual = messageId;
+        
+        var modal = document.getElementById('conversationModal');
+        var mensajesContainer = document.getElementById('conversationMessages');
+        
+        if (!modal || !mensajesContainer) return;
+        
+        modal.style.display = 'flex';
+        mensajesContainer.innerHTML = '<div class="conversation-empty"><i class="bx bx-loader-alt bx-spin"></i><p>Cargando conversación...</p></div>';
+        
+        cargarConversacion(conversationId);
+      }
+
+      // Cargar conversación
+      function cargarConversacion(conversationId) {
+        fetch('/api/mensajes-directos/conversacion/' + conversationId)
+          .then(function(response) {
+            if (!response.ok) {
+              throw new Error('Error al cargar la conversación');
+            }
+            return response.json();
+          })
+          .then(function(mensajes) {
+            if (mensajes.error) {
+              throw new Error(mensajes.error);
+            }
+            mostrarMensajesConversacion(mensajes);
+          })
+          .catch(function(error) {
+            console.error('Error:', error);
+            var mensajesContainer = document.getElementById('conversationMessages');
+            if (mensajesContainer) {
+              mensajesContainer.innerHTML = 
+                '<div class="conversation-empty"><i class="bx bx-error"></i><p>Error al cargar la conversación</p></div>';
+            }
+          });
+      }
+
+      // Mostrar mensajes de conversación
+      function mostrarMensajesConversacion(mensajes) {
+        var mensajesContainer = document.getElementById('conversationMessages');
+        if (!mensajesContainer) return;
+        
+        if (!mensajes || mensajes.length === 0) {
+          mensajesContainer.innerHTML = 
+            '<div class="conversation-empty"><i class="bx bx-message-square-dots"></i><p>No hay mensajes en esta conversación</p></div>';
+          return;
+        }
+
+        // Actualizar mensaje actual al último
+        if (mensajes.length > 0) {
+          var ultimoMensaje = mensajes[mensajes.length - 1];
+          if (ultimoMensaje && ultimoMensaje.id) {
+            estado.mensajeActual = ultimoMensaje.id;
+          }
+        }
+
+        mensajesContainer.innerHTML = '';
+        
+        mensajes.forEach(function(mensaje) {
+          var esEnviado = mensaje.senderType === 'empleado';
+          var mensajeElement = document.createElement('div');
+          mensajeElement.className = 'message-bubble ' + (esEnviado ? 'sent' : 'received');
+          
+          var fecha = formatearFecha(mensaje.createdAt);
+          var nombreRemitente = esEnviado ? 'Tú' : obtenerNombreUsuario(mensaje.userId);
+          
+          mensajeElement.innerHTML = 
+            '<div class="message-avatar">' + (esEnviado ? '👨‍💼' : '👤') + '</div>' +
+            '<div class="message-content">' +
+              '<div style="font-size: 0.75rem; opacity: 0.8; margin-bottom: 4px;">' + escapeHtml(nombreRemitente) + '</div>' +
+              '<div class="message-text">' + escapeHtml(mensaje.mensaje || 'Sin mensaje') + '</div>' +
+              '<div class="message-time">' + fecha + '</div>' +
+            '</div>';
+          
+          mensajesContainer.appendChild(mensajeElement);
+        });
+        
+        mensajesContainer.scrollTop = mensajesContainer.scrollHeight;
+      }
+
+      // Enviar respuesta de conversación
+      function enviarRespuestaConversacion() {
+        if (!estado.mensajeActual) {
+          alert('Error: No se puede responder sin un mensaje seleccionado');
+          return;
+        }
+        
+        var textarea = document.getElementById('conversationReplyText');
+        var mensaje = textarea ? textarea.value.trim() : '';
+        
+        if (!mensaje) {
+          alert('Por favor escribe un mensaje');
+          return;
+        }
+        
+        if (!estado.usuarioId) {
+          alert('Error: No se pudo identificar al usuario');
+          return;
+        }
+        
+        var formData = new URLSearchParams();
+        formData.append('senderId', estado.usuarioId.toString());
+        formData.append('senderType', 'empleado');
+        formData.append('mensaje', mensaje);
+        
+        var sendBtn = document.getElementById('conversationSendBtn');
+        if (sendBtn) {
+          sendBtn.disabled = true;
+          sendBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Enviando...';
+        }
+        
+        fetch('/api/mensajes-directos/' + estado.mensajeActual + '/responder', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: formData.toString()
+        })
+        .then(function(response) {
+          if (response.ok) {
+            if (textarea) textarea.value = '';
+            cargarConversacion(estado.conversacionActual);
+            // Actualizar estadísticas después de enviar mensaje
+            actualizarEstadisticas();
+            alert('Mensaje enviado correctamente');
+          } else {
+            return response.text().then(function(errorText) {
+              alert('Error al enviar el mensaje: ' + errorText);
+            });
+          }
+        })
+        .catch(function(error) {
+          console.error('Error:', error);
+          alert('Error al enviar el mensaje: ' + error.message);
+        })
+        .finally(function() {
+          if (sendBtn) {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<i class="bx bx-send"></i> Enviar';
+          }
+        });
+      }
+
+      // Actualizar estadísticas de las tarjetas
+      function actualizarEstadisticas() {
+        // Actualizar estadísticas de consultas
+        fetch('/api/atencion-cliente/estadisticas')
+          .then(function(response) {
+            if (!response.ok) {
+              throw new Error('Error al obtener estadísticas de consultas');
+            }
+            return response.json();
+          })
+          .then(function(data) {
+            if (data.totalConsultas !== undefined) {
+              var totalConsultasCard = document.querySelector('.stat-card.total .number');
+              if (totalConsultasCard) {
+                totalConsultasCard.textContent = data.totalConsultas;
+              }
+            }
+            if (data.pendientes !== undefined) {
+              var pendientesCard = document.querySelector('.stat-card.pendientes .number');
+              if (pendientesCard) {
+                pendientesCard.textContent = data.pendientes;
+              }
+            }
+          })
+          .catch(function(error) {
+            console.error('Error al actualizar estadísticas de consultas:', error);
+          });
+
+        // Actualizar estadísticas de mensajes
+        fetch('/api/mensajes-directos/estadisticas')
+          .then(function(response) {
+            if (!response.ok) {
+              throw new Error('Error al obtener estadísticas de mensajes');
+            }
+            return response.json();
+          })
+          .then(function(data) {
+            if (data.mensajes !== undefined) {
+              var mensajesCard = document.querySelector('.stat-card.mensajes .number');
+              if (mensajesCard) {
+                mensajesCard.textContent = data.mensajes;
+              }
+            }
+            if (data.noLeidos !== undefined) {
+              var noLeidosCard = document.querySelector('.stat-card.no-leidos .number');
+              if (noLeidosCard) {
+                noLeidosCard.textContent = data.noLeidos;
+              }
+            }
+            
+            // Si estamos en el tab de mensajes y el filtro de no leídos está activo,
+            // reaplicar el filtro para asegurar que se muestren solo los no leídos actualizados
+            if (estado.tabActual === 'mensajes' && estado.filtrarNoLeidos) {
+              // Pequeño delay para asegurar que el DOM esté actualizado
+              setTimeout(function() {
+                filtrarMensajesNoLeidos();
+              }, 100);
+            }
+          })
+          .catch(function(error) {
+            console.error('Error al actualizar estadísticas de mensajes:', error);
+          });
+      }
+
+      // Cerrar modal de conversación
+      function cerrarModalConversacion() {
+        var modal = document.getElementById('conversationModal');
+        if (modal) modal.style.display = 'none';
+        estado.conversacionActual = null;
+        estado.mensajeActual = null;
+      }
+
+      // Utilidades
+      function obtenerNombreUsuario(usuarioId) {
+        if (!usuarioId) return 'Usuario desconocido';
+        if (estado.nombresUsuarios && estado.nombresUsuarios[usuarioId]) {
+          return estado.nombresUsuarios[usuarioId];
+        }
+        return 'Usuario ID: ' + usuarioId;
+      }
+
+      function formatearFecha(fecha) {
+        if (!fecha) return 'N/A';
+        try {
+          var fechaObj = new Date(fecha);
+          return fechaObj.toLocaleString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+        } catch (e) {
+          return 'N/A';
+        }
+      }
+
+      function formatearEstado(estado) {
+        var mapa = {
+          'abierto': 'Abierto',
+          'en_proceso': 'En Proceso',
+          'resuelto': 'Resuelto',
+          'cerrado': 'Cerrado'
+        };
+        return mapa[estado] || estado || 'Abierto';
+      }
+
+      function escapeHtml(texto) {
+        if (!texto) return '';
+        var div = document.createElement('div');
+        div.textContent = texto;
+        return div.innerHTML;
+      }
+
+      // API pública
+      return {
+        inicializar: inicializar,
+        cambiarTab: cambiarTab,
+        filtrarPorEstado: filtrarPorEstado,
+        filtrarPorTarjeta: filtrarPorTarjeta,
+        ejecutarBusqueda: ejecutarBusqueda,
+        mostrarDetalleTicket: mostrarDetalleTicket,
+        responderTicket: responderTicket,
+        cerrarModalTicket: cerrarModalTicket,
+        mostrarConversacion: mostrarConversacion,
+        cerrarModalConversacion: cerrarModalConversacion,
+        actualizarEstadisticas: actualizarEstadisticas
+      };
+    })();
+
+    // Inicializar cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', function() {
+      gestionAtencion.inicializar();
+    });
+  </script>
+
+</body>
+</html>

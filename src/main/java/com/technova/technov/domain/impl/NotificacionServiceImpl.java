@@ -29,6 +29,15 @@ public class NotificacionServiceImpl implements NotificacionService {
     @Transactional(readOnly = true)
     public List<NotificacionDto> listarTodos() {
         return notificacionRepository.findAll().stream()
+                .sorted((a, b) -> {
+                    // Ordenar por fecha de creación descendente (más reciente primero)
+                    if (a.getFechaCreacion() != null && b.getFechaCreacion() != null) {
+                        int fechaCompare = b.getFechaCreacion().compareTo(a.getFechaCreacion());
+                        if (fechaCompare != 0) return fechaCompare;
+                    }
+                    // Si las fechas son iguales o nulas, ordenar por ID descendente
+                    return b.getId().compareTo(a.getId());
+                })
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }
@@ -51,7 +60,18 @@ public class NotificacionServiceImpl implements NotificacionService {
     @Transactional(readOnly = true)
     public List<NotificacionDto> listarPorUsuarioYRango(Long userId, Instant desde, Instant hasta) {
         return notificacionRepository.findByUsuario_IdAndFechaCreacionBetween(userId, desde, hasta)
-                .stream().map(this::toDto).collect(Collectors.toList());
+                .stream()
+                .sorted((a, b) -> {
+                    // Ordenar por fecha de creación descendente (más reciente primero)
+                    if (a.getFechaCreacion() != null && b.getFechaCreacion() != null) {
+                        int fechaCompare = b.getFechaCreacion().compareTo(a.getFechaCreacion());
+                        if (fechaCompare != 0) return fechaCompare;
+                    }
+                    // Si las fechas son iguales o nulas, ordenar por ID descendente
+                    return b.getId().compareTo(a.getId());
+                })
+                .map(this::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override

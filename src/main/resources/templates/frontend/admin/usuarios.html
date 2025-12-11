@@ -665,12 +665,25 @@
           </small>
         </div>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label><i class='bx bx-lock-alt'></i> Contraseña *</label>
-            <input type="password" name="password" id="password" placeholder="Contraseña" required />
+        <div class="form-group">
+          <label><i class='bx bx-lock-alt'></i> Contraseña *</label>
+          <input type="password" name="password" id="password" placeholder="Mínimo 8 caracteres, mayúscula, minúscula, número y carácter especial" required />
+          <div class="password-requisitos" id="password-requisitos" style="margin-top: 10px; font-size: 12px; color: #666; display: none;">
+            <p class="requisito" data-req="length" style="margin: 2px 0;">✗ Mínimo 8 caracteres</p>
+            <p class="requisito" data-req="upper" style="margin: 2px 0;">✗ Mayúscula</p>
+            <p class="requisito" data-req="lower" style="margin: 2px 0;">✗ Minúscula</p>
+            <p class="requisito" data-req="digit" style="margin: 2px 0;">✗ Número</p>
+            <p class="requisito" data-req="special" style="margin: 2px 0;">✗ Carácter especial</p>
           </div>
+        </div>
 
+        <div class="form-group">
+          <label><i class='bx bx-lock-alt'></i> Confirmar Contraseña *</label>
+          <input type="password" name="confirmPassword" id="confirmPassword" placeholder="Repite la contraseña" required />
+          <div class="error-message d-none" id="confirmPasswordError" style="color: #ef4444; font-size: 0.85rem; margin-top: 5px;"></div>
+        </div>
+
+        <div class="form-row">
           <div class="form-group">
             <label><i class='bx bx-phone'></i> Teléfono *</label>
             <input type="tel" name="phone" id="phone" placeholder="Número de teléfono" required />
@@ -1071,6 +1084,115 @@
       }
     }
 
+    // Función para validar la contraseña
+    function validarPassword(password) {
+      return {
+        length: password.length >= 8,
+        upper: /[A-Z]/.test(password),
+        lower: /[a-z]/.test(password),
+        digit: /\d/.test(password),
+        special: /[!@#$%^&*(),.?":{}|<>]/.test(password)
+      };
+    }
+
+    // Función para actualizar la visualización de requisitos
+    function actualizarRequisitos(validaciones, requisitosDiv) {
+      const requisitoElements = requisitosDiv.querySelectorAll('.requisito');
+      let todosCompletos = true;
+
+      requisitoElements.forEach(element => {
+        const tipo = element.getAttribute('data-req');
+        const esValido = validaciones[tipo];
+
+        if (esValido) {
+          element.innerHTML = '✓ ' + element.textContent.substring(2);
+          element.style.color = '#10b981';
+          element.style.fontWeight = '600';
+        } else {
+          element.innerHTML = '✗ ' + element.textContent.substring(2);
+          element.style.color = '#ef4444';
+          element.style.fontWeight = '400';
+          todosCompletos = false;
+        }
+      });
+
+      return todosCompletos;
+    }
+
+    // Validar contraseña mientras se escribe
+    const passwordInput = document.getElementById('password');
+    const confirmPasswordInput = document.getElementById('confirmPassword');
+    const passwordRequisitos = document.getElementById('password-requisitos');
+
+    if (passwordInput && passwordRequisitos) {
+      passwordInput.addEventListener('input', function() {
+        const password = this.value;
+        
+        if (password.length > 0) {
+          passwordRequisitos.style.display = 'block';
+          const validaciones = validarPassword(password);
+          const esValida = actualizarRequisitos(validaciones, passwordRequisitos);
+          
+          if (esValida) {
+            this.style.borderColor = '#10b981';
+            this.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.1)';
+          } else {
+            this.style.borderColor = '#e2e8f0';
+            this.style.boxShadow = 'none';
+          }
+        } else {
+          passwordRequisitos.style.display = 'none';
+          this.style.borderColor = '#e2e8f0';
+          this.style.boxShadow = 'none';
+        }
+        
+        // Validar confirmación si ya hay texto
+        if (confirmPasswordInput && confirmPasswordInput.value.length > 0) {
+          validarConfirmacionPassword();
+        }
+      });
+    }
+
+    // Validar confirmación de contraseña
+    function validarConfirmacionPassword() {
+      const password = passwordInput.value;
+      const confirmPassword = confirmPasswordInput.value;
+      const errorDiv = document.getElementById('confirmPasswordError');
+
+      if (confirmPassword.length === 0) {
+        confirmPasswordInput.style.borderColor = '#e2e8f0';
+        confirmPasswordInput.style.boxShadow = 'none';
+        if (errorDiv) {
+          errorDiv.style.display = 'none';
+          errorDiv.classList.add('d-none');
+        }
+        return;
+      }
+
+      if (password.length > 0 && confirmPassword.length > 0) {
+        if (password === confirmPassword) {
+          confirmPasswordInput.style.borderColor = '#10b981';
+          confirmPasswordInput.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.1)';
+          if (errorDiv) {
+            errorDiv.style.display = 'none';
+            errorDiv.classList.add('d-none');
+          }
+        } else {
+          confirmPasswordInput.style.borderColor = '#ef4444';
+          confirmPasswordInput.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
+          if (errorDiv) {
+            errorDiv.textContent = 'Las contraseñas no coinciden.';
+            errorDiv.style.display = 'block';
+            errorDiv.classList.remove('d-none');
+          }
+        }
+      }
+    }
+
+    if (confirmPasswordInput) {
+      confirmPasswordInput.addEventListener('input', validarConfirmacionPassword);
+    }
+
     // Manejar envío del formulario
     document.getElementById('formAgregarUsuario').addEventListener('submit', function(e) {
       e.preventDefault();
@@ -1090,6 +1212,35 @@
           confirmButtonText: 'OK'
         });
         return;
+      }
+
+      // Validar contraseña
+      const password = data.password || '';
+      const confirmPassword = data.confirmPassword || '';
+      
+      if (password.length > 0) {
+        const validaciones = validarPassword(password);
+        const esValida = Object.values(validaciones).every(v => v);
+
+        if (!esValida) {
+          Swal.fire({
+            title: 'Error',
+            text: 'La contraseña no cumple con los requisitos de seguridad. Debe tener mínimo 8 caracteres, mayúscula, minúscula, número y carácter especial.',
+            icon: 'error',
+            confirmButtonText: 'OK'
+          });
+          return;
+        }
+
+        if (password !== confirmPassword) {
+          Swal.fire({
+            title: 'Error',
+            text: 'Las contraseñas no coinciden.',
+            icon: 'error',
+            confirmButtonText: 'OK'
+          });
+          return;
+        }
       }
 
       // Crear un formulario oculto para enviar con CSRF

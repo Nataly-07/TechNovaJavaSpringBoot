@@ -4,14 +4,710 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <meta name="_csrf" th:content="${_csrf.token}"/>
-    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}"/>
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}"/>
     <title>Atención al Cliente - Technova</title>
 
-    <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+    <!-- Preload de fuentes boxicons para carga más rápida -->
+    <link rel="preload" href="https://unpkg.com/boxicons@2.0.9/fonts/boxicons.woff2" as="font" type="font/woff2" crossorigin="anonymous">
+    <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet' crossorigin='anonymous'>
     <link rel="stylesheet" th:href="@{/frontend/css/estilodas.css}">
     <link rel="stylesheet" th:href="@{/frontend/css/stilotech.css}">
     <link rel="stylesheet" th:href="@{/frontend/css/color-palette.css}">
+    
+    <style>
+        .welcome-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .welcome-section h1 {
+            margin: 0 0 10px 0;
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+
+        .welcome-section p {
+            margin: 0;
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        /* Tabs */
+        .tabs-container {
+            background: white;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .tabs-header {
+            display: flex;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-bottom: none;
+        }
+
+        .tab-button {
+            flex: 1;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .tab-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        .tab-button.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-bottom: 3px solid white;
+        }
+
+        .tab-content {
+            display: none;
+      padding: 25px;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* Consultas Section */
+        .consultas-section {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .consultas-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f8f9fa;
+        }
+
+        .consultas-title {
+            font-size: 1.5rem;
+            color: #333;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+            margin: 0;
+        }
+
+        .btn-new-consulta {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+      display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-new-consulta:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .consulta-form {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid #e9ecef;
+            display: none;
+        }
+
+        .consulta-form.active {
+            display: block;
+    }
+
+    .form-group {
+            margin-bottom: 15px;
+    }
+
+    .form-group label {
+            display: block;
+            margin-bottom: 5px;
+      font-weight: 600;
+            color: #2c3e50;
+    }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+            font-size: 0.9rem;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.1);
+        }
+
+        .form-group textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .btn-enviar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-enviar:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .consultas-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .consulta-item {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .consulta-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .consulta-header {
+      display: flex;
+      justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .consulta-info {
+            flex: 1;
+        }
+
+        .consulta-tema {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 1.1rem;
+            margin-bottom: 5px;
+        }
+
+        .consulta-fecha {
+            color: #6c757d;
+            font-size: 0.85rem;
+            display: flex;
+      align-items: center;
+            gap: 5px;
+        }
+
+        .consulta-meta {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        .consulta-estado {
+            padding: 4px 12px;
+            border-radius: 20px;
+      font-size: 0.8rem;
+            font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+        .consulta-estado.estado-abierto {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .consulta-estado.estado-en_proceso {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .consulta-estado.estado-resuelto,
+        .consulta-estado.estado-cerrado {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .consulta-preview {
+            color: #495057;
+            line-height: 1.5;
+      margin-bottom: 10px;
+    }
+
+        .consulta-respuesta-indicator {
+            color: #28a745;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: 500;
+        }
+
+        /* Mensajes Directos Section */
+        .mensajes-directos-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 25px;
+        }
+
+        .mensajes-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f8f9fa;
+        }
+
+        .mensajes-title {
+            font-size: 1.5rem;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin: 0;
+        }
+
+        .btn-new-message {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+      font-size: 0.9rem;
+            font-weight: 500;
+      display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-new-message:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .message-form {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+            border: 1px solid #e9ecef;
+            display: none;
+        }
+
+        .message-form.active {
+            display: block;
+        }
+
+        .message-item {
+            background: white;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 12px;
+            border: 1px solid #e9ecef;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .message-item:hover {
+            border-color: #3498db;
+            box-shadow: 0 2px 8px rgba(52, 152, 219, 0.1);
+        }
+
+        .message-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .message-subject {
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.95rem;
+        }
+
+        .message-meta {
+            display: flex;
+            gap: 8px;
+        }
+
+        .priority-badge, .status-badge {
+            font-size: 0.75rem;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        .priority-baja { background: #d4edda; color: #155724; }
+        .priority-normal { background: #d1ecf1; color: #0c5460; }
+        .priority-alta { background: #fff3cd; color: #856404; }
+        .priority-urgente { background: #f8d7da; color: #721c24; }
+
+        .status-enviado { background: #e2e3e5; color: #383d41; }
+        .status-leido { background: #d1ecf1; color: #0c5460; }
+        .status-respondido { background: #d4edda; color: #155724; }
+        .status-cerrado { background: #e2e3e5; color: #383d41; }
+
+        .message-preview {
+            color: #6c757d;
+            font-size: 0.9rem;
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+
+        .message-date {
+            font-size: 0.8rem;
+            color: #adb5bd;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+            color: #6c757d;
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            color: #dee2e6;
+            display: block;
+        }
+
+        .empty-state h3 {
+            margin: 0 0 8px 0;
+            color: #495057;
+        }
+
+        .empty-state p {
+            margin: 0;
+            font-size: 0.9rem;
+        }
+
+        /* Modal de Conversación */
+        .conversation-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .conversation-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .conversation-modal-content {
+            background-color: white;
+            margin: 2% auto;
+            padding: 0;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 800px;
+            height: 90vh;
+            max-height: 700px;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+        }
+
+        .conversation-modal.active .conversation-modal-content {
+            transform: translateY(0);
+        }
+
+        .conversation-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .conversation-title {
+            font-size: 1.2rem;
+      font-weight: 600;
+            margin: 0;
+        }
+
+        .conversation-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+      cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: background-color 0.3s ease;
+        }
+
+        .conversation-close:hover {
+            background-color: rgba(255,255,255,0.2);
+        }
+
+        .conversation-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .conversation-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message-bubble {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: flex-end;
+            gap: 10px;
+        }
+
+        .message-bubble.sent {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+      align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .message-bubble.sent .message-avatar {
+            background: #667eea;
+            color: white;
+        }
+
+        .message-bubble.received .message-avatar {
+            background: #28a745;
+            color: white;
+        }
+
+        .message-content {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            position: relative;
+        }
+
+        .message-bubble.sent .message-content {
+            background: #667eea;
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+
+        .message-bubble.received .message-content {
+            background: white;
+            color: #333;
+            border: 1px solid #e9ecef;
+            border-bottom-left-radius: 5px;
+        }
+
+        .message-text {
+            margin: 0;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        .message-time {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-top: 5px;
+            text-align: right;
+        }
+
+        .message-bubble.received .message-time {
+            text-align: left;
+        }
+
+        .conversation-input {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #e9ecef;
+            border-radius: 0 0 15px 15px;
+        }
+
+        .conversation-input-form {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .conversation-input textarea {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e9ecef;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            resize: none;
+            min-height: 40px;
+            max-height: 120px;
+            font-family: inherit;
+            transition: border-color 0.3s ease;
+        }
+
+        .conversation-input textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .conversation-send-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .conversation-send-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .conversation-send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .conversation-empty {
+            text-align: center;
+            color: #6c757d;
+            padding: 40px 20px;
+        }
+
+        .conversation-empty i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+    }
+
+    @media (max-width: 768px) {
+            .tabs-header {
+                flex-direction: column;
+            }
+            
+            .consultas-header,
+            .mensajes-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+      }
+    }
+  </style>
 </head>
 <body>
   <header class="header">
@@ -37,33 +733,58 @@
     <main class="main-content">
       <div class="welcome-section">
         <h1><i class='bx bx-headphone'></i> Atención al Cliente</h1>
-        <p>Gestiona tus tickets de soporte y consultas</p>
+        <p>Estamos aquí para ayudarte. Envíanos tu consulta y te responderemos lo antes posible.</p>
       </div>
 
-      <div class="tickets-container">
-        <div class="ticket-form-section">
-          <h2><i class='bx bx-plus-circle'></i> Crear Nuevo Ticket</h2>
-          <form id="ticketForm" class="ticket-form">
+      <!-- Pestañas de Atención al Cliente -->
+      <div class="tabs-container">
+          <div class="tabs-header">
+              <button class="tab-button active" data-tab="consultas">
+                  <i class='bx bx-clipboard'></i>
+                  Mis Consultas
+              </button>
+              <button class="tab-button" data-tab="mensajes">
+                  <i class='bx bx-envelope'></i>
+                  Mensajes Directos
+              </button>
+          </div>
+
+          <!-- Contenido de Mis Consultas -->
+          <div id="consultas-tab" class="tab-content active">
+            <div class="consultas-section">
+                  <div class="consultas-header">
+                <h2 class="consultas-title">
+                          <i class='bx bx-clipboard'></i>
+                    Mis Consultas
+                </h2>
+                      <button class="btn-new-consulta">
+                          <i class='bx bx-plus'></i>
+                          Nueva Consulta
+                      </button>
+      </div>
+
+                  <!-- Formulario de Nueva Consulta -->
+                  <div class="consulta-form" id="consultaForm">
+                      <form id="newConsultaForm">
             <div class="form-group">
-              <label for="tema">Tema</label>
-              <input type="text" id="tema" name="tema" required placeholder="Ej: Problema con mi pedido">
+                              <label for="tema">Tema de la consulta</label>
+                              <input type="text" id="tema" name="tema" required placeholder="Ej: Problema con mi pedido #12345">
             </div>
+                          
             <div class="form-group">
-              <label for="descripcion">Descripción</label>
-              <textarea id="descripcion" name="descripcion" required rows="5" placeholder="Describe tu consulta o problema..."></textarea>
+                              <label for="descripcion">Descripción detallada</label>
+                              <textarea id="descripcion" name="descripcion" required placeholder="Describe tu consulta o problema de manera detallada..."></textarea>
             </div>
-            <button type="submit" class="btn btn-primary">
-              <i class='bx bx-send'></i> Enviar Ticket
+                          
+                          <button type="submit" class="btn-enviar">
+                              <i class='bx bx-send'></i> Enviar Consulta
             </button>
           </form>
         </div>
 
-        <div class="tickets-list-section">
-          <h2><i class='bx bx-list-ul'></i> Mis Tickets</h2>
-          <div th:if="${tickets != null && !tickets.isEmpty()}">
-            <div class="ticket-card" th:each="ticket : ${tickets}">
+          <div th:if="${tickets != null && !tickets.isEmpty()}"><div class="ticket-card" th:each="ticket : ${tickets}" th:data-ticket-id="${ticket.id}">
               <div class="ticket-header">
-                <h3 th:text="${ticket.tema}">Tema</h3>
+        <h3 th:text="${ticket.tema != null ? ticket.tema : 'Sin tema'}">Tema</h3>
                 <span th:classappend="'status-' + ${ticket.estado != null ? #strings.toLowerCase(ticket.estado) : 'pendiente'}" class="status-badge">
                   <th:block th:if="${ticket.estado == 'abierto'}">
                     <i class='bx bx-time-five'></i> Abierto
@@ -83,23 +804,113 @@
                 </span>
               </div>
               <div class="ticket-body">
-                <p th:text="${ticket.descripcion}">Descripción</p>
+        <p th:text="${ticket.descripcion != null ? ticket.descripcion : 'Sin descripción'}">Descripción</p>
                 <div class="ticket-meta">
-                  <span><i class='bx bx-calendar'></i> <span th:text="${ticket.fechaConsulta != null ? #temporals.format(ticket.fechaConsulta, 'dd/MM/yyyy HH:mm') : 'N/A'}">Fecha</span></span>
+            <span><i class='bx bx-calendar'></i> 
+                <span th:text="${ticket.fechaConsulta != null ? #temporals.format(ticket.fechaConsulta, 'dd/MM/yyyy HH:mm') : 'N/A'}">Fecha</span>
+            </span>
                 </div>
-                <th:block th:if="${ticket.respuesta != null && !ticket.respuesta.isEmpty()}">
-                  <div class="respuesta-section" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e0e0e0;">
-                    <h4 style="color: #667eea; margin-bottom: 10px; font-size: 1rem;"><i class='bx bx-message-check'></i> Respuesta del Administrador:</h4>
-                    <p style="background: #f5f5f5; padding: 10px; border-radius: 8px; color: #555; margin: 0;" th:text="${ticket.respuesta}">Respuesta</p>
-                  </div>
-                </th:block>
+        <th:block th:if="${ticket.respuesta != null && !ticket.respuesta.isEmpty()}">
+            <div class="respuesta-section" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e0e0e0;">
+                <h4 style="color: #667eea; margin-bottom: 10px; font-size: 1rem;">
+                    <i class='bx bx-message-check'></i> Respuesta del Administrador:
+                </h4>
+                <p style="background: #f5f5f5; padding: 10px; border-radius: 8px; color: #555; margin: 0;" 
+                   th:text="${ticket.respuesta}">Respuesta</p>
+            </div>
+        </th:block>
+    </div>
               </div>
             </div>
           </div>
           <div th:if="${tickets == null || tickets.isEmpty()}" class="empty-state">
-            <i class='bx bx-inbox' style="font-size: 4rem; color: #ccc; margin-bottom: 20px;"></i>
-            <h3>No tienes tickets</h3>
-            <p>Crea un nuevo ticket para contactar con atención al cliente</p>
+                      <i class='bx bx-clipboard'></i>
+                          <h3>No tienes consultas</h3>
+                          <p>Crea tu primera consulta para recibir soporte especializado</p>
+                    </div>
+            </div>
+          </div>
+
+          <!-- Contenido de Mensajes Directos -->
+          <div id="mensajes-directos-tab" class="tab-content">
+              <div class="mensajes-directos-container">
+                  <div class="mensajes-header">
+                      <h2 class="mensajes-title">
+                          <i class='bx bx-envelope'></i>
+                          Mensajes Directos
+                      </h2>
+                      <button class="btn-new-message">
+                          <i class='bx bx-plus'></i>
+                          Nuevo Mensaje
+                      </button>
+                  </div>
+
+                    <div th:if="${conversaciones != null && !conversaciones.isEmpty()}">
+                        <div id="messagesList">
+                            <div class="message-item" th:each="conversacion : ${conversaciones}" th:if="${conversacion != null}" 
+                                 style="cursor: pointer;"
+                                 th:data-conversation-id="${conversacion.conversationId}"
+                                 th:data-message-id="${conversacion.id}">
+                                    <div class="message-header">
+                                        <div class="message-subject" th:text="${conversacion.asunto != null ? conversacion.asunto : 'Sin asunto'}">Asunto</div>
+                                        <div class="message-meta">
+                                            <span th:classappend="${'priority-badge priority-' + (conversacion.prioridad != null ? #strings.toLowerCase(conversacion.prioridad) : 'normal')}">
+                                                <span th:text="${conversacion.prioridad != null ? #strings.capitalize(conversacion.prioridad) : 'Normal'}">Prioridad</span>
+                                            </span>
+                                            <span th:classappend="${'status-badge status-' + (conversacion.estado != null ? #strings.toLowerCase(conversacion.estado) : 'enviado')}">
+                                                <span th:text="${conversacion.estado != null ? #strings.capitalize(conversacion.estado) : 'Enviado'}">Estado</span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="message-preview">
+                                        <div class="last-message">
+                                            <span class="sender-name"><span th:text="${conversacion.senderType == 'cliente' ? 'Tú' : 'Soporte'}"></span>: </span>
+                                            <span th:text="${conversacion.mensaje != null ? #strings.abbreviate(conversacion.mensaje, 80) : 'Sin mensaje'}">Mensaje</span>
+                                        </div>
+                                    </div>
+                                    <div class="message-footer">
+                                        <div class="message-date">
+                                            <span th:text="${conversacion.createdAt != null ? #temporals.format(conversacion.createdAt, 'dd/MM/yyyy HH:mm') : 'N/A'}">Fecha</span>
+                                        </div>
+                                    </div>
+                                </div>
+                        </div>
+                    </div>
+                    <div th:if="${conversaciones == null || conversaciones.isEmpty()}" class="empty-state">
+                            <i class='bx bx-message-square-x'></i>
+                            <h3>No tienes mensajes</h3>
+                            <p>Envía tu primer mensaje directo al equipo de soporte</p>
+                        </div>
+
+                  <!-- Formulario de Nuevo Mensaje -->
+                  <div class="message-form" id="messageForm">
+                      <form id="newMessageForm">
+                          <div class="form-group">
+                              <label for="asunto">Asunto</label>
+                              <input type="text" id="asunto" name="asunto" required maxlength="200" placeholder="Describe brevemente tu consulta">
+                          </div>
+                          
+                          <div class="form-group">
+                              <label for="prioridad">Prioridad</label>
+                              <select id="prioridad" name="prioridad" required>
+                                  <option value="normal">Normal</option>
+                                  <option value="baja">Baja</option>
+                                  <option value="alta">Alta</option>
+                                  <option value="urgente">Urgente</option>
+                              </select>
+                          </div>
+                          
+                          <div class="form-group">
+                              <label for="mensaje">Mensaje</label>
+                              <textarea id="mensaje" name="mensaje" required maxlength="2000" placeholder="Describe detalladamente tu consulta o problema..."></textarea>
+                          </div>
+                          
+                          <button type="submit" class="btn-enviar">
+                              <i class='bx bx-send'></i>
+                              Enviar Mensaje
+                          </button>
+                      </form>
+                  </div>
           </div>
         </div>
       </div>
@@ -110,221 +921,745 @@
     <p>&copy; 2025 Technova</p>
   </footer>
 
-  <style>
-    .tickets-container {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 30px;
-      margin-top: 20px;
-    }
+  <!-- Modal de Conversación -->
+  <div id="conversationModal" class="conversation-modal">
+    <div class="conversation-modal-content">
+      <div class="conversation-header">
+        <h3 class="conversation-title" id="conversationTitle">Conversación</h3>
+        <button class="conversation-close">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="conversation-body">
+        <div class="conversation-messages" id="conversationMessages">
+          <div class="conversation-empty">
+            <i class='bx bx-message-square-dots'></i>
+            <p>Cargando conversación...</p>
+          </div>
+        </div>
+        <div class="conversation-input">
+          <form class="conversation-input-form" id="conversationReplyForm">
+            <textarea 
+              id="conversationReplyText" 
+              placeholder="Escribe tu respuesta..." 
+              rows="1"
+              maxlength="2000"
+            ></textarea>
+            <button type="submit" class="conversation-send-btn" id="conversationSendBtn">
+              <i class='bx bx-send'></i>
+              Enviar
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    .ticket-form-section, .tickets-list-section {
-      background: white;
-      border-radius: 12px;
-      padding: 25px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    .ticket-form-section h2, .tickets-list-section h2 {
-      color: var(--text-primary);
-      margin-bottom: 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .ticket-form {
-      display: flex;
-      flex-direction: column;
-      gap: 15px;
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 5px;
-    }
-
-    .form-group label {
-      font-weight: 600;
-      color: var(--text-primary);
-    }
-
-    .form-group input, .form-group textarea {
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 6px;
-      font-family: inherit;
-    }
-
-    .ticket-card {
-      background: #f8f9fa;
-      border-radius: 8px;
-      padding: 15px;
-      margin-bottom: 15px;
-      border-left: 4px solid var(--primary-color);
-    }
-
-    .ticket-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-    }
-
-    .ticket-header h3 {
-      margin: 0;
-      color: var(--text-primary);
-    }
-
-    .status-badge {
-      padding: 5px 12px;
-      border-radius: 12px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 5px;
-    }
-
-    .status-abierto {
-      background: #e3f2fd;
-      color: #1976d2;
-    }
-
-    .status-en_proceso {
-      background: #fff3e0;
-      color: #f57c00;
-    }
-
-    .status-cerrado {
-      background: #e8f5e8;
-      color: #388e3c;
-    }
-
-    .ticket-body p {
-      color: var(--text-secondary);
-      margin-bottom: 10px;
-    }
-
-    .ticket-meta {
-      font-size: 0.9rem;
-      color: var(--text-secondary);
-      display: flex;
-      gap: 15px;
-    }
-
-    .empty-state {
-      text-align: center;
-      padding: 40px 20px;
-      color: var(--text-secondary);
-    }
-
-    .btn {
-      padding: 12px 24px;
-      border: none;
-      border-radius: 6px;
-      font-weight: 600;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      transition: all 0.3s ease;
-    }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      color: white;
-    }
-
-    .btn-primary:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
-
-    @media (max-width: 768px) {
-      .tickets-container {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
+  <!-- Script de prueba para verificar que JavaScript se ejecute -->
+  <script>
+    console.log('=== PRUEBA: JavaScript se está ejecutando ===');
+  </script>
 
   <script th:inline="javascript">
     /*<![CDATA[*/
-    const usuarioId = /*[[${usuario != null ? usuario.id : null}]]*/ null;
-    
-    document.getElementById('ticketForm')?.addEventListener('submit', async function(e) {
-      e.preventDefault();
-      
-      if (!usuarioId) {
-        alert('Debes iniciar sesión para crear un ticket');
+    // Datos iniciales del servidor
+    var datosIniciales = {
+      usuarioId: /*[[${usuario != null ? usuario.id : null}]]*/ null
+    };
+    /*]]>*/
+  </script>
+  <script>
+    /**
+     * Módulo de gestión de Atención al Cliente para Cliente
+     * Organizado y estructurado con nombres en español
+     */
+    var gestionAtencionCliente = (function() {
+      'use strict';
+
+      // Estado interno del módulo
+      var estado = {
+        tabActual: 'consultas', // 'consultas' o 'mensajes'
+        conversacionActual: null,
+        mensajeActual: null,
+        usuarioId: null
+      };
+
+      // Inicialización
+      function inicializar() {
+        console.log('Inicializando módulo de Atención al Cliente...');
+        
+        // Cargar datos iniciales del servidor
+        if (typeof datosIniciales !== 'undefined' && datosIniciales.usuarioId) {
+          estado.usuarioId = datosIniciales.usuarioId;
+          console.log('Usuario ID cargado:', estado.usuarioId);
+        } else {
+          console.warn('No se pudo cargar el usuario ID');
+        }
+
+        // Configurar event listeners
+        configurarEventListeners();
+        
+        // Aplicar estado inicial
+        aplicarEstadoInicial();
+        
+        console.log('Módulo de Atención al Cliente inicializado correctamente');
+      }
+
+      // Configurar todos los event listeners
+      function configurarEventListeners() {
+        console.log('Configurando event listeners...');
+        
+        // Tabs
+        var tabs = document.querySelectorAll('.tab-button[data-tab]');
+        console.log('Tabs encontrados:', tabs.length);
+        tabs.forEach(function(tab) {
+          tab.addEventListener('click', function() {
+            var tabNombre = tab.getAttribute('data-tab');
+            console.log('Cambiando a tab:', tabNombre);
+            cambiarTab(tabNombre);
+          });
+        });
+
+        // Botón nueva consulta
+        var btnNewConsulta = document.querySelector('.btn-new-consulta');
+        console.log('Botón nueva consulta encontrado:', btnNewConsulta !== null);
+        if (btnNewConsulta) {
+          btnNewConsulta.addEventListener('click', function() {
+            console.log('Mostrando formulario de consulta');
+            mostrarFormularioConsulta();
+          });
+        }
+
+        // Formulario nueva consulta
+        var formConsulta = document.getElementById('newConsultaForm');
+        console.log('Formulario consulta encontrado:', formConsulta !== null);
+        if (formConsulta) {
+          formConsulta.addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log('Enviando consulta...');
+            enviarConsulta();
+          });
+        }
+
+        // Botón nuevo mensaje
+        var btnNewMessage = document.querySelector('.btn-new-message');
+        console.log('Botón nuevo mensaje encontrado:', btnNewMessage !== null);
+        if (btnNewMessage) {
+          btnNewMessage.addEventListener('click', function() {
+            console.log('Mostrando formulario de mensaje');
+            mostrarFormularioMensaje();
+          });
+        }
+
+        // Formulario nuevo mensaje
+        var formMensaje = document.getElementById('newMessageForm');
+        console.log('Formulario mensaje encontrado:', formMensaje !== null);
+        if (formMensaje) {
+          formMensaje.addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log('Enviando mensaje...');
+            enviarMensaje();
+          });
+        }
+
+        // Tarjetas de consultas
+        var consultasCards = document.querySelectorAll('.consulta-item[data-ticket-id]');
+        console.log('Tarjetas de consultas encontradas:', consultasCards.length);
+        consultasCards.forEach(function(card) {
+          card.addEventListener('click', function() {
+            var ticketId = card.getAttribute('data-ticket-id');
+            console.log('Mostrando detalle de consulta:', ticketId);
+            if (ticketId) {
+              mostrarDetalleConsulta(parseInt(ticketId));
+            }
+          });
+        });
+
+        // Tarjetas de mensajes
+        var mensajesCards = document.querySelectorAll('.message-item[data-conversation-id]');
+        console.log('Tarjetas de mensajes encontradas:', mensajesCards.length);
+        mensajesCards.forEach(function(card) {
+          card.addEventListener('click', function() {
+            var conversationId = card.getAttribute('data-conversation-id');
+            var messageId = card.getAttribute('data-message-id');
+            console.log('Mostrando conversación:', conversationId, 'Mensaje:', messageId);
+            if (conversationId && messageId) {
+              mostrarConversacion(conversationId, parseInt(messageId));
+            }
+          });
+        });
+        
+        console.log('Event listeners configurados correctamente');
+
+        // Modal de conversación
+        var modalConversacion = document.getElementById('conversationModal');
+        if (modalConversacion) {
+          var closeConversacionBtn = modalConversacion.querySelector('.conversation-close');
+          if (closeConversacionBtn) {
+            closeConversacionBtn.addEventListener('click', cerrarModalConversacion);
+          }
+          modalConversacion.addEventListener('click', function(e) {
+            if (e.target === modalConversacion) {
+              cerrarModalConversacion();
+            }
+          });
+        }
+
+        // Formulario de respuesta de conversación
+        var formRespuesta = document.getElementById('conversationReplyForm');
+        if (formRespuesta) {
+          formRespuesta.addEventListener('submit', function(e) {
+            e.preventDefault();
+            enviarRespuestaConversacion();
+          });
+        }
+      }
+
+      // Aplicar estado inicial
+      function aplicarEstadoInicial() {
+        cambiarTab(estado.tabActual);
+      }
+
+      // Cambiar tab
+      function cambiarTab(tab) {
+        console.log('Cambiando tab a:', tab);
+        estado.tabActual = tab;
+        
+        var tabs = document.querySelectorAll('.tab-button[data-tab]');
+        var consultasTab = document.getElementById('consultas-tab');
+        var mensajesTab = document.getElementById('mensajes-directos-tab');
+        
+        console.log('Tabs encontrados:', tabs.length);
+        console.log('Tab consultas encontrado:', consultasTab !== null);
+        console.log('Tab mensajes encontrado:', mensajesTab !== null);
+        
+        if (tab === 'consultas') {
+          // Activar tab de consultas
+          tabs.forEach(function(t) {
+            if (t.getAttribute('data-tab') === 'consultas') {
+              t.classList.add('active');
+            } else {
+              t.classList.remove('active');
+            }
+          });
+          
+          if (consultasTab) {
+            consultasTab.classList.add('active');
+            console.log('Tab consultas activado');
+          }
+          if (mensajesTab) {
+            mensajesTab.classList.remove('active');
+            console.log('Tab mensajes desactivado');
+          }
+        } else if (tab === 'mensajes') {
+          // Activar tab de mensajes
+          tabs.forEach(function(t) {
+            if (t.getAttribute('data-tab') === 'mensajes') {
+              t.classList.add('active');
+            } else {
+              t.classList.remove('active');
+            }
+          });
+          
+          if (consultasTab) {
+            consultasTab.classList.remove('active');
+            console.log('Tab consultas desactivado');
+          }
+          if (mensajesTab) {
+            mensajesTab.classList.add('active');
+            console.log('Tab mensajes activado');
+          }
+        }
+      }
+
+      // Mostrar formulario de consulta
+      function mostrarFormularioConsulta() {
+        var form = document.getElementById('consultaForm');
+        if (form) {
+          form.classList.toggle('active');
+        }
+      }
+
+      // Enviar consulta
+      function enviarConsulta() {
+        if (!estado.usuarioId) {
+          alert('Error: No se pudo identificar al usuario');
+          return;
+        }
+
+        var tema = document.getElementById('tema');
+        var descripcion = document.getElementById('descripcion');
+        
+        if (!tema || !descripcion) {
+          alert('Error: No se encontraron los campos del formulario');
+          return;
+        }
+
+        var temaValor = tema.value.trim();
+        var descripcionValor = descripcion.value.trim();
+
+        if (!temaValor || !descripcionValor) {
+          alert('Por favor completa todos los campos');
+          return;
+        }
+
+        var formData = new URLSearchParams();
+        formData.append('usuarioId', estado.usuarioId.toString());
+        formData.append('tema', temaValor);
+        formData.append('descripcion', descripcionValor);
+
+        var btnEnviar = document.querySelector('#newConsultaForm .btn-enviar');
+        if (btnEnviar) {
+          btnEnviar.disabled = true;
+          btnEnviar.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Enviando...';
+        }
+
+        fetch('/api/atencion-cliente', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: formData.toString()
+        })
+        .then(function(response) {
+          if (response.ok) {
+            return response.json();
+          } else {
+            return response.text().then(function(errorText) {
+              throw new Error(errorText);
+            });
+          }
+        })
+        .then(function(data) {
+          alert('Consulta enviada correctamente');
+          if (tema) tema.value = '';
+          if (descripcion) descripcion.value = '';
+          var form = document.getElementById('consultaForm');
+          if (form) form.classList.remove('active');
+          // Recargar la página para mostrar la nueva consulta
+          setTimeout(function() {
+            location.reload();
+          }, 500);
+        })
+        .catch(function(error) {
+          console.error('Error:', error);
+          alert('Error al enviar la consulta: ' + error.message);
+        })
+        .finally(function() {
+          if (btnEnviar) {
+            btnEnviar.disabled = false;
+            btnEnviar.innerHTML = '<i class="bx bx-send"></i> Enviar Consulta';
+          }
+        });
+      }
+
+      // Mostrar formulario de mensaje
+      function mostrarFormularioMensaje() {
+        console.log('Mostrando formulario de mensaje');
+        var form = document.getElementById('messageForm');
+        console.log('Formulario encontrado:', form !== null);
+        if (form) {
+          form.classList.toggle('active');
+          console.log('Clase active toggleada. Estado:', form.classList.contains('active'));
+        }
+      }
+
+      // Enviar mensaje directo
+      function enviarMensaje() {
+        if (!estado.usuarioId) {
+          alert('Error: No se pudo identificar al usuario');
+          return;
+        }
+
+        var asunto = document.getElementById('asunto');
+        var prioridad = document.getElementById('prioridad');
+        var mensaje = document.getElementById('mensaje');
+        
+        if (!asunto || !prioridad || !mensaje) {
+          alert('Error: No se encontraron los campos del formulario');
         return;
       }
       
-      const tema = document.getElementById('tema').value.trim();
-      const descripcion = document.getElementById('descripcion').value.trim();
+        var asuntoValor = asunto.value.trim();
+        var prioridadValor = prioridad.value.trim();
+        var mensajeValor = mensaje.value.trim();
       
-      if (!tema || !descripcion) {
+        if (!asuntoValor || !mensajeValor) {
         alert('Por favor completa todos los campos');
         return;
       }
       
-      // Obtener token CSRF si está disponible
-      const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || 
-                       document.querySelector('input[name="_csrf"]')?.value || '';
-      
-      // Crear FormData para enviar los datos
-      const formData = new URLSearchParams();
-      formData.append('usuarioId', usuarioId);
-      formData.append('tema', tema);
-      formData.append('descripcion', descripcion);
-      
-      try {
-        const headers = {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        };
+        var formData = new URLSearchParams();
+        formData.append('userId', estado.usuarioId.toString());
+        formData.append('asunto', asuntoValor);
+        formData.append('mensaje', mensajeValor);
+        formData.append('prioridad', prioridadValor);
         
         // Agregar token CSRF si está disponible
-        if (csrfToken) {
-          formData.append('_csrf', csrfToken);
+        var csrfToken = document.querySelector('meta[name="_csrf"]');
+        var csrfHeaderName = document.querySelector('meta[name="_csrf_header"]');
+        if (csrfToken && csrfHeaderName) {
+          formData.append('_csrf', csrfToken.getAttribute('content'));
         }
-        
-        const response = await fetch('/api/atencion-cliente', {
+
+        var btnEnviar = document.querySelector('#newMessageForm .btn-enviar');
+        if (btnEnviar) {
+          btnEnviar.disabled = true;
+          btnEnviar.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Enviando...';
+        }
+
+        fetch('/api/mensajes-directos/conversacion', {
           method: 'POST',
-          headers: headers,
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
           body: formData.toString()
-        });
-        
+        })
+        .then(function(response) {
+          var contentType = response.headers.get('content-type');
         if (response.ok) {
-          const result = await response.json();
-          alert('Ticket creado exitosamente');
-          // Limpiar el formulario
-          document.getElementById('tema').value = '';
-          document.getElementById('descripcion').value = '';
-          // Recargar la página para mostrar el nuevo ticket
-          setTimeout(() => {
+            if (contentType && contentType.includes('application/json')) {
+              return response.json();
+            } else {
+              return response.text().then(function(text) {
+                throw new Error('Respuesta inesperada del servidor');
+              });
+            }
+          } else {
+            // Intentar parsear como JSON primero
+            if (contentType && contentType.includes('application/json')) {
+              return response.json().then(function(errorData) {
+                var errorMsg = errorData.error || errorData.message || 'Error al enviar el mensaje';
+                throw new Error(errorMsg);
+              });
+            } else {
+              return response.text().then(function(errorText) {
+                throw new Error(errorText || 'Error al enviar el mensaje');
+              });
+            }
+          }
+        })
+        .then(function(data) {
+          alert('Mensaje enviado correctamente');
+          if (asunto) asunto.value = '';
+          if (mensaje) mensaje.value = '';
+          if (prioridad) prioridad.value = 'normal';
+          var form = document.getElementById('messageForm');
+          if (form) form.classList.remove('active');
+          // Recargar la página para mostrar el nuevo mensaje
+          setTimeout(function() {
             location.reload();
           }, 500);
-        } else {
-          const errorText = await response.text();
-          console.error('Error response:', response.status, errorText);
-          let errorMessage = 'Error al crear el ticket.';
-          if (response.status === 401) {
-            errorMessage = 'No estás autenticado. Por favor inicia sesión nuevamente.';
-          } else if (response.status === 403) {
-            errorMessage = 'No tienes permisos para realizar esta acción.';
-          } else if (response.status === 400) {
-            errorMessage = 'Datos inválidos. Por favor verifica la información ingresada.';
+        })
+        .catch(function(error) {
+          console.error('Error:', error);
+          alert('Error al enviar el mensaje: ' + error.message);
+        })
+        .finally(function() {
+          if (btnEnviar) {
+            btnEnviar.disabled = false;
+            btnEnviar.innerHTML = '<i class="bx bx-send"></i> Enviar Mensaje';
           }
-          alert(errorMessage);
-        }
-      } catch (error) {
-        console.error('Error:', error);
-        alert('Error al crear el ticket: ' + error.message);
+        });
       }
+
+      // Mostrar detalle de consulta
+      function mostrarDetalleConsulta(ticketId) {
+        fetch('/api/atencion-cliente/' + ticketId)
+          .then(function(response) {
+            if (!response.ok) {
+              throw new Error('Error al cargar la consulta');
+            }
+            return response.json();
+          })
+          .then(function(ticket) {
+            var fecha = formatearFecha(ticket.fechaConsulta);
+            var estadoTexto = formatearEstado(ticket.estado);
+            var descripcion = ticket.descripcion || 'Sin descripción';
+            
+            var htmlRespuesta = '';
+            if (ticket.respuesta) {
+              htmlRespuesta = 
+                '<div style="background: #e8f5e8; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745; margin-top: 20px;">' +
+                  '<h4 style="color: #28a745; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">' +
+                    '<i class="bx bx-check-circle"></i> Respuesta del Soporte:' +
+                  '</h4>' +
+                  '<p style="color: #2c3e50; line-height: 1.6; margin: 0;">' +
+                    escapeHtml(ticket.respuesta) +
+                  '</p>' +
+                '</div>';
+        } else {
+              htmlRespuesta = 
+                '<div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 2px dashed #dee2e6; text-align: center; margin-top: 20px;">' +
+                  '<i class="bx bx-time" style="font-size: 2rem; color: #6c757d; margin-bottom: 10px; display: block;"></i>' +
+                  '<p style="color: #6c757d; margin: 0;">Tu consulta está siendo revisada. Te responderemos pronto.</p>' +
+                '</div>';
+            }
+            
+            var contenido = 
+              '<div style="padding: 20px;">' +
+                '<div style="margin-bottom: 20px;">' +
+                  '<div style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">' +
+                    '<span style="display: flex; align-items: center; gap: 5px; color: #6c757d; font-size: 0.9rem;">' +
+                      '<i class="bx bx-calendar"></i> ' + fecha +
+                    '</span>' +
+                    '<span class="consulta-estado estado-' + (ticket.estado || 'abierto') + '" style="font-size: 0.8rem;">' +
+                      estadoTexto +
+                    '</span>' +
+                  '</div>' +
+                  '<div style="margin-bottom: 20px;">' +
+                    '<h4 style="color: #2c3e50; margin-bottom: 10px;">Descripción:</h4>' +
+                    '<p style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea; color: #495057; line-height: 1.6;">' +
+                      escapeHtml(descripcion) +
+                    '</p>' +
+                  '</div>' +
+                  htmlRespuesta +
+                '</div>' +
+              '</div>';
+            
+            alert('Consulta #' + ticketId + '\n\nTema: ' + (ticket.tema || 'Sin tema') + '\n\n' + 
+                  'Descripción: ' + descripcion + '\n\n' + 
+                  (ticket.respuesta ? 'Respuesta: ' + ticket.respuesta : 'Estado: Pendiente de respuesta'));
+          })
+          .catch(function(error) {
+            console.error('Error:', error);
+            alert('Error al cargar la consulta: ' + error.message);
+          });
+      }
+
+      // Mostrar conversación
+      function mostrarConversacion(conversationId, messageId) {
+        estado.conversacionActual = conversationId;
+        estado.mensajeActual = messageId;
+        
+        var modal = document.getElementById('conversationModal');
+        var mensajesContainer = document.getElementById('conversationMessages');
+        var titulo = document.getElementById('conversationTitle');
+        
+        if (!modal || !mensajesContainer) return;
+        
+        modal.classList.add('active');
+        mensajesContainer.innerHTML = '<div class="conversation-empty"><i class="bx bx-loader-alt bx-spin"></i><p>Cargando conversación...</p></div>';
+        
+        if (titulo) {
+          titulo.textContent = 'Conversación';
+        }
+        
+        cargarConversacion(conversationId);
+      }
+
+      // Cargar conversación
+      function cargarConversacion(conversationId) {
+        fetch('/api/mensajes-directos/conversacion/' + conversationId)
+          .then(function(response) {
+            if (!response.ok) {
+              throw new Error('Error al cargar la conversación');
+            }
+            return response.json();
+          })
+          .then(function(mensajes) {
+            if (mensajes.error) {
+              throw new Error(mensajes.error);
+            }
+            mostrarMensajesConversacion(mensajes);
+          })
+          .catch(function(error) {
+        console.error('Error:', error);
+            var mensajesContainer = document.getElementById('conversationMessages');
+            if (mensajesContainer) {
+              mensajesContainer.innerHTML = 
+                '<div class="conversation-empty"><i class="bx bx-error"></i><p>Error al cargar la conversación</p></div>';
+            }
+          });
+      }
+
+      // Mostrar mensajes de conversación
+      function mostrarMensajesConversacion(mensajes) {
+        var mensajesContainer = document.getElementById('conversationMessages');
+        if (!mensajesContainer) return;
+        
+        if (!mensajes || mensajes.length === 0) {
+          mensajesContainer.innerHTML = 
+            '<div class="conversation-empty"><i class="bx bx-message-square-dots"></i><p>No hay mensajes en esta conversación</p></div>';
+          return;
+        }
+
+        // Actualizar mensaje actual al último
+        if (mensajes.length > 0) {
+          var ultimoMensaje = mensajes[mensajes.length - 1];
+          if (ultimoMensaje && ultimoMensaje.id) {
+            estado.mensajeActual = ultimoMensaje.id;
+          }
+        }
+
+        mensajesContainer.innerHTML = '';
+        
+        mensajes.forEach(function(mensaje) {
+          var esEnviado = mensaje.senderType === 'cliente';
+          var mensajeElement = document.createElement('div');
+          mensajeElement.className = 'message-bubble ' + (esEnviado ? 'sent' : 'received');
+          
+          var fecha = formatearFecha(mensaje.createdAt);
+          var nombreRemitente = esEnviado ? 'Tú' : 'Soporte';
+          
+          mensajeElement.innerHTML = 
+            '<div class="message-avatar">' + (esEnviado ? '👤' : '👨‍💼') + '</div>' +
+            '<div class="message-content">' +
+              '<div style="font-size: 0.75rem; opacity: 0.8; margin-bottom: 4px;">' + escapeHtml(nombreRemitente) + '</div>' +
+              '<div class="message-text">' + escapeHtml(mensaje.mensaje || 'Sin mensaje') + '</div>' +
+              '<div class="message-time">' + fecha + '</div>' +
+            '</div>';
+          
+          mensajesContainer.appendChild(mensajeElement);
+        });
+        
+        mensajesContainer.scrollTop = mensajesContainer.scrollHeight;
+      }
+
+      // Enviar respuesta de conversación
+      function enviarRespuestaConversacion() {
+        if (!estado.mensajeActual) {
+          alert('Error: No se puede responder sin un mensaje seleccionado');
+          return;
+        }
+        
+        if (!estado.usuarioId) {
+          alert('Error: No se pudo identificar al usuario');
+          return;
+        }
+        
+        var textarea = document.getElementById('conversationReplyText');
+        var mensaje = textarea ? textarea.value.trim() : '';
+        
+        if (!mensaje) {
+          alert('Por favor escribe un mensaje');
+          return;
+        }
+        
+        var formData = new URLSearchParams();
+        formData.append('senderId', estado.usuarioId.toString());
+        formData.append('senderType', 'cliente');
+        formData.append('mensaje', mensaje);
+        
+        // Agregar token CSRF si está disponible
+        var csrfToken = document.querySelector('meta[name="_csrf"]');
+        var csrfHeaderName = document.querySelector('meta[name="_csrf_header"]');
+        if (csrfToken && csrfHeaderName) {
+          formData.append('_csrf', csrfToken.getAttribute('content'));
+        }
+        
+        var sendBtn = document.getElementById('conversationSendBtn');
+        if (sendBtn) {
+          sendBtn.disabled = true;
+          sendBtn.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Enviando...';
+        }
+        
+        fetch('/api/mensajes-directos/' + estado.mensajeActual + '/responder', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-Requested-With': 'XMLHttpRequest'
+          },
+          body: formData.toString()
+        })
+        .then(function(response) {
+          var contentType = response.headers.get('content-type');
+          if (response.ok) {
+            if (contentType && contentType.includes('application/json')) {
+              return response.json();
+            } else {
+              return response.text().then(function(text) {
+                throw new Error('Respuesta inesperada del servidor');
+              });
+            }
+          } else {
+            // Intentar parsear como JSON primero
+            if (contentType && contentType.includes('application/json')) {
+              return response.json().then(function(errorData) {
+                var errorMsg = errorData.error || errorData.message || 'Error al enviar el mensaje';
+                throw new Error(errorMsg);
+              });
+            } else {
+              return response.text().then(function(errorText) {
+                throw new Error(errorText || 'Error al enviar el mensaje');
+              });
+            }
+          }
+        })
+        .then(function(data) {
+          if (textarea) textarea.value = '';
+          cargarConversacion(estado.conversacionActual);
+          alert('Mensaje enviado correctamente');
+        })
+        .catch(function(error) {
+          console.error('Error:', error);
+          alert('Error al enviar el mensaje: ' + error.message);
+        })
+        .finally(function() {
+          if (sendBtn) {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = '<i class="bx bx-send"></i> Enviar';
+          }
+        });
+      }
+
+      // Cerrar modal de conversación
+      function cerrarModalConversacion() {
+        var modal = document.getElementById('conversationModal');
+        if (modal) modal.classList.remove('active');
+        estado.conversacionActual = null;
+        estado.mensajeActual = null;
+      }
+
+      // Utilidades
+      function formatearFecha(fecha) {
+        if (!fecha) return 'N/A';
+        try {
+          var fechaObj = new Date(fecha);
+          return fechaObj.toLocaleString('es-ES', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          });
+        } catch (e) {
+          return 'N/A';
+        }
+      }
+
+      function formatearEstado(estado) {
+        var mapa = {
+          'abierto': 'Abierto',
+          'en_proceso': 'En Proceso',
+          'resuelto': 'Resuelto',
+          'cerrado': 'Cerrado'
+        };
+        return mapa[estado] || estado || 'Abierto';
+      }
+
+      function escapeHtml(texto) {
+        if (!texto) return '';
+        var div = document.createElement('div');
+        div.textContent = texto;
+        return div.innerHTML;
+      }
+
+      // API pública
+      return {
+        inicializar: inicializar,
+        cambiarTab: cambiarTab,
+        mostrarDetalleConsulta: mostrarDetalleConsulta,
+        mostrarConversacion: mostrarConversacion,
+        cerrarModalConversacion: cerrarModalConversacion
+      };
+    })();
+
+    // Inicializar cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', function() {
+      gestionAtencionCliente.inicializar();
     });
-    /*]]>*/
   </script>
 </body>
 </html>
-

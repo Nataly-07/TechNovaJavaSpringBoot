@@ -1,7 +1,6 @@
 package com.technova.technov.util;
 
 import com.technova.technov.domain.dto.UsuarioDto;
-import com.technova.technov.domain.entity.Usuario;
 import com.technova.technov.domain.repository.UsuarioRepository;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;

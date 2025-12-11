@@ -76,11 +76,33 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/**").authenticated()
                                                 // Todas las demás URLs requieren autenticación
                                                 .anyRequest().authenticated())
-                                .csrf(csrf -> csrf
+
+                                                .csrf(csrf -> csrf
+    .ignoringRequestMatchers(
+        "/login",
+        "/logout",
+        "/admin/usuarios/emergencia/**",
+        "/api/usuarios",
+        "/api/usuarios/**",
+        "/api/atencion-cliente",
+        "/api/favoritos/**",
+        "/api/carrito/**",
+        "/api/mensajes-directos/**"
+    )
+)
+
+/*                                 .csrf(csrf -> csrf
+
                                                 .ignoringRequestMatchers("/login", "/logout", "/admin/usuarios/emergencia/**",
                                                                 "/api/usuarios", "/api/usuarios/**", "/api/atencion-cliente",
                                                                 "/api/favoritos/**", "/api/carrito/**"))
-                                .formLogin(form -> form
+
+                                                .ignoringRequestMatchers("/login", "/logout", "/api/usuarios",
+                                                                "/api/usuarios/**", "/api/atencion-cliente",
+                                                                "/api/favoritos/**", "/api/carrito/**",
+                                                                "/api/mensajes-directos/**"))
+>>>>>>> 1fbdaa0 (Cambios en Perfil de Empleado)
+                                 */.formLogin(form -> form
                                                 .loginPage("/login")
                                                 .loginProcessingUrl("/login")
                                                 .usernameParameter("email")

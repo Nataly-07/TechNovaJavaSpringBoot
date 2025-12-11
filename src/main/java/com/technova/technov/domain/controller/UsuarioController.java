@@ -46,6 +46,83 @@ public class UsuarioController {
         return ResponseEntity.ok(usuario);
     }
 
+    @PostMapping("/verificar-identidad")
+    public ResponseEntity<?> verificarIdentidad(@RequestBody java.util.Map<String, String> datos) {
+        try {
+            String email = datos.get("email");
+            String documentType = datos.get("documentType");
+            String documentNumber = datos.get("documentNumber");
+            String phone = datos.get("phone");
+
+            if (email == null || documentType == null || documentNumber == null || phone == null) {
+                java.util.Map<String, Object> errorResponse = new java.util.HashMap<>();
+                errorResponse.put("valid", false);
+                errorResponse.put("message", "Todos los campos son requeridos");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+
+            boolean esValido = usuarioService.verificarIdentidad(email, documentType, documentNumber, phone);
+            
+            java.util.Map<String, Object> response = new java.util.HashMap<>();
+            response.put("valid", esValido);
+            if (!esValido) {
+                response.put("message", "Los datos no coinciden con nuestros registros");
+            }
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            java.util.Map<String, Object> errorResponse = new java.util.HashMap<>();
+            errorResponse.put("valid", false);
+            errorResponse.put("message", "Error al verificar la identidad");
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
+    @PostMapping("/recuperar-contrasena")
+    public ResponseEntity<?> recuperarContrasena(@RequestBody java.util.Map<String, String> datos) {
+        try {
+            String email = datos.get("email");
+            String newPassword = datos.get("newPassword");
+
+            if (email == null || email.trim().isEmpty() || newPassword == null || newPassword.trim().isEmpty()) {
+                java.util.Map<String, Object> errorResponse = new java.util.HashMap<>();
+                errorResponse.put("success", false);
+                errorResponse.put("message", "Email y nueva contraseña son requeridos");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+
+            // Validar que la contraseña cumpla con los requisitos
+            if (newPassword.length() < 8 || 
+                !newPassword.matches(".*[A-Z].*") || 
+                !newPassword.matches(".*[a-z].*") || 
+                !newPassword.matches(".*\\d.*") || 
+                !newPassword.matches(".*[!@#$%^&*(),.?\":{}|<>].*")) {
+                java.util.Map<String, Object> errorResponse = new java.util.HashMap<>();
+                errorResponse.put("success", false);
+                errorResponse.put("message", "La contraseña debe tener mínimo 8 caracteres, mayúscula, minúscula, número y carácter especial");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+
+            boolean actualizado = usuarioService.recuperarContrasena(email, newPassword);
+            
+            java.util.Map<String, Object> response = new java.util.HashMap<>();
+            if (actualizado) {
+                response.put("success", true);
+                response.put("message", "Contraseña actualizada correctamente");
+            } else {
+                response.put("success", false);
+                response.put("message", "No se pudo actualizar la contraseña. Verifica que el email sea correcto.");
+            }
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            java.util.Map<String, Object> errorResponse = new java.util.HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Error al recuperar la contraseña: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
     @PostMapping
     public ResponseEntity<?> crear(@RequestBody UsuarioDto usuarioDto) {
         try {
