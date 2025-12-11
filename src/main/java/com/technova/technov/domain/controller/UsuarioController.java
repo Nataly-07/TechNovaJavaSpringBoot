@@ -123,6 +123,51 @@ public class UsuarioController {
         }
     }
 
+    @PostMapping("/activar-cuenta")
+    public ResponseEntity<?> activarCuenta(@RequestBody java.util.Map<String, String> datos) {
+        try {
+            String email = datos.get("email");
+
+            if (email == null || email.trim().isEmpty()) {
+                java.util.Map<String, Object> errorResponse = new java.util.HashMap<>();
+                errorResponse.put("success", false);
+                errorResponse.put("message", "Email es requerido");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+
+            // Buscar usuario por email (incluyendo inactivos)
+            java.util.Optional<UsuarioDto> usuarioOpt = usuarioService.usuarioPorEmail(email);
+            
+            if (!usuarioOpt.isPresent()) {
+                java.util.Map<String, Object> errorResponse = new java.util.HashMap<>();
+                errorResponse.put("success", false);
+                errorResponse.put("message", "Usuario no encontrado");
+                return ResponseEntity.badRequest().body(errorResponse);
+            }
+
+            UsuarioDto usuario = usuarioOpt.get();
+            
+            // Activar la cuenta
+            boolean resultado = usuarioService.activarDesactivarUsuario(usuario.getId(), true);
+            
+            java.util.Map<String, Object> response = new java.util.HashMap<>();
+            if (resultado) {
+                response.put("success", true);
+                response.put("message", "Cuenta activada correctamente");
+            } else {
+                response.put("success", false);
+                response.put("message", "Error al activar la cuenta");
+            }
+
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            java.util.Map<String, Object> errorResponse = new java.util.HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Error al activar la cuenta: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponse);
+        }
+    }
+
     @PostMapping
     public ResponseEntity<?> crear(@RequestBody UsuarioDto usuarioDto) {
         try {

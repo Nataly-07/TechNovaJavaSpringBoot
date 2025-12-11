@@ -994,6 +994,11 @@
         <span th:text="${error != null ? error : 'Datos ingresados incorrectos.'}">Error</span>
       </div>
 
+      <div class="success-message" id="successMessage" th:if="${successMessage != null}" style="display: block; background: #d4edda; color: #155724; padding: 12px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #c3e6cb;">
+        <i class='bx bx-check-circle'></i>
+        <span th:text="${successMessage}">Mensaje de éxito</span>
+      </div>
+
       <form id="loginForm" action="/login" method="POST" novalidate style="display: block !important; width: 100% !important; visibility: visible !important; opacity: 1 !important;">
         
         <div class="form-group" style="display: block !important; width: 100% !important; margin-bottom: 20px !important; visibility: visible !important; opacity: 1 !important; height: auto !important;">
@@ -1014,8 +1019,12 @@
           <div class="error-message d-none" id="passwordError"></div>
         </div>
 
-        <div style="text-align: right; margin-bottom: 15px;">
-          <a href="#" id="forgotPasswordLink" style="color: #667eea; text-decoration: none; font-size: 13px; font-weight: 500;">
+        <div style="text-align: right !important; margin-bottom: 15px !important; display: flex !important; justify-content: flex-end !important; align-items: center !important; gap: 20px !important; flex-direction: row !important;">
+          <a href="#" id="activateAccountLink" style="color: #28a745 !important; text-decoration: none !important; font-size: 13px !important; font-weight: 500 !important; white-space: nowrap !important;">
+            <i class='bx bx-check-circle' style="margin-right: 4px;"></i>
+            ¿Cuenta desactivada?
+          </a>
+          <a href="#" id="forgotPasswordLink" style="color: #667eea !important; text-decoration: none !important; font-size: 13px !important; font-weight: 500 !important; white-space: nowrap !important;">
             <i class='bx bx-help-circle' style="margin-right: 4px;"></i>
             ¿Olvidaste tu contraseña?
           </a>
@@ -1036,6 +1045,79 @@
           <i class='bx bx-user-plus' style="margin-right: 6px;"></i>
           Crear Cuenta
         </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal de Activar Cuenta -->
+  <div id="activateAccountModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; border-radius: 20px; padding: 30px; max-width: 500px; width: 90%; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="margin: 0; color: #333; font-size: 24px;">
+          <i class='bx bx-check-circle' style="color: #28a745; margin-right: 8px;"></i>
+          Activar Cuenta
+        </h2>
+        <button id="closeActivateAccountModal" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #666;">&times;</button>
+      </div>
+
+      <div id="activateAccountError" style="display: none; background: #fee; color: #c33; padding: 12px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #fcc;">
+        <i class='bx bx-error-circle'></i>
+        <span id="activateAccountErrorMessage"></span>
+      </div>
+
+      <div id="activateAccountSuccess" style="display: none; background: #efe; color: #3c3; padding: 12px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #cfc;">
+        <i class='bx bx-check-circle'></i>
+        <span>Cuenta activada correctamente. Ahora puedes iniciar sesión.</span>
+      </div>
+
+      <!-- Paso 1: Verificación de Identidad -->
+      <div id="verificationStepActivate">
+        <p style="color: #666; margin-bottom: 20px;">Por seguridad, verifica tu identidad con los siguientes datos para reactivar tu cuenta:</p>
+        
+        <form id="activateAccountForm">
+          <div style="margin-bottom: 15px;">
+            <label style="display: block; margin-bottom: 6px; color: #4a5568; font-weight: 600; font-size: 13px;">
+              <i class='bx bx-envelope'></i> Correo Electrónico *
+            </label>
+            <input type="email" id="verifyEmailActivate" name="verifyEmail" required placeholder="tu@email.com" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; box-sizing: border-box;" />
+            <div class="error-message d-none" id="verifyEmailErrorActivate" style="color: #ef4444; font-size: 0.85rem; margin-top: 5px;"></div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+            <div>
+              <label style="display: block; margin-bottom: 6px; color: #4a5568; font-weight: 600; font-size: 13px;">
+                <i class='bx bx-id-card'></i> Tipo de Documento *
+              </label>
+              <select id="verifyDocumentTypeActivate" name="verifyDocumentType" required style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; box-sizing: border-box;">
+                <option value="">Selecciona</option>
+                <option value="CC">Cédula de Ciudadanía</option>
+                <option value="CE">Cédula de Extranjería</option>
+                <option value="PA">Pasaporte</option>
+                <option value="TI">Tarjeta de Identidad</option>
+              </select>
+            </div>
+
+            <div>
+              <label style="display: block; margin-bottom: 6px; color: #4a5568; font-weight: 600; font-size: 13px;">
+                <i class='bx bx-id-card'></i> Número de Documento *
+              </label>
+              <input type="text" id="verifyDocumentNumberActivate" name="verifyDocumentNumber" required placeholder="Número de documento" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; box-sizing: border-box;" />
+              <div class="error-message d-none" id="verifyDocumentErrorActivate" style="color: #ef4444; font-size: 0.85rem; margin-top: 5px;"></div>
+            </div>
+          </div>
+
+          <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 6px; color: #4a5568; font-weight: 600; font-size: 13px;">
+              <i class='bx bx-phone'></i> Número de Teléfono *
+            </label>
+            <input type="tel" id="verifyPhoneActivate" name="verifyPhone" required placeholder="Número de teléfono registrado" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 10px; font-size: 14px; box-sizing: border-box;" />
+            <div class="error-message d-none" id="verifyPhoneErrorActivate" style="color: #ef4444; font-size: 0.85rem; margin-top: 5px;"></div>
+          </div>
+
+          <button type="button" id="verifyIdentityBtnActivate" style="width: 100%; padding: 12px; background: #28a745; color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; margin-bottom: 15px;">
+            <i class='bx bx-check-circle'></i> Verificar y Activar Cuenta
+          </button>
+        </form>
       </div>
     </div>
   </div>
@@ -1499,6 +1581,126 @@
         } finally {
           this.disabled = false;
           this.innerHTML = '<i class="bx bx-save"></i> Actualizar Contraseña';
+        }
+      });
+    }
+
+    // Funcionalidad de activar cuenta
+    const activateAccountLink = document.getElementById('activateAccountLink');
+    const activateAccountModal = document.getElementById('activateAccountModal');
+    const closeActivateAccountModal = document.getElementById('closeActivateAccountModal');
+    const verifyIdentityBtnActivate = document.getElementById('verifyIdentityBtnActivate');
+    const activateAccountError = document.getElementById('activateAccountError');
+    const activateAccountSuccess = document.getElementById('activateAccountSuccess');
+    const verificationStepActivate = document.getElementById('verificationStepActivate');
+
+    // Abrir modal
+    if (activateAccountLink) {
+      activateAccountLink.addEventListener('click', function(e) {
+        e.preventDefault();
+        activateAccountModal.style.display = 'flex';
+        resetActivateModal();
+      });
+    }
+
+    // Cerrar modal
+    if (closeActivateAccountModal) {
+      closeActivateAccountModal.addEventListener('click', function() {
+        activateAccountModal.style.display = 'none';
+        resetActivateModal();
+      });
+    }
+
+    // Cerrar al hacer clic fuera del modal
+    if (activateAccountModal) {
+      activateAccountModal.addEventListener('click', function(e) {
+        if (e.target === activateAccountModal) {
+          activateAccountModal.style.display = 'none';
+          resetActivateModal();
+        }
+      });
+    }
+
+    function resetActivateModal() {
+      activateAccountError.style.display = 'none';
+      activateAccountSuccess.style.display = 'none';
+      verificationStepActivate.style.display = 'block';
+      document.getElementById('activateAccountForm').reset();
+    }
+
+    // Verificar identidad y activar cuenta
+    if (verifyIdentityBtnActivate) {
+      verifyIdentityBtnActivate.addEventListener('click', async function() {
+        const email = document.getElementById('verifyEmailActivate').value.trim();
+        const documentType = document.getElementById('verifyDocumentTypeActivate').value;
+        const documentNumber = document.getElementById('verifyDocumentNumberActivate').value.trim();
+        const phone = document.getElementById('verifyPhoneActivate').value.trim();
+
+        // Validar campos
+        if (!email || !documentType || !documentNumber || !phone) {
+          activateAccountError.style.display = 'block';
+          document.getElementById('activateAccountErrorMessage').textContent = 'Por favor completa todos los campos';
+          return;
+        }
+
+        // Deshabilitar botón mientras se verifica
+        this.disabled = true;
+        this.innerHTML = '<i class="bx bx-loader-alt bx-spin"></i> Verificando y activando...';
+
+        try {
+          // Primero verificar identidad
+          const verifyResponse = await fetch('/api/usuarios/verificar-identidad', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              email: email,
+              documentType: documentType,
+              documentNumber: documentNumber,
+              phone: phone
+            })
+          });
+
+          const verifyData = await verifyResponse.json();
+
+          if (verifyResponse.ok && verifyData.valid) {
+            // Si la identidad es válida, activar la cuenta
+            const activateResponse = await fetch('/api/usuarios/activar-cuenta', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                email: email
+              })
+            });
+
+            const activateData = await activateResponse.json();
+
+            if (activateResponse.ok && activateData.success) {
+              activateAccountError.style.display = 'none';
+              activateAccountSuccess.style.display = 'block';
+              verificationStepActivate.style.display = 'none';
+              
+              // Redirigir al login después de 2 segundos
+              setTimeout(() => {
+                window.location.href = '/login?accountActivated=true';
+              }, 2000);
+            } else {
+              activateAccountError.style.display = 'block';
+              document.getElementById('activateAccountErrorMessage').textContent = activateData.message || 'Error al activar la cuenta';
+            }
+          } else {
+            activateAccountError.style.display = 'block';
+            document.getElementById('activateAccountErrorMessage').textContent = verifyData.message || 'Los datos no coinciden con nuestros registros';
+          }
+        } catch (error) {
+          activateAccountError.style.display = 'block';
+          document.getElementById('activateAccountErrorMessage').textContent = 'Error al activar la cuenta. Intenta nuevamente.';
+        } finally {
+          this.disabled = false;
+          this.innerHTML = '<i class=\'bx bx-check-circle\'></i> Verificar y Activar Cuenta';
         }
       });
     }

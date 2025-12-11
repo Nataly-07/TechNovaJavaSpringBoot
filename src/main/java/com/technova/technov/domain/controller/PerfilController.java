@@ -6,7 +6,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import org.springframework.http.ResponseEntity;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.technova.technov.domain.dto.UsuarioDto;
 import com.technova.technov.domain.service.AtencionClienteService;
@@ -1010,5 +1014,37 @@ public class PerfilController {
             return "redirect:/cliente/perfil";
         }
         return "redirect:/login";
+    }
+
+    @PostMapping("/cliente/perfil/desactivar")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> desactivarCuenta() {
+        Map<String, Object> response = new HashMap<>();
+        
+        UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
+        
+        if (usuario == null || !"cliente".equalsIgnoreCase(usuario.getRole())) {
+            response.put("success", false);
+            response.put("message", "Usuario no autenticado");
+            return ResponseEntity.status(org.springframework.http.HttpStatus.UNAUTHORIZED).body(response);
+        }
+        
+        try {
+            boolean resultado = usuarioService.activarDesactivarUsuario(usuario.getId(), false);
+            
+            if (resultado) {
+                response.put("success", true);
+                response.put("message", "Cuenta desactivada correctamente");
+            } else {
+                response.put("success", false);
+                response.put("message", "Error al desactivar la cuenta");
+            }
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Error al desactivar la cuenta: " + e.getMessage());
+            return ResponseEntity.status(org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR).body(response);
+        }
     }
 }

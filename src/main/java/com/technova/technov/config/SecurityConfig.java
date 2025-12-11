@@ -90,7 +90,8 @@ public class SecurityConfig {
         "/api/atencion-cliente",
         "/api/favoritos/**",
         "/api/carrito/**",
-        "/api/mensajes-directos/**"
+        "/api/mensajes-directos/**",
+        "/cliente/perfil/desactivar"
     )
 )
 
