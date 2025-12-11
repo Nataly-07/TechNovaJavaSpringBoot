@@ -33,9 +33,11 @@
     <div th:replace="~{frontend/layouts/sidebar-cliente :: sidebar}"></div>
 
     <main class="main-content">
-      <div class="welcome-section">
-        <h1>Mis Compras</h1>
-        <p>Historial de todas tus compras realizadas</p>
+      <div class="welcome-section" style="text-align: center; padding: 30px; margin-bottom: 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white; box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);">
+        <h1 style="color: white; font-size: 2.5em; margin-bottom: 10px; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 10px;">
+          <i class='bx bx-shopping-bag' style="font-size: 1.2em;"></i> Mis Compras
+        </h1>
+        <p style="color: rgba(255, 255, 255, 0.9); font-size: 1.1em; margin: 0;">Historial de todas tus compras realizadas</p>
       </div>
 
       <div th:if="${session.success != null}" class="alert alert-success">
@@ -53,28 +55,14 @@
           <div class="compra-card" th:each="compra : ${compras}">
             <div class="compra-header">
               <div class="compra-info">
-                <h3><i class='bx bx-receipt'></i> Compra #<span th:text="${compra.compraId}">0</span></h3>
+                <h3><i class='bx bx-receipt'></i> Compra #<span th:text="${compra.ventaId}">0</span></h3>
                 <p class="compra-fecha">
-                  <i class='bx bx-calendar'></i> <span th:text="${#temporals.format(compra.fechaCompra, 'dd/MM/yyyy')}">Fecha</span>
+                  <i class='bx bx-calendar'></i> <span th:text="${compra.fechaVenta != null ? #temporals.format(compra.fechaVenta, 'dd/MM/yyyy') : 'Fecha no disponible'}">Fecha</span>
                 </p>
               </div>
               <div class="compra-status">
-                <span th:classappend="${compra.estado != null ? 'status-' + #strings.toLowerCase(compra.estado) : 'status-default'}" class="status-badge">
-                  <th:block th:if="${compra.estado == 'procesado'}">
-                    <i class='bx bx-time-five'></i> Procesando
-                  </th:block>
-                  <th:block th:if="${compra.estado == 'enviado'}">
-                    <i class='bx bx-truck'></i> Enviado
-                  </th:block>
-                  <th:block th:if="${compra.estado == 'entregado'}">
-                    <i class='bx bx-check-circle'></i> Entregado
-                  </th:block>
-                  <th:block th:if="${compra.estado != null && compra.estado != 'procesado' && compra.estado != 'enviado' && compra.estado != 'entregado'}">
-                    <i class='bx bx-x-circle'></i> <span th:text="${compra.estado}">Estado</span>
-                  </th:block>
-                  <th:block th:if="${compra.estado == null}">
-                    <i class='bx bx-time-five'></i> Pendiente
-                  </th:block>
+                <span class="status-badge status-entregado">
+                  <i class='bx bx-check-circle'></i> Confirmado
                 </span>
               </div>
             </div>
@@ -82,30 +70,33 @@
             <div class="compra-details">
               <div class="compra-items">
                 <h4><i class='bx bx-package'></i> Productos (<span th:text="${compra.items != null ? compra.items.size() : 0}">0</span>)</h4>
-                <div class="items-list" th:if="${compra.items != null}">
+                <div class="items-list" th:if="${compra.items != null && !compra.items.isEmpty()}">
                   <div class="item" th:each="detalle : ${compra.items}">
                     <span class="item-name" th:text="${detalle.nombreProducto != null ? detalle.nombreProducto : 'Producto no disponible'}">Producto</span>
-                    <span class="item-quantity">x<span th:text="${detalle.cantidad}">1</span></span>
+                    <span class="item-quantity">x<span th:text="${detalle.cantidad != null ? detalle.cantidad : 1}">1</span></span>
                     <div class="item-price-container">
                       <span class="item-price" style="color: #27ae60; font-weight: bold;">
-                        $<span th:text="${#numbers.formatDecimal(detalle.precio, 0, 0)}">0</span>
+                        $<span th:text="${detalle.precioLinea != null ? #numbers.formatDecimal(detalle.precioLinea, 0, 0) : '0'}">0</span>
                       </span>
                     </div>
                   </div>
+                </div>
+                <div th:if="${compra.items == null || compra.items.isEmpty()}" class="no-items">
+                  <p style="color: #999; font-style: italic; padding: 10px; text-align: center;">No hay productos en esta compra</p>
                 </div>
               </div>
 
               <div class="compra-summary">
                 <div class="summary-row">
                   <span><i class='bx bx-money'></i> Total:</span>
-                  <span class="total-amount">$<span th:text="${#numbers.formatDecimal(compra.total, 0, 0)}">0</span></span>
+                  <span class="total-amount">$<span th:text="${compra.total != null ? #numbers.formatDecimal(compra.total, 0, 0) : '0'}">0</span></span>
                 </div>
               </div>
             </div>
 
             <div class="compra-actions">
-              <a th:href="@{/cliente/mis-compras/{id}(id=${compra.compraId})}" class="btn btn-primary">
-                <i class='bx bx-show'></i> Ver Detalles
+              <a th:href="@{/cliente/pedidos}" class="btn btn-primary">
+                <i class='bx bx-show'></i> Ver en Pedidos
               </a>
             </div>
           </div>
@@ -143,6 +134,7 @@
       box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
       overflow: hidden;
       transition: transform 0.3s ease;
+      margin-bottom: 20px;
     }
 
     .compra-card:hover {
@@ -153,10 +145,18 @@
     .compra-header {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;
       padding: 20px;
       background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       color: white;
+    }
+    
+    .compra-info {
+      flex: 1;
+    }
+    
+    .compra-status {
+      margin-left: 20px;
     }
 
     .compra-info h3 {
@@ -179,40 +179,55 @@
     .status-badge {
       padding: 8px 16px;
       border-radius: 20px;
-      font-size: 0.8rem;
+      font-size: 0.85rem;
       font-weight: 600;
       text-transform: uppercase;
-      display: flex;
+      display: inline-flex;
       align-items: center;
       gap: 5px;
+      white-space: nowrap;
     }
 
-    .status-procesado {
-      background: #e3f2fd;
-      color: #1976d2;
+    .status-procesado,
+    .status-default {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.3);
     }
 
     .status-enviado {
-      background: #fff3e0;
-      color: #f57c00;
+      background: rgba(255, 193, 7, 0.2);
+      color: #ffc107;
+      border: 1px solid rgba(255, 193, 7, 0.3);
     }
 
     .status-entregado {
-      background: #e8f5e8;
-      color: #388e3c;
+      background: rgba(76, 175, 80, 0.2);
+      color: #4caf50;
+      border: 1px solid rgba(76, 175, 80, 0.3);
     }
 
     .compra-details {
       padding: 20px;
+      background: #f8f9fa;
+    }
+    
+    .no-items {
+      text-align: center;
+      padding: 15px;
+      background: white;
+      border-radius: 8px;
+      margin-top: 10px;
     }
 
     .compra-items h4 {
       margin: 0 0 15px 0;
-      color: var(--text-primary);
+      color: #2c3e50;
       font-size: 1.1rem;
       display: flex;
       align-items: center;
       gap: 8px;
+      font-weight: 600;
     }
 
     .items-list {
@@ -220,18 +235,25 @@
       flex-direction: column;
       gap: 8px;
       margin-bottom: 20px;
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
     }
 
     .item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 8px 0;
-      border-bottom: 1px solid #f0f0f0;
+      padding: 12px;
+      border-bottom: 1px solid #e0e0e0;
+      background: white;
+      border-radius: 6px;
+      margin-bottom: 8px;
     }
 
     .item:last-child {
       border-bottom: none;
+      margin-bottom: 0;
     }
 
     .item-name {
@@ -245,9 +267,11 @@
     }
 
     .compra-summary {
-      background: #f8f9fa;
+      background: white;
       padding: 15px;
       border-radius: 8px;
+      margin-top: 15px;
+      border: 2px solid #667eea;
     }
 
     .summary-row {
@@ -269,15 +293,16 @@
     }
 
     .total-amount {
-      color: var(--primary-color) !important;
+      color: #00cc44 !important;
       font-weight: 700 !important;
-      font-size: 1.1rem;
+      font-size: 1.3rem;
     }
 
     .compra-actions {
       padding: 20px;
-      background: #f8f9fa;
+      background: white;
       text-align: center;
+      border-top: 1px solid #e0e0e0;
     }
 
     .btn {
