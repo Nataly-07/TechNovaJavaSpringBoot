@@ -5,6 +5,12 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Repositorio de acceso a datos para {@link Producto}.
@@ -14,46 +20,39 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface ProductoRepository extends JpaRepository<Producto, Integer> {
-    /**
-     * Lista productos por categoría (case-insensitive).
-     * @param categoria categoría a filtrar
-     * @return lista de productos
-     */
-    java.util.List<Producto> findByCaracteristica_CategoriaIgnoreCase(String categoria);
-    /**
-     * Lista productos por marca (case-insensitive).
-     * @param marca marca a filtrar
-     * @return lista de productos
-     */
-    java.util.List<Producto> findByCaracteristica_MarcaIgnoreCase(String marca);
-    /**
-     * Busca productos por nombre o por descripción de características (case-insensitive), paginado.
-     * @param q1 término para el nombre
-     * @param q2 término para la descripción de características
-     * @param pageable información de paginación
-     * @return página de resultados
-     */
+
+    List<Producto> findByCaracteristica_CategoriaIgnoreCase(String categoria);
+
+    List<Producto> findByCaracteristica_MarcaIgnoreCase(String marca);
+
     Page<Producto> findByNombreContainingIgnoreCaseOrCaracteristica_DescripcionContainingIgnoreCase(String q1, String q2, Pageable pageable);
-    /**
-     * Lista productos dentro de un rango de precio de venta, paginado.
-     * @param min precio mínimo
-     * @param max precio máximo
-     * @param pageable información de paginación
-     * @return página de resultados
-     */
-    Page<Producto> findByCaracteristica_PrecioVentaBetween(java.math.BigDecimal min, java.math.BigDecimal max, Pageable pageable);
-    java.util.List<Producto> findByEstadoTrue();
-    java.util.Optional<Producto> findByIdAndEstadoTrue(Integer id);
-    java.util.List<Producto> findByCaracteristica_CategoriaIgnoreCaseAndEstadoTrue(String categoria);
-    java.util.List<Producto> findByCaracteristica_MarcaIgnoreCaseAndEstadoTrue(String marca);
-    @org.springframework.data.jpa.repository.Query("SELECT p FROM Producto p WHERE p.estado = true AND (LOWER(p.nombre) LIKE LOWER(CONCAT('%', :q, '%')) OR (p.caracteristica IS NOT NULL AND LOWER(p.caracteristica.descripcion) LIKE LOWER(CONCAT('%', :q, '%'))))")
-    Page<Producto> buscarProductosNoEliminados(@org.springframework.data.repository.query.Param("q") String q, Pageable pageable);
-    Page<Producto> findByCaracteristica_PrecioVentaBetweenAndEstadoTrue(java.math.BigDecimal min, java.math.BigDecimal max, Pageable pageable);
-    
+
+    Page<Producto> findByCaracteristica_PrecioVentaBetween(BigDecimal min, BigDecimal max, Pageable pageable);
+
+    List<Producto> findByEstadoTrue();
+
+    Optional<Producto> findByIdAndEstadoTrue(Integer id);
+
+    List<Producto> findByCaracteristica_CategoriaIgnoreCaseAndEstadoTrue(String categoria);
+
+    List<Producto> findByCaracteristica_MarcaIgnoreCaseAndEstadoTrue(String marca);
+
+    @Query("SELECT p FROM Producto p WHERE p.estado = true AND (LOWER(p.nombre) LIKE LOWER(CONCAT('%', :q, '%')) OR (p.caracteristica IS NOT NULL AND LOWER(p.caracteristica.descripcion) LIKE LOWER(CONCAT('%', :q, '%'))))")
+    Page<Producto> buscarProductosNoEliminados(@Param("q") String q, Pageable pageable);
+
+    Page<Producto> findByCaracteristica_PrecioVentaBetweenAndEstadoTrue(BigDecimal min, BigDecimal max, Pageable pageable);
+
     /**
      * Obtiene los productos más recientes ordenados por ID descendente (los últimos creados).
      * @param pageable información de paginación
      * @return página de productos ordenados por ID descendente
      */
     Page<Producto> findByEstadoTrueOrderByIdDesc(Pageable pageable);
+
+    /**
+     * Lista productos activos con sus características cargadas (JOIN FETCH).
+     * @return lista de productos con características cargadas
+     */
+    @Query("SELECT DISTINCT p FROM Producto p LEFT JOIN FETCH p.caracteristica WHERE p.estado = true")
+    List<Producto> findAllWithCaracteristicas();
 }

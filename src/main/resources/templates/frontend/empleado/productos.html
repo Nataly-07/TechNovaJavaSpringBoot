@@ -19,22 +19,56 @@
 
         .productos-container {
             padding: 30px 50px;
-            max-width: 98%;
+            max-width: 85%;
             margin: 0 auto;
             width: 100%;
+            overflow-x: auto;
+            overflow-y: visible;
         }
 
         @media (min-width: 1600px) {
             .productos-container {
-                max-width: 1900px;
-                padding: 30px 60px;
+                max-width: 1500px;
+                padding: 30px 50px;
             }
         }
 
         @media (max-width: 1200px) {
             .productos-container {
-                max-width: 98%;
+                max-width: 85%;
                 padding: 30px 25px;
+            }
+        }
+
+        /* Barra de desplazamiento horizontal en pantallas pequeñas */
+        @media (max-width: 991px) {
+            .productos-container {
+                overflow-x: auto !important;
+                overflow-y: visible;
+                -webkit-overflow-scrolling: touch;
+                padding: 20px 15px;
+                width: 100%;
+                max-width: 100%;
+            }
+            
+            .productos-container::-webkit-scrollbar {
+                height: 10px;
+                display: block;
+            }
+            
+            .productos-container::-webkit-scrollbar-track {
+                background: #f1f1f1;
+                border-radius: 10px;
+                margin: 5px 0;
+            }
+            
+            .productos-container::-webkit-scrollbar-thumb {
+                background: #667eea;
+                border-radius: 10px;
+            }
+            
+            .productos-container::-webkit-scrollbar-thumb:hover {
+                background: #5568d3;
             }
         }
 
@@ -125,12 +159,109 @@
             background: white;
             border-radius: 16px;
             box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-            overflow: hidden;
+            overflow-x: auto !important;
+            overflow-y: hidden !important;
+            width: 100%;
+            position: relative;
+            -webkit-overflow-scrolling: touch;
+            /* Ocultar scrollbar nativo */
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE y Edge */
+        }
+        
+        .table-container::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+
+        /* Scroll horizontal - Scrollbar personalizado arriba (siempre visible cuando hay scroll) */
+        .table-wrapper-scroll {
+            position: relative;
+            width: 100%;
+        }
+        
+        .table-productos {
+            min-width: 1200px;
+            width: 100%;
+        }
+        
+        /* Scrollbar personalizado arriba - siempre visible */
+        .custom-scrollbar-top {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 12px;
+            background: #f1f1f1;
+            border-radius: 16px 16px 0 0;
+            z-index: 10;
+            display: none;
+        }
+        
+        .custom-scrollbar-thumb {
+            height: 10px;
+            background: #667eea;
+            border-radius: 10px;
+            position: absolute;
+            top: 1px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .custom-scrollbar-thumb:hover {
+            background: #5568d3;
+        }
+        
+        /* Contenedor de productos con scroll arriba */
+        .productos-container {
+            position: relative;
+            overflow-x: auto !important;
+            overflow-y: visible;
+            /* Ocultar scrollbar nativo */
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none; /* IE y Edge */
+        }
+        
+        .productos-container::-webkit-scrollbar {
+            display: none; /* Chrome, Safari, Opera */
+        }
+        
+        .productos-scrollbar-top {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 12px;
+            background: #f1f1f1;
+            border-radius: 10px;
+            z-index: 10;
+            display: none;
+        }
+        
+        .productos-scrollbar-thumb {
+            height: 10px;
+            background: #667eea;
+            border-radius: 10px;
+            position: absolute;
+            top: 1px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        
+        .productos-scrollbar-thumb:hover {
+            background: #5568d3;
+        }
+        
+        /* Media query solo para ajustes en pantallas pequeñas */
+        @media (max-width: 991px) {
+            .table-productos {
+                min-width: 1200px;
+            }
         }
 
         .table-productos {
             width: 100%;
             border-collapse: collapse;
+            min-width: 1200px; /* Ancho mínimo para activar scroll horizontal */
         }
 
         .table-productos thead {
@@ -314,12 +445,16 @@
                 align-items: flex-start;
             }
 
-            .table-container {
-                overflow-x: auto;
-            }
-
             .table-productos {
-                min-width: 1500px;
+                min-width: 1200px;
+            }
+            
+            .table-container {
+                overflow-x: auto !important;
+            }
+            
+            .productos-container {
+                overflow-x: auto !important;
             }
         }
     </style>
@@ -346,7 +481,10 @@
     <div th:replace="~{frontend/layouts/sidebar-empleado :: sidebar}"></div>
 
     <main class="main-content">
-      <div class="productos-container">
+      <div class="productos-container" id="productosContainer">
+        <div class="productos-scrollbar-top" id="productosScrollbarTop">
+          <div class="productos-scrollbar-thumb" id="productosScrollbarThumb"></div>
+        </div>
         <div class="page-header">
           <h1 class="page-title">
             <i class='bx bx-shopping-bag'></i>
@@ -361,12 +499,16 @@
         <div class="search-container">
           <div class="search-box">
             <i class='bx bx-search'></i>
-            <input type="text" id="searchInput" placeholder="Buscar por ID, nombre, código, categoría, marca, color, descripción o proveedor..." onkeyup="filtrarProductos()">
+            <input type="text" id="searchInput" placeholder="Buscar por ID, nombre, código, categoría, marca, color, descripción o proveedor...">
           </div>
         </div>
 
-        <div class="table-container">
-          <table class="table-productos" id="productosTable">
+        <div class="table-wrapper-scroll">
+          <div class="custom-scrollbar-top" id="tableScrollbarTop">
+            <div class="custom-scrollbar-thumb" id="tableScrollbarThumb"></div>
+          </div>
+          <div class="table-container" id="tableContainer">
+            <table class="table-productos" id="productosTable">
             <thead>
               <tr>
                 <th><i class='bx bx-hash'></i> ID</th>
@@ -374,18 +516,15 @@
                 <th><i class='bx bx-category'></i> Categoría</th>
                 <th><i class='bx bx-label'></i> Marca</th>
                 <th><i class='bx bx-palette'></i> Color</th>
-                <th><i class='bx bx-dollar'></i> Precio Compra</th>
                 <th><i class='bx bx-dollar-circle'></i> Precio Venta</th>
                 <th><i class='bx bx-box'></i> Stock</th>
-                <th><i class='bx bx-log-in'></i> Ingreso</th>
-                <th><i class='bx bx-log-out'></i> Salida</th>
                 <th><i class='bx bx-store'></i> Proveedor</th>
                 <th><i class='bx bx-file-blank'></i> Descripción</th>
               </tr>
             </thead>
             <tbody id="productosBody">
-              <tr th:if="${productos == null || productos.isEmpty()}">
-                <td colspan="12">
+              <tr th:if="${productos == null or productos.isEmpty()}">
+                <td colspan="9">
                   <div class="empty-state">
                     <i class='bx bx-package'></i>
                     <h3>No hay productos registrados</h3>
@@ -394,65 +533,67 @@
                 </td>
               </tr>
               <tr th:each="producto : ${productos}" class="producto-row">
-                <td style="text-align: center; font-weight: 600; color: #667eea;" th:text="${producto.id ?: 'N/A'}">ID</td>
+                <td style="text-align: center; font-weight: 600; color: #667eea;" th:text="${producto.id != null ? producto.id : 'N/A'}">ID</td>
                 <td>
                   <div class="producto-info">
                     <img class="producto-imagen" 
-                         th:src="${producto.imagen != null and !#strings.isEmpty(producto.imagen) and #strings.startsWith(producto.imagen, 'http') 
-                                  ? producto.imagen 
-                                  : (producto.imagen != null and !#strings.isEmpty(producto.imagen) 
-                                      ? '/frontend/imagenes/' + producto.imagen 
-                                      : '/frontend/imagenes/placeholder.png')}"
-                         th:alt="${producto.nombre}">
+                         th:src="${producto.imagen != null ? (producto.imagen.startsWith('http') ? producto.imagen : '/frontend/imagenes/' + producto.imagen) : '/frontend/imagenes/placeholder.png'}"
+                         th:alt="${producto.nombre != null ? producto.nombre : 'Producto sin imagen'}">
                     <div class="producto-details">
-                      <div class="producto-name" th:text="${producto.nombre ?: 'Sin nombre'}">Producto</div>
-                      <div class="producto-codigo" th:text="'Código: ' + (producto.codigo ?: 'N/A')">Código: N/A</div>
+                      <div class="producto-name" th:text="${producto.nombre != null ? producto.nombre : 'Sin nombre'}">Producto</div>
+                      <div class="producto-codigo">
+                        <span>Código: </span>
+                        <span th:text="${producto.codigo != null ? producto.codigo : 'N/A'}">N/A</span>
+                      </div>
                     </div>
                   </div>
                 </td>
                 <td>
-                  <span class="categoria-badge" th:if="${producto.caracteristica != null and producto.caracteristica.categoria != null}" 
-                        th:text="${producto.caracteristica.categoria}">Categoría</span>
-                  <span th:if="${producto.caracteristica == null or producto.caracteristica.categoria == null}">N/A</span>
+                  <span th:if="${producto.caracteristica?.categoria != null}">
+                    <span class="categoria-badge" th:text="${producto.caracteristica.categoria}">Categoría</span>
+                  </span>
+                  <span th:if="${producto.caracteristica?.categoria == null}" style="color: #718096;">N/A</span>
                 </td>
                 <td>
-                  <span class="marca-badge" th:if="${producto.caracteristica != null and producto.caracteristica.marca != null}" 
-                        th:text="${producto.caracteristica.marca}">Marca</span>
-                  <span th:if="${producto.caracteristica == null or producto.caracteristica.marca == null}">N/A</span>
+                  <span th:if="${producto.caracteristica?.marca != null}">
+                    <span class="marca-badge" th:text="${producto.caracteristica.marca}">Marca</span>
+                  </span>
+                  <span th:if="${producto.caracteristica?.marca == null}" style="color: #718096;">N/A</span>
                 </td>
                 <td style="text-align: center;">
-                  <span th:if="${producto.caracteristica != null and producto.caracteristica.color != null}" 
+                  <span th:if="${producto.caracteristica?.color != null}" 
                         th:text="${producto.caracteristica.color}">Color</span>
-                  <span th:if="${producto.caracteristica == null or producto.caracteristica.color == null}">N/A</span>
+                  <span th:if="${producto.caracteristica?.color == null}" style="color: #718096;">N/A</span>
                 </td>
                 <td style="text-align: center;">
-                  <span class="precio-venta" th:if="${producto.caracteristica != null and producto.caracteristica.precioCompra != null}" 
-                        th:text="'$' + ${#numbers.formatDecimal(producto.caracteristica.precioCompra, 0, 'COMMA', '.')}">$0</span>
-                  <span th:if="${producto.caracteristica == null or producto.caracteristica.precioCompra == null}">N/A</span>
-                </td>
-                <td style="text-align: center;">
-                  <span class="precio-venta" th:if="${producto.caracteristica != null and producto.caracteristica.precioVenta != null}" 
-                        th:text="'$' + ${#numbers.formatDecimal(producto.caracteristica.precioVenta, 0, 'COMMA', '.')}">$0</span>
-                  <span th:if="${producto.caracteristica == null or producto.caracteristica.precioVenta == null}">N/A</span>
+                  <span th:if="${producto.caracteristica?.precioVenta != null}">
+                    <span class="precio-venta">$<span th:text="${#numbers.formatDecimal(producto.caracteristica.precioVenta, 0, 0)}">0</span></span>
+                  </span>
+                  <span th:if="${producto.caracteristica?.precioVenta == null}" style="color: #718096;">N/A</span>
                 </td>
                 <td>
                   <div class="stock-info">
-                    <span class="stock-badge" 
-                          th:classappend="${producto.stock != null and producto.stock > 50 ? 'alto' : (producto.stock != null and producto.stock > 10 ? 'medio' : 'bajo')}"
+                    <span th:if="${producto.stock != null and producto.stock > 50}" 
+                          class="stock-badge alto"
+                          th:text="${producto.stock}">0</span>
+                    <span th:if="${producto.stock != null and producto.stock > 10 and producto.stock <= 50}" 
+                          class="stock-badge medio"
+                          th:text="${producto.stock}">0</span>
+                    <span th:if="${producto.stock == null or producto.stock <= 10}" 
+                          class="stock-badge bajo"
                           th:text="${producto.stock != null ? producto.stock : 0}">0</span>
                   </div>
                 </td>
-                <td style="text-align: center;" th:text="${producto.ingreso != null ? producto.ingreso : 0}">0</td>
-                <td style="text-align: center;" th:text="${producto.salida != null ? producto.salida : 0}">0</td>
-                <td th:text="${producto.proveedor ?: 'N/A'}">N/A</td>
-                <td style="max-width: 200px; word-wrap: break-word; font-size: 0.85rem;">
-                  <span th:if="${producto.caracteristica != null and producto.caracteristica.descripcion != null}" 
-                        th:text="${producto.caracteristica.descripcion.length() > 100 ? producto.caracteristica.descripcion.substring(0, 100) + '...' : producto.caracteristica.descripcion}">Descripción</span>
-                  <span th:if="${producto.caracteristica == null or producto.caracteristica.descripcion == null}">N/A</span>
+                <td style="color: #4a5568;" th:text="${producto.proveedor != null ? producto.proveedor : 'N/A'}">N/A</td>
+                <td style="max-width: 200px; word-wrap: break-word; font-size: 0.85rem; color: #4a5568;">
+                  <span th:if="${producto.caracteristica?.descripcion != null}" 
+                        th:text="${producto.caracteristica.descripcion}">Descripción</span>
+                  <span th:if="${producto.caracteristica?.descripcion == null}" style="color: #718096;">N/A</span>
                 </td>
               </tr>
             </tbody>
           </table>
+          </div>
         </div>
       </div>
     </main>
@@ -463,10 +604,165 @@
   </footer>
 
   <script>
-    function filtrarProductos() {
+    // Scrollbar personalizado arriba - siempre activo cuando hay scroll
+    function initCustomScrollbars() {
+      
+      // Scrollbar para la tabla
+      const tableContainer = document.getElementById('tableContainer');
+      const tableScrollbarTop = document.getElementById('tableScrollbarTop');
+      const tableScrollbarThumb = document.getElementById('tableScrollbarThumb');
+      
+      if (tableContainer && tableScrollbarTop && tableScrollbarThumb) {
+        function updateTableScrollbar() {
+          const scrollWidth = tableContainer.scrollWidth;
+          const clientWidth = tableContainer.clientWidth;
+          const scrollLeft = tableContainer.scrollLeft;
+          const maxScroll = scrollWidth - clientWidth;
+          
+          if (maxScroll > 0) {
+            tableScrollbarTop.style.display = 'block';
+            const thumbWidth = Math.max((clientWidth / scrollWidth) * 100, 5);
+            const thumbLeft = maxScroll > 0 ? (scrollLeft / maxScroll) * (100 - thumbWidth) : 0;
+            
+            tableScrollbarThumb.style.width = thumbWidth + '%';
+            tableScrollbarThumb.style.left = thumbLeft + '%';
+          } else {
+            tableScrollbarTop.style.display = 'none';
+          }
+        }
+        
+        tableContainer.addEventListener('scroll', updateTableScrollbar);
+        
+        let isDragging = false;
+        let startX = 0;
+        let startScrollLeft = 0;
+        
+        tableScrollbarThumb.addEventListener('mousedown', (e) => {
+          isDragging = true;
+          startX = e.clientX;
+          startScrollLeft = tableContainer.scrollLeft;
+          e.preventDefault();
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+          if (!isDragging) return;
+          const deltaX = e.clientX - startX;
+          const scrollWidth = tableContainer.scrollWidth;
+          const clientWidth = tableContainer.clientWidth;
+          const maxScroll = scrollWidth - clientWidth;
+          const thumbWidth = tableScrollbarThumb.offsetWidth;
+          const trackWidth = tableScrollbarTop.offsetWidth;
+          const scrollRatio = maxScroll / (trackWidth - thumbWidth);
+          tableContainer.scrollLeft = startScrollLeft + (deltaX * scrollRatio);
+        });
+        
+        document.addEventListener('mouseup', () => {
+          isDragging = false;
+        });
+        
+        tableScrollbarTop.addEventListener('click', (e) => {
+          if (e.target === tableScrollbarTop || e.target === tableScrollbarTop.parentElement) {
+            const clickX = e.offsetX;
+            const trackWidth = tableScrollbarTop.offsetWidth;
+            const scrollWidth = tableContainer.scrollWidth;
+            const clientWidth = tableContainer.clientWidth;
+            const maxScroll = scrollWidth - clientWidth;
+            if (maxScroll > 0) {
+              const scrollRatio = clickX / trackWidth;
+              tableContainer.scrollLeft = scrollRatio * maxScroll;
+            }
+          }
+        });
+        
+        updateTableScrollbar();
+        window.addEventListener('resize', updateTableScrollbar);
+      }
+      
+      // Scrollbar para el contenedor de productos
+      const productosContainer = document.getElementById('productosContainer');
+      const productosScrollbarTop = document.getElementById('productosScrollbarTop');
+      const productosScrollbarThumb = document.getElementById('productosScrollbarThumb');
+      
+      if (productosContainer && productosScrollbarTop && productosScrollbarThumb) {
+        function updateProductosScrollbar() {
+          const scrollWidth = productosContainer.scrollWidth;
+          const clientWidth = productosContainer.clientWidth;
+          const scrollLeft = productosContainer.scrollLeft;
+          const maxScroll = scrollWidth - clientWidth;
+          
+          if (maxScroll > 0) {
+            productosScrollbarTop.style.display = 'block';
+            const thumbWidth = Math.max((clientWidth / scrollWidth) * 100, 5);
+            const thumbLeft = maxScroll > 0 ? (scrollLeft / maxScroll) * (100 - thumbWidth) : 0;
+            
+            productosScrollbarThumb.style.width = thumbWidth + '%';
+            productosScrollbarThumb.style.left = thumbLeft + '%';
+          } else {
+            productosScrollbarTop.style.display = 'none';
+          }
+        }
+        
+        productosContainer.addEventListener('scroll', updateProductosScrollbar);
+        
+        let isDraggingProductos = false;
+        let startXProductos = 0;
+        let startScrollLeftProductos = 0;
+        
+        productosScrollbarThumb.addEventListener('mousedown', (e) => {
+          isDraggingProductos = true;
+          startXProductos = e.clientX;
+          startScrollLeftProductos = productosContainer.scrollLeft;
+          e.preventDefault();
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+          if (!isDraggingProductos) return;
+          const deltaX = e.clientX - startXProductos;
+          const scrollWidth = productosContainer.scrollWidth;
+          const clientWidth = productosContainer.clientWidth;
+          const maxScroll = scrollWidth - clientWidth;
+          const thumbWidth = productosScrollbarThumb.offsetWidth;
+          const trackWidth = productosScrollbarTop.offsetWidth;
+          const scrollRatio = maxScroll / (trackWidth - thumbWidth);
+          productosContainer.scrollLeft = startScrollLeftProductos + (deltaX * scrollRatio);
+        });
+        
+        document.addEventListener('mouseup', () => {
+          isDraggingProductos = false;
+        });
+        
+        productosScrollbarTop.addEventListener('click', (e) => {
+          if (e.target === productosScrollbarTop || e.target === productosScrollbarTop.parentElement) {
+            const clickX = e.offsetX;
+            const trackWidth = productosScrollbarTop.offsetWidth;
+            const scrollWidth = productosContainer.scrollWidth;
+            const clientWidth = productosContainer.clientWidth;
+            const maxScroll = scrollWidth - clientWidth;
+            if (maxScroll > 0) {
+              const scrollRatio = clickX / trackWidth;
+              productosContainer.scrollLeft = scrollRatio * maxScroll;
+            }
+          }
+        });
+        
+        updateProductosScrollbar();
+        window.addEventListener('resize', updateProductosScrollbar);
+      }
+    }
+    
+    // Inicializar cuando se carga la página
+    document.addEventListener('DOMContentLoaded', initCustomScrollbars);
+    window.addEventListener('resize', initCustomScrollbars);
+    
+    // Asegurar que la función esté disponible cuando se carga la página
+    window.filtrarProductos = function() {
       const input = document.getElementById('searchInput');
+      if (!input) return;
+      
       const filter = input.value.toLowerCase();
       const table = document.getElementById('productosTable');
+      if (!table) return;
+      
       const rows = table.getElementsByClassName('producto-row');
       
       let visibleCount = 0;
@@ -492,7 +788,15 @@
           emptyRow.style.display = 'none';
         }
       }
-    }
+    };
+    
+    // Inicializar cuando el DOM esté listo
+    document.addEventListener('DOMContentLoaded', function() {
+      const searchInput = document.getElementById('searchInput');
+      if (searchInput) {
+        searchInput.addEventListener('keyup', window.filtrarProductos);
+      }
+    });
   </script>
 </body>
 </html>

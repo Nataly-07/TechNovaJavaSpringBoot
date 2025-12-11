@@ -41,9 +41,9 @@
         <p style="color: rgba(255, 255, 255, 0.9); font-size: 1.1em; margin: 0;">Historial de todos tus pedidos realizados</p>
       </div>
 
-      <div th:if="${session.success != null}" class="alert alert-success">
+      <div th:if="${successMessage != null}" class="alert alert-success">
         <i class='bx bx-check-circle'></i>
-        <span th:text="${session.success}">Éxito</span>
+        <span th:text="${successMessage}">Éxito</span>
       </div>
 
       <div th:if="${session.error != null}" class="alert alert-error">

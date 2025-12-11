@@ -324,6 +324,325 @@
     </main>
   </div>
 
+  <!-- Modal de Confirmación de Compra Exitosa (Estático) -->
+  <div id="successPurchaseModal" class="success-purchase-modal-overlay" th:if="${showSuccessModal != null && showSuccessModal == true}" style="display: flex;">
+    <div class="success-purchase-modal">
+      <div class="success-icon-container">
+        <i class='bx bx-check-circle success-icon'></i>
+      </div>
+      <h2 class="success-title">¡Compra Realizada Exitosamente!</h2>
+      <p class="success-message-modal">
+        Tu pedido ha sido confirmado y procesado correctamente. Recibirás un correo de confirmación con los detalles.
+      </p>
+      
+      <div class="purchase-details" th:if="${ventaId != null}">
+        <div class="detail-row">
+          <span class="detail-label"><i class='bx bx-receipt'></i> Número de Pedido:</span>
+          <span class="detail-value" th:text="'#' + ${ventaId}">#0</span>
+        </div>
+        <div class="detail-row" th:if="${fechaVenta != null}">
+          <span class="detail-label"><i class='bx bx-calendar'></i> Fecha de Compra:</span>
+          <span class="detail-value" th:text="${#temporals.format(fechaVenta, 'dd/MM/yyyy')}">-</span>
+        </div>
+        <div class="detail-row" th:if="${itemsCount != null}">
+          <span class="detail-label"><i class='bx bx-package'></i> Productos:</span>
+          <span class="detail-value" th:text="${itemsCount} + ' ' + (${itemsCount} == 1 ? 'producto' : 'productos')">-</span>
+        </div>
+        
+        <!-- Lista de productos comprados -->
+        <div th:if="${itemsVenta != null && !itemsVenta.isEmpty()}" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(16, 185, 129, 0.2);">
+          <div style="font-weight: 600; color: #059669; margin-bottom: 10px; font-size: 14px;">
+            <i class='bx bx-list-ul'></i> Productos Comprados:
+          </div>
+          <div style="max-height: 150px; overflow-y: auto;">
+            <div th:each="item : ${itemsVenta}" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid rgba(16, 185, 129, 0.1);">
+              <span style="flex: 1; color: #1f2937; font-size: 14px;" th:text="${item.nombreProducto != null ? item.nombreProducto : 'Producto'}">Producto</span>
+              <span style="margin: 0 10px; color: #6b7280; font-size: 13px;" th:text="'x' + ${item.cantidad != null ? item.cantidad : 1}">x1</span>
+              <span style="color: #059669; font-weight: 600; font-size: 14px;">
+                $<span th:text="${item.precioLinea != null ? #numbers.formatDecimal(item.precioLinea, 0, 0) : '0'}">0</span>
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="detail-row" th:if="${metodoPagoResumen != null}">
+          <span class="detail-label"><i class='bx bx-credit-card'></i> Método de Pago:</span>
+          <span class="detail-value" th:text="${metodoPagoResumen}">-</span>
+        </div>
+        <div class="detail-row" style="margin-top: 15px; padding-top: 15px; border-top: 2px solid rgba(16, 185, 129, 0.3);">
+          <span class="detail-label"><i class='bx bx-money'></i> Total Pagado:</span>
+          <span class="detail-value total-amount">
+            $<span th:text="${totalReal != null ? #numbers.formatDecimal(totalReal, 0, 0) : (total != null ? #numbers.formatDecimal(total, 0, 0) : '0')}">0</span>
+          </span>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <a th:href="@{/checkout/clear-success}" class="btn-continue">
+          <i class='bx bx-store'></i>
+          Continuar Comprando
+        </a>
+        <a th:href="@{/cliente/pedidos}" class="btn-view-orders">
+          <i class='bx bx-list-ul'></i>
+          Ver Mis Compras
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <style>
+    /* Modal de Confirmación de Compra Exitosa - Estático */
+    .success-purchase-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      opacity: 0;
+      animation: fadeInModal 0.4s ease-out forwards;
+    }
+
+    @keyframes fadeInModal {
+      to {
+        opacity: 1;
+      }
+    }
+
+    .success-purchase-modal {
+      background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+      border-radius: 24px;
+      padding: 50px 40px;
+      max-width: 550px;
+      width: 90%;
+      box-shadow: 0 30px 100px rgba(0, 0, 0, 0.4);
+      text-align: center;
+      position: relative;
+      transform: scale(0.85) translateY(-30px);
+      animation: modalSlideIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+      border: 3px solid rgba(16, 185, 129, 0.3);
+    }
+
+    @keyframes modalSlideIn {
+      to {
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    .success-icon-container {
+      width: 120px;
+      height: 120px;
+      margin: 0 auto 30px;
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      animation: iconPulse 2.5s ease-in-out infinite;
+      box-shadow: 0 15px 50px rgba(16, 185, 129, 0.5);
+    }
+
+    @keyframes iconPulse {
+      0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 15px 50px rgba(16, 185, 129, 0.5);
+      }
+      50% {
+        transform: scale(1.08);
+        box-shadow: 0 20px 60px rgba(16, 185, 129, 0.7);
+      }
+    }
+
+    .success-icon-container::before {
+      content: '';
+      position: absolute;
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: rgba(16, 185, 129, 0.25);
+      animation: ripple 2.5s ease-out infinite;
+    }
+
+    @keyframes ripple {
+      0% {
+        transform: scale(0.85);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1.5);
+        opacity: 0;
+      }
+    }
+
+    .success-icon {
+      font-size: 70px;
+      color: white;
+      position: relative;
+      z-index: 1;
+      animation: checkmark 0.7s ease-out 0.2s both;
+    }
+
+    @keyframes checkmark {
+      0% {
+        transform: scale(0) rotate(-45deg);
+        opacity: 0;
+      }
+      50% {
+        transform: scale(1.3) rotate(15deg);
+      }
+      100% {
+        transform: scale(1) rotate(0deg);
+        opacity: 1;
+      }
+    }
+
+    .success-title {
+      font-size: 32px;
+      font-weight: 700;
+      color: #1f2937;
+      margin-bottom: 15px;
+      animation: slideDown 0.6s ease-out 0.4s both;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+        transform: translateY(-15px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .success-message-modal {
+      font-size: 17px;
+      color: #6b7280;
+      line-height: 1.7;
+      margin-bottom: 30px;
+      animation: slideDown 0.6s ease-out 0.5s both;
+    }
+
+    .purchase-details {
+      background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+      border-radius: 16px;
+      padding: 25px;
+      margin-bottom: 30px;
+      border: 2px solid rgba(16, 185, 129, 0.2);
+      animation: slideDown 0.6s ease-out 0.6s both;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid rgba(16, 185, 129, 0.1);
+    }
+
+    .detail-row:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+
+    .detail-label {
+      color: #059669;
+      font-weight: 600;
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .detail-value {
+      color: #1f2937;
+      font-weight: 700;
+      font-size: 16px;
+    }
+
+    .detail-value.total-amount {
+      color: #059669;
+      font-size: 20px;
+    }
+
+    .modal-actions {
+      display: flex;
+      gap: 15px;
+      justify-content: center;
+      flex-wrap: wrap;
+      animation: slideDown 0.6s ease-out 0.7s both;
+    }
+
+    .btn-continue,
+    .btn-view-orders {
+      padding: 16px 32px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      border: none;
+      min-width: 200px;
+      justify-content: center;
+    }
+
+    .btn-continue {
+      background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e0 100%);
+      color: #4a5568;
+      border: 2px solid #cbd5e0;
+    }
+
+    .btn-continue:hover {
+      background: linear-gradient(135deg, #cbd5e0 0%, #a0aec0 100%);
+      color: #2d3748;
+      transform: translateY(-3px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .btn-view-orders {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: 2px solid #667eea;
+    }
+
+    .btn-view-orders:hover {
+      background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+      color: white;
+    }
+
+    @media (max-width: 768px) {
+      .success-purchase-modal {
+        padding: 40px 25px;
+        max-width: 95%;
+      }
+
+      .success-title {
+        font-size: 26px;
+      }
+
+      .modal-actions {
+        flex-direction: column;
+      }
+
+      .btn-continue,
+      .btn-view-orders {
+        width: 100%;
+      }
+    }
+  </style>
+
   <footer>
     <p>&copy; 2025 Technova</p>
   </footer>

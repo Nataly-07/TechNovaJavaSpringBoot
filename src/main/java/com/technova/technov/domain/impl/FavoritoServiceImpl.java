@@ -36,6 +36,15 @@ public class FavoritoServiceImpl implements FavoritoService {
     @Override
     public List<FavoritoDto> listarTodos() {
         return favoritoRepository.findAll().stream()
+                .sorted((a, b) -> {
+                    // Ordenar por fecha de actualización descendente (más reciente primero)
+                    if (a.getUpdatedAt() != null && b.getUpdatedAt() != null) {
+                        int fechaCompare = b.getUpdatedAt().compareTo(a.getUpdatedAt());
+                        if (fechaCompare != 0) return fechaCompare;
+                    }
+                    // Si las fechas son iguales o nulas, ordenar por ID descendente
+                    return b.getId().compareTo(a.getId());
+                })
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }
@@ -45,6 +54,15 @@ public class FavoritoServiceImpl implements FavoritoService {
     public List<FavoritoDto> listarPorUsuario(Long usuarioId) {
         List<Favorito> favoritos = favoritoRepository.findByUsuario_Id(usuarioId);
         return favoritos.stream()
+                .sorted((a, b) -> {
+                    // Ordenar por fecha de actualización descendente (más reciente primero)
+                    if (a.getUpdatedAt() != null && b.getUpdatedAt() != null) {
+                        int fechaCompare = b.getUpdatedAt().compareTo(a.getUpdatedAt());
+                        if (fechaCompare != 0) return fechaCompare;
+                    }
+                    // Si las fechas son iguales o nulas, ordenar por ID descendente
+                    return b.getId().compareTo(a.getId());
+                })
                 .map(this::convertToDto)
                 .collect(Collectors.toList());
     }

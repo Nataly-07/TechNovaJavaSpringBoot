@@ -27,10 +27,11 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @Override
+/*     @Override
     @Transactional(readOnly = true)
-    public List<UsuarioDto> listarUsuarios() {
-        // Obtener todos los admins y empleados (activos e inactivos)
+    public List<UsuarioDto> listarUsuarios() { */
+
+/*         // Obtener todos los admins y empleados (activos e inactivos)
         List<Usuario> admins = usuarioRepository.findByRoleIgnoreCase("admin");
         List<Usuario> empleados = usuarioRepository.findByRoleIgnoreCase("empleado");
         
@@ -51,8 +52,49 @@ public class UsuarioServiceImpl implements UsuarioService {
                     dto.setEstado(usuario.getEstado());
                     return dto;
                 })
-                .collect(Collectors.toList());
-    }
+
+        List<Usuario> usuarios = usuarioRepository.findByEstadoTrue();
+        return usuarios.stream()
+                .sorted((a, b) -> {
+                    // Ordenar por ID descendente (más reciente primero)
+                    return b.getId().compareTo(a.getId());
+                })
+                .map(usuario -> modelMapper.map(usuario, UsuarioDto.class))
+ (Cambios en Perfil de Empleado)
+                .collect(Collectors.toList()); 
+    }*/
+
+                @Override
+@Transactional(readOnly = true)
+public List<UsuarioDto> listarUsuarios() {
+    // Obtener todos los admins y empleados (activos e inactivos)
+    List<Usuario> admins = usuarioRepository.findByRoleIgnoreCase("admin");
+    List<Usuario> empleados = usuarioRepository.findByRoleIgnoreCase("empleado");
+
+    // Obtener solo clientes activos
+    List<Usuario> clientesActivos = usuarioRepository.findByEstadoTrue().stream()
+            .filter(u -> "cliente".equalsIgnoreCase(u.getRole()))
+            .collect(Collectors.toList());
+
+    // Combinar todas las listas
+    List<Usuario> todosUsuarios = new java.util.ArrayList<>();
+    todosUsuarios.addAll(admins);
+    todosUsuarios.addAll(empleados);
+    todosUsuarios.addAll(clientesActivos);
+
+    // Ordenar por ID descendente
+    todosUsuarios.sort((a, b) -> b.getId().compareTo(a.getId()));
+
+    // Mapear a DTO y devolver la lista
+    return todosUsuarios.stream()
+            .map(usuario -> {
+                UsuarioDto dto = modelMapper.map(usuario, UsuarioDto.class);
+                dto.setEstado(usuario.getEstado());
+                return dto;
+            })
+            .collect(Collectors.toList());
+}
+
 
     @Override
     @Transactional
