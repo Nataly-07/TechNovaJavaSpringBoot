@@ -16,6 +16,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.technova.technov.domain.dto.AtencionClienteDto;
 import com.technova.technov.domain.service.AtencionClienteService;
+import com.technova.technov.domain.repository.AtencionClienteRepository;
+import org.modelmapper.ModelMapper;
 
 @RestController
 @RequestMapping("/api/atencion-cliente")
@@ -23,9 +25,15 @@ import com.technova.technov.domain.service.AtencionClienteService;
 public class AtencionClienteController {
 
     private final AtencionClienteService atencionClienteService;
+    private final AtencionClienteRepository atencionClienteRepository;
+    private final ModelMapper modelMapper;
 
-    public AtencionClienteController(AtencionClienteService atencionClienteService) {
+    public AtencionClienteController(AtencionClienteService atencionClienteService, 
+                                     AtencionClienteRepository atencionClienteRepository,
+                                     ModelMapper modelMapper) {
         this.atencionClienteService = atencionClienteService;
+        this.atencionClienteRepository = atencionClienteRepository;
+        this.modelMapper = modelMapper;
     }
 
     @GetMapping("/usuario/{usuarioId}")
@@ -113,6 +121,38 @@ public class AtencionClienteController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/estadisticas")
+    public ResponseEntity<java.util.Map<String, Object>> obtenerEstadisticas() {
+        try {
+            // Obtener todos los tickets directamente del repositorio para datos reales del sistema
+            java.util.List<com.technova.technov.domain.entity.AtencionCliente> todosTickets = atencionClienteRepository.findAll();
+            
+            if (todosTickets == null) {
+                todosTickets = new java.util.ArrayList<>();
+            }
+            
+            // Contar total de consultas
+            long totalConsultas = todosTickets.size();
+            
+            // Contar pendientes (abierto + en_proceso)
+            long pendientes = todosTickets.stream()
+                    .filter(t -> t != null && t.getEstado() != null && 
+                            ("abierto".equalsIgnoreCase(t.getEstado()) || 
+                             "en_proceso".equalsIgnoreCase(t.getEstado())))
+                    .count();
+            
+            java.util.Map<String, Object> estadisticas = new java.util.HashMap<>();
+            estadisticas.put("totalConsultas", totalConsultas);
+            estadisticas.put("pendientes", pendientes);
+            
+            return ResponseEntity.ok(estadisticas);
+        } catch (Exception e) {
+            java.util.Map<String, Object> error = new java.util.HashMap<>();
+            error.put("error", "Error al obtener estadísticas: " + e.getMessage());
+            return ResponseEntity.status(500).body(error);
+        }
     }
 }
 

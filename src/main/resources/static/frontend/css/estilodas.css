@@ -21,7 +21,9 @@ body {
     background: var(--bg-body);
 }
 
-/* Header Styles */
+/* ============================================
+   HEADER - Barra superior
+   ============================================ */
 .header {
     background: var(--gradient-primary);
     padding: 15px 30px;
@@ -32,6 +34,9 @@ body {
     position: sticky;
     top: 0;
     z-index: 1000;
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 15px;
 }
 
 .header .logo {
@@ -62,6 +67,7 @@ body {
     flex: 1;
     max-width: 500px;
     margin: 0 30px;
+    min-width: 200px;
 }
 
 .search-bar input {
@@ -87,7 +93,8 @@ body {
 .acciones-usuario {
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 15px;
+    flex-wrap: wrap;
 }
 
 .acciones-usuario .account,
@@ -235,40 +242,52 @@ footer {
 
 
 
+/* ============================================
+   DASHBOARD LAYOUT - Estructura Principal
+   ============================================ */
 .dashboard-wrapper {
     display: flex;
     align-items: flex-start;
+    gap: 20px;
     background: #edf5ff;
     min-height: 100vh;
+    width: 100%;
+    position: relative;
 }
 
-/* Aumentamos el width para que el panel esté a la izquierda */
+/* Sidebar - Panel de navegación - FIJO E INVARIABLE */
 .menu-dashboard {
     max-width: 250px;
+    width: 250px;
+    min-width: 250px;
     background: var(--gradient-primary);
     padding: 20px;
     transition: max-width .3s ease;
-    border-radius:15px;
+    border-radius: 15px;
     border: 1px solid var(--eden);
-    box-shadow: 0 2px 6px rgb(0 0 0 / 0.5);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.5);
     color: white;
     position: sticky;
     top: 0;
     align-self: flex-start;
     height: 100vh;
     overflow: auto;
+    flex-shrink: 0;
 }
 
-/* resto de tu CSS de panel aquí... */
+/* Scrollbar del sidebar - solo vertical */
 
-/* main-content junto al panel */
+/* Contenido principal */
 .main-content {
-    flex-grow: 1;
+    flex: 1;
+    min-width: 0;
     padding: 20px;
     color: #555;
     font-size: 18px;
     background: #edf5ff;
     min-height: 100vh;
+    width: 100%;
+    overflow-x: hidden;
 }
 
 /* cartas, mensajes, gráfica, etc. */
@@ -338,43 +357,7 @@ footer {
     margin-top: 2rem;
 }
 
-
-
-.dashboard-wrapper {
-    display: flex;
-    align-items: flex-start;
-    background: #edf5ff;
-    min-height: 100vh;
-}
-
-/* Aumentamos el width para que el panel esté a la izquierda */
-.menu-dashboard {
-    max-width: 250px;
-    background: var(--gradient-primary);
-    padding: 20px;
-    transition: max-width .3s ease;
-    border-radius:15px;
-    border: 1px solid var(--eden);
-    box-shadow: 0 2px 6px rgb(0 0 0 / 0.5);
-    color: white;
-    position: sticky;
-    top: 0;
-    align-self: flex-start;
-    height: 100vh;
-    overflow: auto;
-}
-
-/* resto de tu CSS de panel aquí... */
-
-/* main-content junto al panel */
-.main-content {
-    flex-grow: 1;
-    padding: 20px;
-    color: #555;
-    font-size: 18px;
-    background: #edf5ff;
-    min-height: 100vh;
-}
+/* Definiciones duplicadas eliminadas - consolidadas arriba */
 
 /* cartas, mensajes, gráfica, etc. */
 .main-content h1 {
@@ -904,7 +887,9 @@ footer {
     background: #f9f9f9;
 }
 
-/* Nuevos estilos para el perfil mejorado */
+/* ============================================
+   COMPONENTES - Tarjetas y Secciones
+   ============================================ */
 .welcome-section {
     text-align: center;
     margin-bottom: 30px;
@@ -916,6 +901,7 @@ footer {
     max-width: 800px;
     margin-left: auto;
     margin-right: auto;
+    width: 100%;
 }
 
 .welcome-section h1 {
@@ -945,6 +931,8 @@ footer {
     margin-left: auto;
     margin-right: auto;
     border: 1px solid #f0f0f0;
+    width: 100%;
+    flex-wrap: wrap;
 }
 
 .profile-card:hover {
@@ -1024,6 +1012,8 @@ footer {
     max-width: 1200px;
     margin-left: auto;
     margin-right: auto;
+    width: 100%;
+    padding: 0 10px;
 }
 
 .card {
@@ -1389,6 +1379,8 @@ footer {
     max-width: 1200px;
     margin-left: auto;
     margin-right: auto;
+    width: 100%;
+    overflow-x: auto;
 }
 
 .table-header {
@@ -1412,6 +1404,26 @@ footer {
 
 .table-container {
     overflow-x: auto;
+    width: 100%;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table-container::-webkit-scrollbar {
+    height: 8px;
+}
+
+.table-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.table-container::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover {
+    background: #555;
 }
 
 .table-usuarios {
@@ -1421,6 +1433,7 @@ footer {
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    min-width: 600px;
 }
 
 .table-usuarios thead {
@@ -1513,7 +1526,54 @@ footer {
     color: white;
 }
 
-/* Responsive */
+/* ============================================
+   RESPONSIVE DESIGN - Media Queries
+   ============================================ */
+
+/* ============================================
+   RESPONSIVE - Sidebar FIJO, solo ajustes de contenido
+   ============================================ */
+
+/* Pantallas grandes (más de 1400px) */
+@media (min-width: 1400px) {
+    .main-content {
+        padding: 30px;
+    }
+}
+
+/* Pantallas medianas (992px - 1199px) */
+@media (max-width: 1199px) and (min-width: 992px) {
+    .main-content {
+        padding: 18px;
+        font-size: 16px;
+    }
+}
+
+/* Pantallas pequeñas (768px - 991px) */
+@media (max-width: 991px) {
+    .main-content {
+        width: 100%;
+        padding: 15px;
+        font-size: 16px;
+    }
+    
+    .header {
+        padding: 12px 20px;
+    }
+    
+    .search-bar {
+        max-width: 100%;
+        margin: 10px 0;
+        order: 3;
+        width: 100%;
+    }
+    
+    .acciones-usuario {
+        gap: 10px;
+    }
+}
+
+/* Pantallas muy pequeñas (hasta 768px) */
 @media (max-width: 768px) {
     .welcome-section h1 {
         font-size: 2rem;
@@ -1531,6 +1591,32 @@ footer {
     
     .dashboard-cards {
         grid-template-columns: 1fr;
+        gap: 15px;
+        padding: 0 5px;
+    }
+    
+    .card {
+        padding: 20px;
+    }
+    
+    .welcome-section {
+        padding: 20px;
+        margin-bottom: 20px;
+    }
+    
+    .welcome-section h1 {
+        font-size: 1.5rem;
+    }
+    
+    .profile-card {
+        padding: 20px;
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .profile-card img {
+        margin-right: 0;
+        margin-bottom: 15px;
     }
     
     .action-buttons {
@@ -1559,9 +1645,111 @@ footer {
         gap: 4px;
     }
     
+    .table-section {
+        padding: 15px;
+        overflow-x: auto;
+    }
+    
+    .table-usuarios {
+        min-width: 600px;
+    }
+    
     .table-usuarios th,
     .table-usuarios td {
         padding: 10px 8px;
         font-size: 0.8rem;
     }
+    
+    .form-section,
+    .controls-section,
+    .table-section {
+        padding: 15px;
+    }
+    
+    .main-content {
+        padding: 12px;
+        font-size: 15px;
+    }
+    
+    .main-content h1 {
+        font-size: 24px;
+        margin-bottom: 20px;
+    }
+    
+    .header {
+        padding: 10px 15px;
+    }
+    
+    .header .logo img {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .header .logo span {
+        font-size: 1.2rem;
+    }
+    
+    .acciones-usuario .account {
+        padding: 8px 12px;
+        font-size: 0.9rem;
+    }
+}
+
+/* Pantallas extra pequeñas (hasta 576px) */
+@media (max-width: 576px) {
+    .main-content {
+        padding: 10px;
+        font-size: 14px;
+    }
+    
+    .main-content h1 {
+        font-size: 20px;
+        margin-bottom: 15px;
+    }
+    
+    .header {
+        padding: 8px 12px;
+    }
+    
+    .header .logo img {
+        width: 35px;
+        height: 35px;
+    }
+    
+    .header .logo span {
+        font-size: 1rem;
+    }
+    
+    .acciones-usuario {
+        gap: 8px;
+    }
+    
+    .acciones-usuario .account {
+        padding: 6px 10px;
+        font-size: 0.85rem;
+    }
+    
+    .acciones-usuario .account span {
+        display: none;
+    }
+    
+    .acciones-usuario .account i {
+        margin-right: 0;
+    }
+}
+
+/* Asegurar que las imágenes sean responsive */
+img {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Evitar overflow horizontal */
+* {
+    max-width: 100%;
+}
+
+body {
+    overflow-x: hidden;
 }

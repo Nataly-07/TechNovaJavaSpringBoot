@@ -20,6 +20,14 @@ public interface AtencionClienteRepository extends JpaRepository<AtencionCliente
      * @return lista de atenciones del usuario
      */
     List<AtencionCliente> findByUsuario_Id(Long usuarioId);
+    
+    /**
+     * Lista las atenciones registradas para el usuario indicado, ordenadas por fecha descendente (más recientes primero).
+     *
+     * @param usuarioId identificador del usuario
+     * @return lista de atenciones del usuario ordenadas por fecha descendente
+     */
+    List<AtencionCliente> findByUsuario_IdOrderByFechaConsultaDesc(Long usuarioId);
     /**
      * Lista las atenciones filtrando por estado (p. ej., "abierto", "cerrado").
      *
@@ -27,4 +35,19 @@ public interface AtencionClienteRepository extends JpaRepository<AtencionCliente
      * @return lista de atenciones con el estado solicitado
      */
     List<AtencionCliente> findByEstadoIgnoreCase(String estado);
+    
+    /**
+     * Lista las atenciones filtrando por estado, ordenadas por fecha descendente (más recientes primero).
+     *
+     * @param estado estado de la atención
+     * @return lista de atenciones con el estado solicitado, ordenadas por fecha descendente
+     */
+    List<AtencionCliente> findByEstadoIgnoreCaseOrderByFechaConsultaDesc(String estado);
+    
+    /**
+     * Lista todas las atenciones ordenadas por fecha descendente (más recientes primero).
+     *
+     * @return lista de todas las atenciones ordenadas por fecha descendente
+     */
+    List<AtencionCliente> findAllByOrderByFechaConsultaDesc();
 }

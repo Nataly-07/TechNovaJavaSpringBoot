@@ -76,7 +76,7 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
     @Override
     @Transactional(readOnly = true)
     public List<AtencionClienteDto> listarPorUsuario(Integer usuarioId) {
-        List<AtencionCliente> tickets = atencionClienteRepository.findByUsuario_Id(Long.valueOf(usuarioId));
+        List<AtencionCliente> tickets = atencionClienteRepository.findByUsuario_IdOrderByFechaConsultaDesc(Long.valueOf(usuarioId));
         return tickets.stream()
                 .sorted((t1, t2) -> {
                     if (t1.getFechaConsulta() == null && t2.getFechaConsulta() == null) return 0;
@@ -91,7 +91,7 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
     @Override
     @Transactional(readOnly = true)
     public List<AtencionClienteDto> listarPorEstado(String estado) {
-        List<AtencionCliente> tickets = atencionClienteRepository.findByEstadoIgnoreCase(estado);
+        List<AtencionCliente> tickets = atencionClienteRepository.findByEstadoIgnoreCaseOrderByFechaConsultaDesc(estado);
         return tickets.stream()
                 .sorted((t1, t2) -> {
                     if (t1.getFechaConsulta() == null && t2.getFechaConsulta() == null) return 0;

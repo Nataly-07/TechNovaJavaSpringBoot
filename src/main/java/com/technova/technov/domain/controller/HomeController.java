@@ -594,7 +594,7 @@ public class HomeController {
     // ========== CHECKOUT ==========
     
     @GetMapping("/checkout/informacion")
-    public String checkoutInformacion(Model model) {
+    public String checkoutInformacion(Model model, jakarta.servlet.http.HttpSession session) {
         UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
         model.addAttribute("step", "informacion");
         model.addAttribute("usuario", usuario);
@@ -604,14 +604,27 @@ public class HomeController {
         BigDecimal total = BigDecimal.ZERO;
         
         if (usuario != null && usuario.getId() != null) {
-            items = carritoService.listar(usuario.getId().intValue());
-            for (CarritoItemDto item : items) {
-                ProductoDto producto = productoService.productoPorId(item.getProductoId()).orElse(null);
-                if (producto != null && producto.getCaracteristica() != null && producto.getCaracteristica().getPrecioVenta() != null) {
-                    BigDecimal precio = producto.getCaracteristica().getPrecioVenta();
-                    precios.put(item.getProductoId(), precio);
-                    total = total.add(precio.multiply(BigDecimal.valueOf(item.getCantidad() != null ? item.getCantidad() : 1)));
+            try {
+                items = carritoService.listar(usuario.getId().intValue());
+                for (CarritoItemDto item : items) {
+                    ProductoDto producto = productoService.productoPorId(item.getProductoId()).orElse(null);
+                    if (producto != null && producto.getCaracteristica() != null && producto.getCaracteristica().getPrecioVenta() != null) {
+                        BigDecimal precio = producto.getCaracteristica().getPrecioVenta();
+                        precios.put(item.getProductoId(), precio);
+                        total = total.add(precio.multiply(BigDecimal.valueOf(item.getCantidad() != null ? item.getCantidad() : 1)));
+                    }
                 }
+                
+                // Si hay productos en el carrito, limpiar errores previos relacionados con carrito vacío
+                if (items != null && !items.isEmpty()) {
+                    String errorActual = (String) session.getAttribute("error");
+                    if (errorActual != null && errorActual.contains("carrito") && errorActual.contains("vacío")) {
+                        session.removeAttribute("error");
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Error al cargar productos del carrito en checkout/informacion: " + e.getMessage());
+                items = new ArrayList<>();
             }
         }
         
@@ -653,14 +666,27 @@ public class HomeController {
         BigDecimal total = BigDecimal.ZERO;
         
         if (usuario != null && usuario.getId() != null) {
-            items = carritoService.listar(usuario.getId().intValue());
-            for (CarritoItemDto item : items) {
-                ProductoDto producto = productoService.productoPorId(item.getProductoId()).orElse(null);
-                if (producto != null && producto.getCaracteristica() != null && producto.getCaracteristica().getPrecioVenta() != null) {
-                    BigDecimal precio = producto.getCaracteristica().getPrecioVenta();
-                    precios.put(item.getProductoId(), precio);
-                    total = total.add(precio.multiply(BigDecimal.valueOf(item.getCantidad() != null ? item.getCantidad() : 1)));
+            try {
+                items = carritoService.listar(usuario.getId().intValue());
+                for (CarritoItemDto item : items) {
+                    ProductoDto producto = productoService.productoPorId(item.getProductoId()).orElse(null);
+                    if (producto != null && producto.getCaracteristica() != null && producto.getCaracteristica().getPrecioVenta() != null) {
+                        BigDecimal precio = producto.getCaracteristica().getPrecioVenta();
+                        precios.put(item.getProductoId(), precio);
+                        total = total.add(precio.multiply(BigDecimal.valueOf(item.getCantidad() != null ? item.getCantidad() : 1)));
+                    }
                 }
+                
+                // Si hay productos en el carrito, limpiar errores previos relacionados con carrito vacío
+                if (items != null && !items.isEmpty()) {
+                    String errorActual = (String) session.getAttribute("error");
+                    if (errorActual != null && errorActual.contains("carrito") && errorActual.contains("vacío")) {
+                        session.removeAttribute("error");
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Error al cargar productos del carrito en checkout/direccion: " + e.getMessage());
+                items = new ArrayList<>();
             }
         }
         
@@ -684,14 +710,26 @@ public class HomeController {
             @RequestParam(required = false) String localidad,
             @RequestParam(required = false) String barrio,
             jakarta.servlet.http.HttpSession session) {
-        // Guardar datos en sesión
+        // Guardar datos en sesión (solo si no están vacíos)
         Map<String, String> direccionData = new HashMap<>();
-        if (departamento != null) direccionData.put("departamento", departamento);
-        if (ciudad != null) direccionData.put("ciudad", ciudad);
-        if (direccion != null) direccionData.put("direccion", direccion);
-        if (localidad != null) direccionData.put("localidad", localidad);
-        if (barrio != null) direccionData.put("barrio", barrio);
+        if (departamento != null && !departamento.trim().isEmpty()) {
+            direccionData.put("departamento", departamento.trim());
+        }
+        if (ciudad != null && !ciudad.trim().isEmpty()) {
+            direccionData.put("ciudad", ciudad.trim());
+        }
+        if (direccion != null && !direccion.trim().isEmpty()) {
+            direccionData.put("direccion", direccion.trim());
+        }
+        if (localidad != null && !localidad.trim().isEmpty()) {
+            direccionData.put("localidad", localidad.trim());
+        }
+        if (barrio != null && !barrio.trim().isEmpty()) {
+            direccionData.put("barrio", barrio.trim());
+        }
         session.setAttribute("checkout_direccion", direccionData);
+        
+        System.out.println("Checkout Dirección guardado: " + direccionData);
         
         return "redirect:/checkout/envio";
     }
@@ -706,14 +744,27 @@ public class HomeController {
         BigDecimal total = BigDecimal.ZERO;
         
         if (usuario != null && usuario.getId() != null) {
-            items = carritoService.listar(usuario.getId().intValue());
-            for (CarritoItemDto item : items) {
-                ProductoDto producto = productoService.productoPorId(item.getProductoId()).orElse(null);
-                if (producto != null && producto.getCaracteristica() != null && producto.getCaracteristica().getPrecioVenta() != null) {
-                    BigDecimal precio = producto.getCaracteristica().getPrecioVenta();
-                    precios.put(item.getProductoId(), precio);
-                    total = total.add(precio.multiply(BigDecimal.valueOf(item.getCantidad() != null ? item.getCantidad() : 1)));
+            try {
+                items = carritoService.listar(usuario.getId().intValue());
+                for (CarritoItemDto item : items) {
+                    ProductoDto producto = productoService.productoPorId(item.getProductoId()).orElse(null);
+                    if (producto != null && producto.getCaracteristica() != null && producto.getCaracteristica().getPrecioVenta() != null) {
+                        BigDecimal precio = producto.getCaracteristica().getPrecioVenta();
+                        precios.put(item.getProductoId(), precio);
+                        total = total.add(precio.multiply(BigDecimal.valueOf(item.getCantidad() != null ? item.getCantidad() : 1)));
+                    }
                 }
+                
+                // Si hay productos en el carrito, limpiar errores previos relacionados con carrito vacío
+                if (items != null && !items.isEmpty()) {
+                    String errorActual = (String) session.getAttribute("error");
+                    if (errorActual != null && errorActual.contains("carrito") && errorActual.contains("vacío")) {
+                        session.removeAttribute("error");
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Error al cargar productos del carrito en checkout/envio: " + e.getMessage());
+                items = new ArrayList<>();
             }
         }
         
@@ -734,11 +785,17 @@ public class HomeController {
             @RequestParam(required = false) String transportadora,
             @RequestParam(required = false) String fechaEnvio,
             jakarta.servlet.http.HttpSession session) {
-        // Guardar datos en sesión
+        // Guardar datos en sesión (solo si no están vacíos)
         Map<String, String> envio = new HashMap<>();
-        if (transportadora != null) envio.put("transportadora", transportadora);
-        if (fechaEnvio != null) envio.put("fechaEnvio", fechaEnvio);
+        if (transportadora != null && !transportadora.trim().isEmpty()) {
+            envio.put("transportadora", transportadora.trim());
+        }
+        if (fechaEnvio != null && !fechaEnvio.trim().isEmpty()) {
+            envio.put("fechaEnvio", fechaEnvio.trim());
+        }
         session.setAttribute("checkout_envio", envio);
+        
+        System.out.println("Checkout Envío guardado: " + envio);
         
         return "redirect:/checkout/pago";
     }
@@ -753,14 +810,32 @@ public class HomeController {
         BigDecimal total = BigDecimal.ZERO;
         
         if (usuario != null && usuario.getId() != null) {
-            items = carritoService.listar(usuario.getId().intValue());
-            for (CarritoItemDto item : items) {
-                ProductoDto producto = productoService.productoPorId(item.getProductoId()).orElse(null);
-                if (producto != null && producto.getCaracteristica() != null && producto.getCaracteristica().getPrecioVenta() != null) {
-                    BigDecimal precio = producto.getCaracteristica().getPrecioVenta();
-                    precios.put(item.getProductoId(), precio);
-                    total = total.add(precio.multiply(BigDecimal.valueOf(item.getCantidad() != null ? item.getCantidad() : 1)));
+            try {
+                items = carritoService.listar(usuario.getId().intValue());
+                for (CarritoItemDto item : items) {
+                    ProductoDto producto = productoService.productoPorId(item.getProductoId()).orElse(null);
+                    if (producto != null && producto.getCaracteristica() != null && producto.getCaracteristica().getPrecioVenta() != null) {
+                        BigDecimal precio = producto.getCaracteristica().getPrecioVenta();
+                        precios.put(item.getProductoId(), precio);
+                        total = total.add(precio.multiply(BigDecimal.valueOf(item.getCantidad() != null ? item.getCantidad() : 1)));
+                    }
                 }
+                
+                // Si hay productos en el carrito, limpiar errores previos relacionados con carrito vacío
+                if (items != null && !items.isEmpty()) {
+                    String errorActual = (String) session.getAttribute("error");
+                    if (errorActual != null && errorActual.contains("carrito") && errorActual.contains("vacío")) {
+                        session.removeAttribute("error");
+                    }
+                } else {
+                    // Si el carrito está vacío, mostrar error
+                    session.setAttribute("error", "Tu carrito está vacío. Agrega productos antes de continuar.");
+                }
+            } catch (Exception e) {
+                System.err.println("Error al cargar productos del carrito en checkout/pago: " + e.getMessage());
+                e.printStackTrace();
+                session.setAttribute("error", "Error al cargar los productos del carrito. Por favor, intenta nuevamente.");
+                items = new ArrayList<>();
             }
         }
         
@@ -794,11 +869,24 @@ public class HomeController {
             @RequestParam Map<String, String> datosPago,
             jakarta.servlet.http.HttpSession session,
             RedirectAttributes redirectAttributes) {
-        // Guardar datos en sesión
+        // Guardar datos en sesión (solo si no están vacíos)
         Map<String, Object> pago = new HashMap<>();
-        if (metodoPago != null) pago.put("metodoPago", metodoPago);
-        pago.put("datosPago", datosPago);
+        if (metodoPago != null && !metodoPago.trim().isEmpty()) {
+            pago.put("metodoPago", metodoPago.trim());
+        }
+        // Filtrar datosPago para quitar valores vacíos y el propio metodoPago
+        Map<String, String> datosPagoFiltrados = new HashMap<>();
+        for (Map.Entry<String, String> entry : datosPago.entrySet()) {
+            if (!entry.getKey().equals("metodoPago") && entry.getValue() != null && !entry.getValue().trim().isEmpty()) {
+                datosPagoFiltrados.put(entry.getKey(), entry.getValue().trim());
+            }
+        }
+        if (!datosPagoFiltrados.isEmpty()) {
+            pago.put("datosPago", datosPagoFiltrados);
+        }
         session.setAttribute("checkout_pago", pago);
+        
+        System.out.println("Checkout Pago guardado: " + pago);
         
         return "redirect:/checkout/revision";
     }
@@ -806,8 +894,96 @@ public class HomeController {
     @GetMapping("/checkout/revision")
     public String checkoutRevision(Model model, jakarta.servlet.http.HttpSession session) {
         UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
+        
+        if (usuario == null || !"cliente".equalsIgnoreCase(usuario.getRole())) {
+            return "redirect:/login";
+        }
+        
         model.addAttribute("step", "revision");
         model.addAttribute("usuario", usuario);
+        
+        // Verificar si hay una compra exitosa para mostrar el modal
+        Boolean checkoutSuccess = (Boolean) session.getAttribute("checkout_success");
+        if (checkoutSuccess != null && checkoutSuccess) {
+            Integer ventaId = (Integer) session.getAttribute("checkout_venta_id");
+            
+            // Obtener la venta completa desde la base de datos para asegurar datos reales y actualizados
+            if (ventaId != null) {
+                VentaDto ventaCompleta = null;
+                try {
+                    ventaCompleta = ventaService.detalle(ventaId);
+                } catch (Exception e) {
+                    System.err.println("Error al obtener detalles de la venta en checkoutRevision: " + e.getMessage());
+                    e.printStackTrace();
+                }
+                
+                if (ventaCompleta != null) {
+                    // Calcular el total REAL sumando los precios de los items
+                    BigDecimal totalReal = BigDecimal.ZERO;
+                    if (ventaCompleta.getItems() != null && !ventaCompleta.getItems().isEmpty()) {
+                        for (var item : ventaCompleta.getItems()) {
+                            if (item.getPrecioLinea() != null) {
+                                totalReal = totalReal.add(item.getPrecioLinea());
+                            }
+                        }
+                    }
+                    
+                    // Usar el total de la venta si existe y es mayor a 0, de lo contrario usar el calculado
+                    BigDecimal totalFinal = (ventaCompleta.getTotal() != null && ventaCompleta.getTotal().compareTo(BigDecimal.ZERO) > 0) 
+                                          ? ventaCompleta.getTotal() 
+                                          : totalReal;
+                    
+                    System.out.println("Checkout Revision - Total calculado: $" + totalFinal + 
+                                     " (venta.getTotal=" + ventaCompleta.getTotal() + 
+                                     ", calculado desde items=" + totalReal + ")");
+                    
+                    // Pasar todos los datos REALES de la venta al modelo
+                    model.addAttribute("showSuccessModal", true);
+                    model.addAttribute("ventaId", ventaCompleta.getVentaId());
+                    model.addAttribute("total", totalFinal); // Usar el total calculado
+                    model.addAttribute("totalReal", totalFinal); // También como totalReal para el template
+                    model.addAttribute("fechaVenta", ventaCompleta.getFechaVenta());
+                    model.addAttribute("itemsVenta", ventaCompleta.getItems());
+                    model.addAttribute("itemsCount", ventaCompleta.getItems() != null ? ventaCompleta.getItems().size() : 0);
+                    
+                    // Obtener método de pago de la sesión si está disponible
+                    String metodoPago = (String) session.getAttribute("checkout_metodo_pago");
+                    if (metodoPago != null) {
+                        String pagoResumen = metodoPago.replace("_", " ").toUpperCase();
+                        model.addAttribute("metodoPagoResumen", pagoResumen);
+                    }
+                    
+                    System.out.println("Checkout Revision - Mostrando modal con datos REALES: Venta #" + ventaCompleta.getVentaId() + 
+                                     ", Total Final: $" + totalFinal + 
+                                     ", Items: " + (ventaCompleta.getItems() != null ? ventaCompleta.getItems().size() : 0));
+                } else {
+                    // Si no se puede obtener la venta completa, usar los datos básicos de la sesión
+                    System.err.println("Advertencia: No se pudo obtener la venta #" + ventaId + " desde la base de datos, usando datos de sesión");
+                    BigDecimal totalSesion = (BigDecimal) session.getAttribute("checkout_total");
+                    Integer itemsCountSesion = (Integer) session.getAttribute("checkout_items_count");
+                    java.time.LocalDate fechaSesion = (java.time.LocalDate) session.getAttribute("checkout_fecha");
+                    
+                    model.addAttribute("showSuccessModal", true);
+                    model.addAttribute("ventaId", ventaId);
+                    model.addAttribute("total", totalSesion != null ? totalSesion : BigDecimal.ZERO);
+                    model.addAttribute("totalReal", totalSesion != null ? totalSesion : BigDecimal.ZERO);
+                    model.addAttribute("fechaVenta", fechaSesion != null ? fechaSesion : java.time.LocalDate.now());
+                    model.addAttribute("itemsVenta", new ArrayList<>());
+                    model.addAttribute("itemsCount", itemsCountSesion != null ? itemsCountSesion : 0);
+                    
+                    String metodoPago = (String) session.getAttribute("checkout_metodo_pago");
+                    if (metodoPago != null) {
+                        String pagoResumen = metodoPago.replace("_", " ").toUpperCase();
+                        model.addAttribute("metodoPagoResumen", pagoResumen);
+                    }
+                }
+            } else {
+                model.addAttribute("showSuccessModal", false);
+            }
+        } else {
+            // Asegurar que showSuccessModal sea false cuando no hay compra exitosa
+            model.addAttribute("showSuccessModal", false);
+        }
         
         // Cargar datos de sesión
         Map<String, String> informacion = (Map<String, String>) session.getAttribute("checkout_informacion");
@@ -815,38 +991,71 @@ public class HomeController {
         Map<String, String> envio = (Map<String, String>) session.getAttribute("checkout_envio");
         Map<String, Object> pago = (Map<String, Object>) session.getAttribute("checkout_pago");
         
-        if (informacion != null) {
-            model.addAttribute("informacion", informacion);
-        }
-        if (direccion != null) {
-            model.addAttribute("direccion", direccion);
-        }
-        if (envio != null) {
-            model.addAttribute("envio", envio);
-        }
+        // Verificar si los Maps están vacíos (no null pero sin datos válidos)
+        boolean direccionValida = direccion != null && !direccion.isEmpty();
+        boolean envioValido = envio != null && !envio.isEmpty();
+        boolean pagoValido = pago != null && !pago.isEmpty() && pago.containsKey("metodoPago") && pago.get("metodoPago") != null;
+        
+        // Logs de depuración detallados
+        System.out.println("=== Checkout Revision - Estado de Sesión ===");
+        System.out.println("Dirección: " + direccion + " (válida: " + direccionValida + ")");
+        System.out.println("Envío: " + envio + " (válido: " + envioValido + ")");
+        System.out.println("Pago: " + pago + " (válido: " + pagoValido + ")");
         if (pago != null) {
-            model.addAttribute("pago", pago);
+            System.out.println("  - metodoPago: " + pago.get("metodoPago"));
+        }
+        
+        // Agregar al modelo: solo pasar valores válidos (no vacíos) o null
+        model.addAttribute("informacion", informacion);
+        model.addAttribute("direccion", direccionValida ? direccion : null);
+        model.addAttribute("envio", envioValido ? envio : null);
+        model.addAttribute("pago", pagoValido ? pago : null);
+        
+        // Agregar pago resumen si existe
+        if (pagoValido) {
             String metodoPago = (String) pago.get("metodoPago");
-            if (metodoPago != null) {
+            if (metodoPago != null && !metodoPago.trim().isEmpty()) {
                 String pagoResumen = metodoPago.replace("_", " ").toUpperCase();
                 model.addAttribute("pagoResumen", pagoResumen);
             }
         }
         
+        // Cargar productos del carrito y calcular total (solo si no hay compra exitosa)
         List<CarritoItemDto> items = new ArrayList<>();
         BigDecimal total = BigDecimal.ZERO;
         Map<Integer, BigDecimal> precios = new HashMap<>();
         
-        if (usuario != null && usuario.getId() != null) {
-            items = carritoService.listar(usuario.getId().intValue());
-            for (CarritoItemDto item : items) {
-                ProductoDto producto = productoService.productoPorId(item.getProductoId()).orElse(null);
-                if (producto != null && producto.getCaracteristica() != null && producto.getCaracteristica().getPrecioVenta() != null) {
-                    BigDecimal precio = producto.getCaracteristica().getPrecioVenta();
-                    precios.put(item.getProductoId(), precio);
-                    total = total.add(precio.multiply(BigDecimal.valueOf(item.getCantidad() != null ? item.getCantidad() : 1)));
+        if (checkoutSuccess == null || !checkoutSuccess) {
+            // Solo cargar el carrito si no hay una compra exitosa (porque el carrito ya se vació)
+            if (usuario != null && usuario.getId() != null) {
+                try {
+                    items = carritoService.listar(usuario.getId().intValue());
+                    for (CarritoItemDto item : items) {
+                        ProductoDto producto = productoService.productoPorId(item.getProductoId()).orElse(null);
+                        if (producto != null && producto.getCaracteristica() != null && producto.getCaracteristica().getPrecioVenta() != null) {
+                            BigDecimal precio = producto.getCaracteristica().getPrecioVenta();
+                            precios.put(item.getProductoId(), precio);
+                            total = total.add(precio.multiply(BigDecimal.valueOf(item.getCantidad() != null ? item.getCantidad() : 1)));
+                        }
+                    }
+                    
+                    // Si hay productos en el carrito, limpiar errores previos relacionados con carrito vacío
+                    if (items != null && !items.isEmpty()) {
+                        String errorActual = (String) session.getAttribute("error");
+                        if (errorActual != null && errorActual.contains("carrito") && errorActual.contains("vacío")) {
+                            session.removeAttribute("error");
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("Error al cargar productos del carrito: " + e.getMessage());
+                    items = new ArrayList<>();
                 }
             }
+        }
+        
+        // Validar que haya productos en el carrito (solo si no hay compra exitosa)
+        if ((checkoutSuccess == null || !checkoutSuccess) && (items == null || items.isEmpty())) {
+            session.setAttribute("error", "Tu carrito está vacío. Agrega productos antes de continuar.");
         }
         
         model.addAttribute("productos", items);
@@ -857,61 +1066,152 @@ public class HomeController {
 
     @PostMapping("/checkout/finalizar")
     public String finalizarCompra(jakarta.servlet.http.HttpSession session, RedirectAttributes redirectAttributes) {
-        UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
-        
-        if (usuario == null || usuario.getId() == null) {
-            redirectAttributes.addFlashAttribute("error", "Debes iniciar sesión para completar la compra");
-            return "redirect:/login";
-        }
+        System.out.println("=== POST /checkout/finalizar recibido ===");
         
         try {
-            // Procesar el checkout
-            CheckoutResponseDto checkoutResponse = checkoutService.checkout(usuario.getId().intValue());
+            UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
             
-            // Limpiar datos de sesión
+            if (usuario == null || usuario.getId() == null) {
+                System.err.println("Usuario no autenticado");
+                session.setAttribute("error", "Debes iniciar sesión para completar la compra");
+                return "redirect:/login";
+            }
+            
+            System.out.println("Usuario autenticado: " + usuario.getId());
+            
+            // Validar que todos los pasos anteriores estén completos
+            Map<String, String> direccion = (Map<String, String>) session.getAttribute("checkout_direccion");
+            Map<String, String> envio = (Map<String, String>) session.getAttribute("checkout_envio");
+            Map<String, Object> pago = (Map<String, Object>) session.getAttribute("checkout_pago");
+            
+            boolean direccionValida = direccion != null && !direccion.isEmpty();
+            boolean envioValido = envio != null && !envio.isEmpty();
+            boolean pagoValido = pago != null && !pago.isEmpty() && pago.containsKey("metodoPago") && pago.get("metodoPago") != null;
+            
+            System.out.println("Validación de pasos - Dirección: " + direccionValida + ", Envío: " + envioValido + ", Pago: " + pagoValido);
+            
+            if (!direccionValida) {
+                System.err.println("Dirección no completada");
+                session.setAttribute("error", "Por favor, completa la información de dirección antes de finalizar la compra.");
+                return "redirect:/checkout/revision";
+            }
+            
+            if (!envioValido) {
+                System.err.println("Envío no completado");
+                session.setAttribute("error", "Por favor, selecciona un método de envío antes de finalizar la compra.");
+                return "redirect:/checkout/revision";
+            }
+            
+            if (!pagoValido) {
+                System.err.println("Pago no completado");
+                session.setAttribute("error", "Por favor, selecciona un método de pago antes de finalizar la compra.");
+                return "redirect:/checkout/revision";
+            }
+            
+            // Validar que el carrito no esté vacío
+            List<CarritoItemDto> items;
+            try {
+                items = carritoService.listar(usuario.getId().intValue());
+                System.out.println("Items en carrito: " + (items != null ? items.size() : 0));
+                if (items == null || items.isEmpty()) {
+                    System.err.println("Carrito vacío");
+                    session.setAttribute("error", "Tu carrito está vacío. Agrega productos antes de continuar.");
+                    return "redirect:/checkout/revision";
+                }
+            } catch (Exception e) {
+                System.err.println("Error al verificar el carrito: " + e.getMessage());
+                e.printStackTrace();
+                session.setAttribute("error", "Error al verificar el carrito: " + e.getMessage());
+                return "redirect:/checkout/revision";
+            }
+            
+            System.out.println("Procesando checkout para usuario: " + usuario.getId());
+            // Procesar el checkout
+            CheckoutResponseDto checkoutResponse;
+            try {
+                checkoutResponse = checkoutService.checkout(usuario.getId().intValue());
+                System.out.println("Checkout exitoso. Venta ID: " + checkoutResponse.getVentaId() + ", Total: " + checkoutResponse.getTotal());
+            } catch (Exception e) {
+                System.err.println("Error al procesar checkout: " + e.getMessage());
+                e.printStackTrace();
+                session.setAttribute("error", "Error al procesar la compra: " + (e.getMessage() != null ? e.getMessage() : "Error desconocido"));
+                return "redirect:/checkout/revision";
+            }
+            
+            if (checkoutResponse == null || checkoutResponse.getVentaId() == null) {
+                System.err.println("Error: La respuesta del checkout es inválida");
+                session.setAttribute("error", "Error al procesar la compra. Por favor, intenta nuevamente.");
+                return "redirect:/checkout/revision";
+            }
+            
+            // Guardar información de pago ANTES de limpiar (para mostrarla en el modal)
+            Map<String, Object> pagoInfo = (Map<String, Object>) session.getAttribute("checkout_pago");
+            String metodoPago = null;
+            if (pagoInfo != null && pagoInfo.containsKey("metodoPago")) {
+                metodoPago = (String) pagoInfo.get("metodoPago");
+            }
+            
+            // Limpiar datos de sesión del checkout
             session.removeAttribute("checkout_informacion");
             session.removeAttribute("checkout_direccion");
             session.removeAttribute("checkout_envio");
+            session.removeAttribute("error"); // Limpiar errores previos
+            
+            // Guardar datos básicos de confirmación en la sesión para mostrar el modal
+            // Los datos completos se obtendrán en checkoutRevision cuando la transacción esté confirmada
+            BigDecimal totalFinal = checkoutResponse.getTotal() != null ? checkoutResponse.getTotal() : BigDecimal.ZERO;
+            Integer itemsCount = checkoutResponse.getItems() != null ? checkoutResponse.getItems().size() : 0;
+            
+            System.out.println("Guardando datos de confirmación - Venta ID: " + checkoutResponse.getVentaId() + 
+                             ", Total: $" + totalFinal + ", Items: " + itemsCount);
+            
+            // Guardar datos de confirmación en la sesión para mostrar el modal
+            session.setAttribute("checkout_venta_id", checkoutResponse.getVentaId());
+            session.setAttribute("checkout_total", totalFinal);
+            session.setAttribute("checkout_fecha", java.time.LocalDate.now());
+            session.setAttribute("checkout_items_count", itemsCount);
+            session.setAttribute("checkout_items", new ArrayList<>()); // Se llenará en checkoutRevision
+            if (metodoPago != null) {
+                session.setAttribute("checkout_metodo_pago", metodoPago);
+            }
+            session.setAttribute("checkout_success", true);
+            
+            // Limpiar pago después de guardar la información necesaria
             session.removeAttribute("checkout_pago");
             
-            // Guardar el ID de la venta en la sesión para mostrarlo en la confirmación
-            session.setAttribute("checkout_venta_id", checkoutResponse.getVentaId());
-            session.setAttribute("checkout_total", checkoutResponse.getTotal());
+            System.out.println("Redirigiendo a /checkout/revision con modal de éxito - Datos reales guardados");
+            return "redirect:/checkout/revision";
             
-            return "redirect:/checkout/confirmacion";
+        } catch (IllegalArgumentException e) {
+            System.err.println("Error de validación en checkout: " + e.getMessage());
+            e.printStackTrace();
+            session.setAttribute("error", "Error de validación: " + e.getMessage());
+            return "redirect:/checkout/revision";
+        } catch (IllegalStateException e) {
+            System.err.println("Error de estado en checkout: " + e.getMessage());
+            e.printStackTrace();
+            session.setAttribute("error", "Error: " + e.getMessage());
+            return "redirect:/checkout/revision";
         } catch (Exception e) {
-            redirectAttributes.addFlashAttribute("error", "Error al procesar la compra: " + e.getMessage());
+            System.err.println("Error inesperado al procesar checkout: " + e.getMessage());
+            e.printStackTrace();
+            String errorMsg = "Error al procesar la compra: " + (e.getMessage() != null ? e.getMessage() : "Error desconocido");
+            session.setAttribute("error", errorMsg);
             return "redirect:/checkout/revision";
         }
     }
 
-    @GetMapping("/checkout/confirmacion")
-    public String confirmacionCompra(Model model, jakarta.servlet.http.HttpSession session) {
-        UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
-        
-        if (usuario == null || usuario.getId() == null) {
-            return "redirect:/login";
-        }
-        
-        // Obtener datos de la sesión
-        Integer ventaId = (Integer) session.getAttribute("checkout_venta_id");
-        BigDecimal total = (BigDecimal) session.getAttribute("checkout_total");
-        
-        // Limpiar la sesión después de obtener los datos
+    @GetMapping("/checkout/clear-success")
+    public String limpiarConfirmacion(jakarta.servlet.http.HttpSession session) {
+        // Limpiar todos los datos de confirmación de checkout
+        session.removeAttribute("checkout_success");
         session.removeAttribute("checkout_venta_id");
         session.removeAttribute("checkout_total");
-        
-        // Si no hay datos de compra, redirigir a mis compras
-        if (ventaId == null) {
-            return "redirect:/cliente/mis-compras";
-        }
-        
-        // Crear un objeto simple para mostrar en la confirmación
-        model.addAttribute("ventaId", ventaId);
-        model.addAttribute("total", total != null ? total : BigDecimal.ZERO);
-        model.addAttribute("usuario", usuario);
-        
-        return "frontend/checkout/confirmacion";
+        session.removeAttribute("checkout_fecha");
+        session.removeAttribute("checkout_items_count");
+        session.removeAttribute("checkout_items");
+        session.removeAttribute("checkout_metodo_pago");
+        return "redirect:/";
     }
 
     // ========== CLIENTE ==========
@@ -1007,11 +1307,21 @@ public class HomeController {
     // ========== PEDIDOS (VENTAS) ==========
     
     @GetMapping("/cliente/pedidos")
-    public String pedidos(Model model) {
+    public String pedidos(Model model, jakarta.servlet.http.HttpSession session) {
         UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
         
         if (usuario == null || !"cliente".equalsIgnoreCase(usuario.getRole())) {
             return "redirect:/login";
+        }
+        
+        // Verificar si hay una compra reciente para mostrar mensaje de éxito
+        Boolean checkoutSuccess = (Boolean) session.getAttribute("checkout_success");
+        if (checkoutSuccess != null && checkoutSuccess) {
+            model.addAttribute("successMessage", "¡Tu pedido se ha registrado correctamente! Puedes verlo en la lista a continuación.");
+            // Limpiar datos de confirmación de checkout
+            session.removeAttribute("checkout_success");
+            session.removeAttribute("checkout_venta_id");
+            session.removeAttribute("checkout_total");
         }
         
         List<VentaDto> pedidos = new ArrayList<>();
@@ -1019,16 +1329,13 @@ public class HomeController {
         try {
             if (usuario.getId() != null) {
                 pedidos = ventaService.porUsuario(usuario.getId().intValue());
-                // Log para debug
-                System.out.println("Pedidos encontrados para usuario " + usuario.getId() + ": " + pedidos.size());
-                for (VentaDto p : pedidos) {
-                    System.out.println("Pedido #" + p.getVentaId() + " - Total: " + p.getTotal() + " - Items: " + (p.getItems() != null ? p.getItems().size() : 0));
-                    if (p.getItems() != null) {
-                        for (var item : p.getItems()) {
-                            System.out.println("  - " + item.getNombreProducto() + " x" + item.getCantidad() + " = $" + item.getPrecioLinea());
-                        }
-                    }
-                }
+                // Ordenar por fecha descendente (más recientes primero)
+                pedidos.sort((a, b) -> {
+                    if (a.getFechaVenta() == null && b.getFechaVenta() == null) return 0;
+                    if (a.getFechaVenta() == null) return 1;
+                    if (b.getFechaVenta() == null) return -1;
+                    return b.getFechaVenta().compareTo(a.getFechaVenta());
+                });
             }
         } catch (Exception e) {
             pedidos = new ArrayList<>();

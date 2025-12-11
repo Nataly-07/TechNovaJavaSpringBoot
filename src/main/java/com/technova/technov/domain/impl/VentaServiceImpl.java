@@ -43,7 +43,16 @@ public class VentaServiceImpl implements VentaService {
     @Override
     @Transactional(readOnly = true)
     public List<VentaDto> listar() {
-        return ventaRepository.findByEstadoTrue().stream().map(this::toDto).collect(Collectors.toList());
+        return ventaRepository.findByEstadoTrue().stream()
+                .sorted((a, b) -> {
+                    // Ordenar por fecha descendente (más reciente primero)
+                    int fechaCompare = b.getFechaVenta().compareTo(a.getFechaVenta());
+                    if (fechaCompare != 0) return fechaCompare;
+                    // Si las fechas son iguales, ordenar por ID descendente
+                    return b.getId().compareTo(a.getId());
+                })
+                .map(this::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -55,7 +64,16 @@ public class VentaServiceImpl implements VentaService {
     @Override
     @Transactional
     public List<VentaDto> porUsuario(Integer usuarioId) {
-        return ventaRepository.findByUsuario_IdAndEstadoTrue(Long.valueOf(usuarioId)).stream().map(this::toDto).collect(Collectors.toList());
+        return ventaRepository.findByUsuario_IdAndEstadoTrue(Long.valueOf(usuarioId)).stream()
+                .sorted((a, b) -> {
+                    // Ordenar por fecha descendente (más reciente primero)
+                    int fechaCompare = b.getFechaVenta().compareTo(a.getFechaVenta());
+                    if (fechaCompare != 0) return fechaCompare;
+                    // Si las fechas son iguales, ordenar por ID descendente
+                    return b.getId().compareTo(a.getId());
+                })
+                .map(this::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override

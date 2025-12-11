@@ -1,40 +1,179 @@
 <div th:fragment="content" xmlns:th="http://www.thymeleaf.org">
-  <h2 class="section-title">Revisión</h2>
-  <th:block th:if="${session.error != null}">
-    <div class="info-box" style="background:#ffecec;color:#b00020;margin-bottom:10px;" th:text="${session.error}">Error</div>
+  <h2 class="section-title">Revisión Final</h2>
+  
+  <!-- Mensajes de error -->
+  <th:block th:if="${session.error != null or error != null}">
+    <div class="info-box" style="background:#ffecec;color:#b00020;margin-bottom:15px;border:1px solid #b00020;padding: 15px;border-radius: 8px;">
+      <i class='bx bx-error-circle' style="margin-right: 8px;"></i>
+      <strong>Error:</strong>
+      <span th:text="${session.error != null ? session.error : error}">Error</span>
+    </div>
   </th:block>
   
+  <!-- Resumen de información personal -->
   <div class="info-box">
-    <h3>Datos personales</h3>
-    <div th:text="${usuario != null ? usuario.firstName + ' ' + usuario.lastName : 'N/A'}">Nombre</div>
-    <div th:text="${usuario != null ? usuario.email + ' | ' + usuario.phone : 'N/A'}">Email | Teléfono</div>
-    <div th:text="${usuario != null ? usuario.documentType + ': ' + usuario.documentNumber : 'N/A'}">Documento</div>
+    <h3><i class='bx bx-user' style="margin-right: 8px;"></i>Datos Personales</h3>
+    <div style="margin-bottom: 8px;">
+      <strong>Nombre completo:</strong> 
+      <span th:text="${usuario != null && usuario.firstName != null && usuario.lastName != null ? 
+                       (usuario.firstName + ' ' + usuario.lastName) : 
+                       (usuario != null && usuario.name != null ? usuario.name : 'N/A')}">N/A</span>
+    </div>
+    <div style="margin-bottom: 8px;">
+      <strong>Email:</strong> 
+      <span th:text="${usuario != null && usuario.email != null ? usuario.email : 'N/A'}">N/A</span>
+    </div>
+    <div style="margin-bottom: 8px;">
+      <strong>Teléfono:</strong> 
+      <span th:text="${usuario != null && usuario.phone != null ? usuario.phone : 'N/A'}">N/A</span>
+    </div>
+    <div th:if="${usuario != null && usuario.documentType != null && usuario.documentNumber != null}">
+      <strong>Documento:</strong> 
+      <span th:text="${usuario.documentType} + ': ' + ${usuario.documentNumber}">N/A</span>
+    </div>
   </div>
   
+  <!-- Resumen de dirección -->
   <th:block th:if="${direccion != null}">
     <div class="info-box">
-      <h3>Dirección</h3>
-      <div th:text="${direccion.direccion} + ' - ' + ${direccion.barrio}">Dirección</div>
-      <div th:text="${direccion.ciudad} + ' (' + ${direccion.departamento} + ')'">Ciudad (Departamento)</div>
+      <h3><i class='bx bx-map' style="margin-right: 8px;"></i>Dirección de Entrega</h3>
+      <div style="margin-bottom: 8px;" th:if="${direccion.direccion != null}">
+        <strong>Dirección:</strong> 
+        <span th:text="${direccion.direccion}">-</span>
+        <span th:if="${direccion.barrio != null && !direccion.barrio.isEmpty()}" 
+              th:text="' - ' + ${direccion.barrio}"></span>
+      </div>
+      <div style="margin-bottom: 8px;" th:if="${direccion.localidad != null && !direccion.localidad.isEmpty()}">
+        <strong>Localidad:</strong> 
+        <span th:text="${direccion.localidad}">-</span>
+      </div>
+      <div th:if="${direccion.ciudad != null || direccion.departamento != null}">
+        <strong>Ciudad:</strong> 
+        <span th:if="${direccion.ciudad != null}" th:text="${direccion.ciudad}"></span>
+        <span th:if="${direccion.departamento != null && direccion.ciudad != null}" th:text="' (' + ${direccion.departamento} + ')'"></span>
+        <span th:if="${direccion.departamento != null && direccion.ciudad == null}" th:text="${direccion.departamento}"></span>
+      </div>
+    </div>
+  </th:block>
+  <th:block th:if="${direccion == null}">
+    <div class="info-box" style="background:#fff3cd;border:1px solid #ffc107;">
+      <i class='bx bx-error-circle' style="color: #856404; margin-right: 8px;"></i>
+      <span style="color: #856404;">No se ha especificado una dirección de entrega. Por favor, completa este paso.</span>
     </div>
   </th:block>
   
+  <!-- Resumen de envío -->
   <th:block th:if="${envio != null}">
     <div class="info-box">
-      <h3>Envío</h3>
-      <div th:text="'Transportadora: ' + ${envio.transportadora}">Transportadora</div>
-      <div th:text="'Fecha: ' + ${envio.fechaEnvio}">Fecha</div>
+      <h3><i class='bx bx-truck' style="margin-right: 8px;"></i>Información de Envío</h3>
+      <div style="margin-bottom: 8px;" th:if="${envio.transportadora != null && !envio.transportadora.isEmpty()}">
+        <strong>Transportadora:</strong> 
+        <span th:text="${envio.transportadora}">-</span>
+      </div>
+      <div th:if="${envio.fechaEnvio != null && !envio.fechaEnvio.isEmpty()}">
+        <strong>Fecha estimada de envío:</strong> 
+        <span th:text="${envio.fechaEnvio}">-</span>
+      </div>
+    </div>
+  </th:block>
+  <th:block th:if="${envio == null}">
+    <div class="info-box" style="background:#fff3cd;border:1px solid #ffc107;">
+      <i class='bx bx-error-circle' style="color: #856404; margin-right: 8px;"></i>
+      <span style="color: #856404;">No se ha seleccionado un método de envío. Por favor, completa este paso.</span>
     </div>
   </th:block>
   
+  <!-- Resumen de pago -->
   <th:block th:if="${pago != null}">
     <div class="info-box">
-      <h3>Pago</h3>
-      <div th:text="'Método: ' + ${pagoResumen != null ? pagoResumen : pago.metodoPago}">Método de pago</div>
+      <h3><i class='bx bx-credit-card' style="margin-right: 8px;"></i>Información de Pago</h3>
+      <div th:if="${pagoResumen != null}">
+        <strong>Método de pago:</strong> 
+        <span th:text="${pagoResumen}">-</span>
+      </div>
+      <div th:if="${pagoResumen == null && pago.metodoPago != null}">
+        <strong>Método de pago:</strong> 
+        <span th:text="${pago.metodoPago}">-</span>
+      </div>
+    </div>
+  </th:block>
+  <th:block th:if="${pago == null}">
+    <div class="info-box" style="background:#fff3cd;border:1px solid #ffc107;">
+      <i class='bx bx-error-circle' style="color: #856404; margin-right: 8px;"></i>
+      <span style="color: #856404;">No se ha seleccionado un método de pago. Por favor, completa este paso.</span>
     </div>
   </th:block>
 
-  <form method="POST" th:action="@{/checkout/finalizar}">
-    <button type="submit" class="account">Finalizar compra</button>
-  </form>
+  <!-- Botón de finalizar compra -->
+  <div style="margin-top: 20px;">
+    <!-- Mostrar formulario siempre, a menos que se esté mostrando el modal de éxito -->
+    <th:block th:if="${showSuccessModal == null || showSuccessModal != true}">
+      <form method="POST" th:action="@{/checkout/finalizar}" id="finalizarCompraForm">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        <button type="submit" 
+                class="account btn-finalizar" 
+                id="btnFinalizarCompra"
+                style="width: 100%; padding: 15px; font-size: 18px; background: var(--gradient-primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
+          <i class='bx bx-check-circle' style="margin-right: 8px;"></i>
+          Finalizar Compra
+        </button>
+      </form>
+      
+      <!-- Mensaje informativo si faltan datos -->
+      <div th:if="${direccion == null || envio == null || pago == null}" 
+           style="margin-top: 10px; padding: 10px; background: #fff3cd; border-radius: 8px; text-align: center; color: #856404;">
+        <i class='bx bx-info-circle'></i> 
+        <span>Por favor, completa todos los pasos anteriores para finalizar tu compra.</span>
+      </div>
+    </th:block>
+  </div>
+  
+  <style>
+    .btn-finalizar {
+      opacity: 1 !important;
+      cursor: pointer !important;
+      border: none;
+      background: var(--gradient-primary);
+      color: white;
+      padding: 12px 30px;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    
+    .btn-finalizar:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    
+    .btn-finalizar:disabled {
+      opacity: 0.6 !important;
+      cursor: not-allowed !important;
+    }
+  </style>
 </div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('finalizarCompraForm');
+    const btn = document.getElementById('btnFinalizarCompra');
+    
+    if (!form || !btn) {
+      return;
+    }
+    
+    // Agregar listener al formulario - SIEMPRE permitir envío
+    form.addEventListener('submit', function(e) {
+      console.log('Formulario siendo enviado...');
+      
+      // Mostrar loading
+      btn.disabled = true;
+      const originalHTML = btn.innerHTML;
+      btn.innerHTML = '<i class="bx bx-loader-alt bx-spin" style="margin-right: 8px;"></i> Procesando...';
+      
+      // Permitir que el formulario se envíe normalmente
+      // El backend validará si hay datos faltantes
+    }, false);
+  });
+</script>

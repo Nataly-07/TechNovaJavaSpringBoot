@@ -93,7 +93,18 @@ public class ComprasServiceImpl implements ComprasService {
     @Override
     @Transactional(readOnly = true)
     public List<CompraDto> listar() {
-        return compraRepository.findAll().stream().map(this::toDto).collect(Collectors.toList());
+        return compraRepository.findAll().stream()
+                .sorted((a, b) -> {
+                    // Ordenar por fecha de compra descendente (más reciente primero)
+                    if (a.getFechaCompra() != null && b.getFechaCompra() != null) {
+                        int fechaCompare = b.getFechaCompra().compareTo(a.getFechaCompra());
+                        if (fechaCompare != 0) return fechaCompare;
+                    }
+                    // Si las fechas son iguales o nulas, ordenar por ID descendente
+                    return b.getId().compareTo(a.getId());
+                })
+                .map(this::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override
