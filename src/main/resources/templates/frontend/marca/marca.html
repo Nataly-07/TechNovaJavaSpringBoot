@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title th:text="${#strings.capitalize(marca)} + ' - Technova'">Marca - Technova</title>
+  <link rel="stylesheet" th:href="@{/frontend/css/stilotech.css}">
+  <link rel="stylesheet" th:href="@{/frontend/css/producto.css}">
+  <style>
+    .marca-header {
+      background: var(--gradient-secondary);
+      color: white;
+      padding: 30px;
+      text-align: center;
+      margin: 20px 0;
+      border-radius: 10px;
+    }
+
+    .marca-header h1 {
+      font-size: 2.5em;
+      margin: 0;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    .productos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 15px;
+      padding: 15px;
+    }
+
+    .producto-card {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      padding: 12px;
+      text-align: center;
+      transition: transform 0.3s ease;
+    }
+
+    .producto-card:hover {
+      transform: translateY(-2px);
+    }
+
+    .producto-card img {
+      width: 140px;
+      height: 140px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 8px;
+    }
+
+    .producto-card h3 {
+      color: #333;
+      margin: 8px 0 6px 0;
+      font-size: 1.1em;
+    }
+
+    .precio-original {
+      text-decoration: line-through;
+      color: #999;
+      font-size: 0.9em;
+    }
+
+    .precio-descuento {
+      color: #00d4ff;
+      font-weight: bold;
+      font-size: 1.2em;
+    }
+
+    .no-productos {
+      text-align: center;
+      padding: 60px 20px;
+      color: #666;
+    }
+
+    .btn-volver {
+      background: var(--gradient-secondary);
+      color: white;
+      padding: 12px 25px;
+      border-radius: 25px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+ <header class="header">
+  <a th:href="@{/}" class="logo">
+    <img th:src="@{/frontend/imagenes/logo technova.png}" alt="Logo" style="cursor:pointer;">
+    <span>TECHNOVA</span>
+  </a>
+
+  <div class="acciones-usuario">
+    <a th:href="@{/login}" class="account">
+      <span>Iniciar Sesión</span>
+    </a>
+    <a th:href="@{/registro}" class="account">
+      <span>Crear Cuenta</span>
+    </a>
+  </div>
+</header>
+
+<nav class="menu-principal">
+  <ul>
+    <li><a th:href="@{/}">Inicio</a></li>
+    <li class="submenu">
+      <a href="#">Categorías ▾</a>
+      <ul class="submenu-lista">
+        <li th:each="cat : ${categorias}">
+          <a th:href="@{'/categoria/' + ${#strings.toLowerCase(cat)}}" th:text="${cat}">Categoría</a>
+        </li>
+      </ul>
+    </li>
+    <li class="submenu">
+      <a href="#">Marcas ▾</a>
+      <ul class="submenu-lista">
+        <li th:each="marcaItem : ${marcas}">
+          <a th:href="@{'/marca/' + ${#strings.toLowerCase(marcaItem)}}" th:text="${marcaItem}">Marca</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</nav>
+
+<div class="marca-header">
+  <h1 th:text="${#strings.capitalize(marca)}">Marca</h1>
+  <p th:text="${productos != null ? productos.size() : 0} + ' productos disponibles'">0 productos disponibles</p>
+</div>
+
+<div th:if="${productos != null && !productos.isEmpty()}">
+  <div class="productos-grid">
+    <div class="producto-card" th:each="producto : ${productos}">
+      <img th:src="${producto.imagen != null && !producto.imagen.isEmpty() ? (producto.imagen.startsWith('http') ? producto.imagen : '/frontend/imagenes/' + producto.imagen) : '/frontend/imagenes/placeholder.png'}"
+           th:alt="${producto.nombre}">
+      <h3 th:text="${producto.nombre}">Producto</h3>
+      <p>4.5 ⭐</p>
+      <th:block th:if="${producto.precioOriginal != null && producto.precioDescuento != null}">
+        <p class="precio-original">
+          $<span th:text="${#numbers.formatDecimal(producto.precioOriginal, 0, 'COMMA', '.')}">0</span>
+        </p>
+        <p class="precio-descuento">
+          $<span th:text="${#numbers.formatDecimal(producto.precioDescuento, 0, 'COMMA', '.')}">0</span>
+          <span class="descuento">-5%</span>
+        </p>
+      </th:block>
+      <a th:href="@{'/producto/' + ${producto.id}}" class="btn-ver-detalle" style="display: inline-block; margin-top: 10px; padding: 8px 16px; background: var(--gradient-primary); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">Ver Detalles</a>
+      <a th:href="@{/login}" class="carrito-btn" style="text-decoration: none; color: white; display: inline-flex; align-items: center; justify-content: center; background: var(--gradient-secondary); border: none; border-radius: 50%; width: 35px; height: 35px; font-size: 14px; cursor: pointer; margin-top: 10px;">&#128722;</a>
+    </div>
+  </div>
+</div>
+
+<div th:if="${productos == null || productos.isEmpty()}" class="no-productos">
+  <h2>No hay productos disponibles</h2>
+  <p>No se encontraron productos de la marca <strong th:text="${#strings.capitalize(marca)}">Marca</strong>.</p>
+  <a th:href="@{/}" class="btn-volver">Volver al Inicio</a>
+</div>
+
+<footer>
+    <p>© 2025 TECHNOVA. Todos los derechos reservados.</p>
+</footer>
+
+<script th:src="@{/frontend/js/script.js}" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</body>
+</html>
+
