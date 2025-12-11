@@ -1284,19 +1284,25 @@ public class HomeController {
             return "redirect:/login";
         }
         
-        List<CompraDto> compras = new ArrayList<>();
+        List<VentaDto> compras = new ArrayList<>();
         
         try {
             if (usuario.getId() != null) {
-                // Obtener todas las compras y filtrar por usuario
-                List<CompraDto> todasLasCompras = comprasService.listar();
-                compras = todasLasCompras.stream()
-                        .filter(c -> c.getUsuarioId() != null && c.getUsuarioId().equals(usuario.getId().intValue()))
-                        .collect(Collectors.toList());
+                // Obtener todas las ventas del usuario (que son sus compras)
+                compras = ventaService.porUsuario(usuario.getId().intValue());
+                // Ordenar por fecha descendente (más recientes primero)
+                compras.sort((a, b) -> {
+                    if (a.getFechaVenta() == null && b.getFechaVenta() == null) return 0;
+                    if (a.getFechaVenta() == null) return 1;
+                    if (b.getFechaVenta() == null) return -1;
+                    return b.getFechaVenta().compareTo(a.getFechaVenta());
+                });
             }
         } catch (Exception e) {
             // Si hay error, simplemente dejar compras vacío
             compras = new ArrayList<>();
+            System.err.println("Error al cargar mis compras: " + e.getMessage());
+            e.printStackTrace();
         }
         
         model.addAttribute("compras", compras);
