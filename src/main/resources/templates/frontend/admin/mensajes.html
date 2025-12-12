@@ -4,259 +4,481 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Gestión de Mensajes - Technova</title>
-    <meta name="_csrf" th:content="${_csrf.token}"/>
-    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
-
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}"/>
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}"/>
+    <title>Mensajes - Technova</title>
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" th:href="@{/frontend/css/estilodas.css}">
     <link rel="stylesheet" th:href="@{/frontend/css/stilotech.css}">
     <link rel="stylesheet" th:href="@{/frontend/css/color-palette.css}">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
+        body { background: #e8f0f8; }
+        .main-content { background: transparent; }
         .mensajes-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 20px;
+        }
+        .header-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 20px;
+            padding: 35px 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 24px rgba(102, 126, 234, 0.25);
+            text-align: center;
+            color: white;
+        }
+        .header-banner h1 {
+            margin: 0 0 10px 0;
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            font-weight: 700;
+            color: white;
+        }
+        .chat-container {
+            display: flex;
             background: white;
             border-radius: 16px;
-            padding: 30px;
-            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            height: 600px;
+            overflow: hidden;
         }
-
-        .filtros-section {
+        .conversaciones-list {
+            width: 350px;
+            border-right: 1px solid #e2e8f0;
             display: flex;
-            gap: 15px;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-            align-items: end;
+            flex-direction: column;
+            overflow-y: auto;
         }
-
-        .filtro-group {
-            flex: 1;
-            min-width: 200px;
-        }
-
-        .filtro-group label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: #2c3e50;
-            font-size: 0.9rem;
-        }
-
-        .filtro-group input,
-        .filtro-group select {
-            width: 100%;
-            padding: 10px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 0.95rem;
-            transition: border-color 0.3s ease;
-        }
-
-        .filtro-group input:focus,
-        .filtro-group select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .btn-filtrar {
-            padding: 10px 25px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s ease;
-        }
-
-        .btn-filtrar:hover {
-            transform: translateY(-2px);
-        }
-
-        .mensajes-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-        }
-
-        .mensajes-header h2 {
-            color: #2c3e50;
-            margin: 0;
-            font-size: 1.8rem;
-        }
-
-        .stats-bar {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-        }
-
-        .stat-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 15px 20px;
-            border-radius: 12px;
-            flex: 1;
-            min-width: 150px;
-        }
-
-        .stat-card h4 {
-            margin: 0 0 5px 0;
-            font-size: 0.9rem;
-            opacity: 0.9;
-        }
-
-        .stat-card .number {
-            font-size: 1.8rem;
-            font-weight: 700;
-            margin: 0;
-        }
-
-        .stat-card.warning {
-            background: linear-gradient(135deg, #ff9500 0%, #ff7700 100%);
-        }
-
-        .stat-card.success {
-            background: linear-gradient(135deg, #00cc44 0%, #00a638 100%);
-        }
-
-        .ticket-card {
-            background: white;
-            border: 2px solid #e0e0e0;
-            border-radius: 12px;
+        .conversaciones-header {
             padding: 20px;
-            margin-bottom: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .ticket-card:hover {
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            border-color: #667eea;
-        }
-
-        .ticket-header {
+            border-bottom: 1px solid #e2e8f0;
+            background: #f8f9fa;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 15px;
         }
-
-        .ticket-header h3 {
+        .conversaciones-header h3 {
             margin: 0;
             color: #2c3e50;
             font-size: 1.2rem;
         }
-
-        .status-badge {
-            padding: 6px 12px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .status-badge.status-abierto {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .status-badge.status-en_proceso {
-            background: #d1ecf1;
-            color: #0c5460;
-        }
-
-        .status-badge.status-resuelto {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .ticket-body {
-            margin-bottom: 15px;
-        }
-
-        .ticket-body p {
-            color: #555;
-            line-height: 1.6;
-            margin-bottom: 10px;
-        }
-
-        .ticket-meta {
-            display: flex;
-            gap: 20px;
-            color: #7f8c8d;
-            font-size: 0.9rem;
-            margin-bottom: 15px;
-        }
-
-        .ticket-actions {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-
-        .btn-accion {
+        .btn-nuevo-mensaje {
             padding: 8px 16px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
             border: none;
             border-radius: 8px;
+            cursor: pointer;
             font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.3s ease;
+        }
+        .btn-nuevo-mensaje:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        .conversacion-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #f0f0f0;
             cursor: pointer;
             transition: all 0.2s ease;
-            font-weight: 500;
-            display: inline-flex;
+            display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 12px;
         }
-
-        .btn-responder {
-            background: #007acc;
+        .conversacion-item:hover {
+            background: #f8f9fa;
+        }
+        .conversacion-item.active {
+            background: #e8f0ff;
+            border-left: 4px solid #667eea;
+        }
+        .conversacion-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             color: white;
+            font-weight: 600;
+            font-size: 1.2rem;
         }
-
-        .btn-responder:hover {
-            background: #005fa3;
+        .conversacion-info {
+            flex: 1;
+            min-width: 0;
         }
-
-        .btn-cerrar {
-            background: #00cc44;
+        .conversacion-nombre {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 4px;
+        }
+        .conversacion-preview {
+            font-size: 0.85rem;
+            color: #718096;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .conversacion-meta {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+        }
+        .conversacion-fecha {
+            font-size: 0.75rem;
+            color: #94a3b8;
+        }
+        .no-leido-badge {
+            background: #667eea;
             color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 600;
         }
-
-        .btn-cerrar:hover {
-            background: #00a638;
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
         }
-
-        .empty-state {
-            text-align: center;
-            padding: 60px 20px;
-            color: #7f8c8d;
+        .chat-header {
+            padding: 20px;
+            border-bottom: 1px solid #e2e8f0;
+            background: #f8f9fa;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
-
-        .empty-state i {
+        .chat-header-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+        .chat-header-info h3 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1rem;
+        }
+        .chat-messages {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+        }
+        .message.sent {
+            align-items: flex-end;
+        }
+        .message.received {
+            align-items: flex-start;
+        }
+        .message-bubble {
+            max-width: 70%;
+            padding: 12px 16px;
+            border-radius: 18px;
+            word-wrap: break-word;
+        }
+        .message.sent .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        .message.received .message-bubble {
+            background: white;
+            color: #2c3e50;
+            border-bottom-left-radius: 4px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+        .message-time {
+            font-size: 0.7rem;
+            color: #94a3b8;
+            margin-top: 4px;
+            padding: 0 8px;
+        }
+        .chat-input-area {
+            padding: 20px;
+            border-top: 1px solid #e2e8f0;
+            background: white;
+        }
+        .chat-input-form {
+            display: flex;
+            gap: 10px;
+        }
+        .chat-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 24px;
+            font-size: 0.95rem;
+            outline: none;
+        }
+        .chat-input:focus {
+            border-color: #667eea;
+        }
+        .btn-send {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-send:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        .empty-chat {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #94a3b8;
+            flex-direction: column;
+        }
+        .empty-chat i {
             font-size: 4rem;
             margin-bottom: 20px;
             opacity: 0.5;
         }
-
-        .respuesta-section {
-            margin-top: 15px;
-            padding-top: 15px;
-            border-top: 1px solid #e0e0e0;
+        .tabs-container {
+            background: white;
+            border-radius: 16px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
         }
-
-        .respuesta-section h4 {
-            color: #667eea;
-            margin-bottom: 10px;
+        .tabs-header {
+            display: flex;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
         }
-
-        .respuesta-section p {
-            background: #f5f5f5;
+        .tab-button {
+            flex: 1;
+            background: none;
+            border: none;
+            color: rgba(255, 255, 255, 0.8);
+            padding: 20px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .tab-button:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        .tab-button.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-bottom: 3px solid white;
+        }
+        .tab-content {
+            display: none;
+            padding: 0;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-header h3 {
+            margin: 0;
+            color: #2c3e50;
+        }
+        .modal-body {
+            margin-bottom: 20px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+        .form-group select,
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
             padding: 10px;
+            border: 1px solid #e2e8f0;
             border-radius: 8px;
-            color: #555;
+            font-size: 0.95rem;
+        }
+        .modal-footer {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        .btn-modal {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .btn-secondary {
+            background: #e2e8f0;
+            color: #2c3e50;
+        }
+        .queja-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .queja-status {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .queja-status.status-pendiente {
+            background: #ffc107;
+            color: #856404;
+        }
+        .queja-status.status-enviado_al_admin {
+            background: #17a2b8;
+            color: white;
+        }
+        .queja-status.status-resuelto {
+            background: #28a745;
+            color: white;
+        }
+        .queja-prioridad {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+        .queja-prioridad.priority-alta {
+            background: #dc3545;
+            color: white;
+        }
+        .queja-prioridad.priority-normal {
+            background: #6c757d;
+            color: white;
+        }
+        .queja-prioridad.priority-baja {
+            background: #17a2b8;
+            color: white;
+        }
+        .queja-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .queja-modal.active {
+            display: flex;
+        }
+        .queja-modal-content {
+            background: white;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .queja-modal-header {
+            padding: 25px 30px;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 16px 16px 0 0;
+        }
+        .queja-modal-header h3 {
+            margin: 0;
+            color: white;
+        }
+        .queja-modal-body {
+            padding: 25px 30px;
+        }
+        .queja-detalle-item {
+            margin-bottom: 20px;
+        }
+        .queja-detalle-item label {
+            display: block;
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+        }
+        .queja-detalle-item .value {
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            color: #2c3e50;
         }
     </style>
 </head>
@@ -283,275 +505,462 @@
 
     <main class="main-content">
       <div class="mensajes-container">
-        <div class="mensajes-header">
-          <h2><i class='bx bx-message'></i> Gestión de Mensajes</h2>
+        <div class="header-banner">
+          <h1><i class='bx bx-message'></i> Mensajes</h1>
+          <p>Gestiona los mensajes con los empleados</p>
         </div>
 
-        <div class="stats-bar">
-          <div class="stat-card">
-            <h4>Total Tickets</h4>
-            <p class="number" th:text="${totalTickets != null ? totalTickets : 0}">0</p>
-          </div>
-          <div class="stat-card warning">
-            <h4>Pendientes</h4>
-            <p class="number" th:text="${ticketsPendientes != null ? ticketsPendientes : 0}">0</p>
-          </div>
-          <div class="stat-card" style="background: linear-gradient(135deg, #d1ecf1 0%, #0c5460 100%);">
-            <h4>En Proceso</h4>
-            <p class="number" th:text="${ticketsEnProceso != null ? ticketsEnProceso : 0}">0</p>
-          </div>
-          <div class="stat-card success">
-            <h4>Resueltos</h4>
-            <p class="number" th:text="${ticketsResueltos != null ? ticketsResueltos : 0}">0</p>
-          </div>
-        </div>
-
-        <div class="filtros-section">
-          <div class="filtro-group">
-            <label for="filtroEstado">Filtrar por Estado</label>
-            <select id="filtroEstado" name="estado">
-              <option value="">Todos los estados</option>
-              <option value="abierto" th:selected="${estado == 'abierto'}">Abierto</option>
-              <option value="en_proceso" th:selected="${estado == 'en_proceso'}">En Proceso</option>
-              <option value="resuelto" th:selected="${estado == 'resuelto'}">Resuelto</option>
-            </select>
-          </div>
-          <div class="filtro-group">
-            <label for="filtroBusqueda">Buscar</label>
-            <input type="text" id="filtroBusqueda" name="busqueda" placeholder="Tema o descripción" th:value="${busqueda != null ? busqueda : ''}">
-          </div>
-          <div class="filtro-group">
-            <button type="button" class="btn-filtrar" onclick="aplicarFiltros()">
-              <i class='bx bx-search'></i> Buscar
+        <div class="tabs-container">
+          <div class="tabs-header">
+            <button class="tab-button active" onclick="mostrarTab('mensajes', this)">
+              <i class='bx bx-message'></i> Mensajes
+            </button>
+            <button class="tab-button" onclick="mostrarTab('quejas', this)">
+              <i class='bx bx-error-circle'></i> Quejas
             </button>
           </div>
-        </div>
 
-        <div th:if="${tickets != null && !tickets.isEmpty()}">
-          <div class="ticket-card" th:each="ticket : ${tickets}">
-            <div class="ticket-header">
-              <h3 th:text="${ticket.tema}">Tema</h3>
-              <span class="status-badge" 
-                    th:classappend="'status-' + ${ticket.estado != null ? #strings.toLowerCase(ticket.estado) : 'pendiente'}">
-                <th:block th:if="${ticket.estado == 'abierto'}">
-                  <i class='bx bx-time-five'></i> Abierto
-                </th:block>
-                <th:block th:if="${ticket.estado == 'en_proceso'}">
-                  <i class='bx bx-loader'></i> En Proceso
-                </th:block>
-                <th:block th:if="${ticket.estado == 'resuelto' || ticket.estado == 'cerrado'}">
-                  <i class='bx bx-check-circle'></i> Resuelto
-                </th:block>
-                <th:block th:if="${ticket.estado != null && ticket.estado != 'abierto' && ticket.estado != 'en_proceso' && ticket.estado != 'resuelto' && ticket.estado != 'cerrado'}">
-                  <i class='bx bx-info-circle'></i> <span th:text="${ticket.estado}">Estado</span>
-                </th:block>
-                <th:block th:if="${ticket.estado == null}">
-                  <i class='bx bx-time-five'></i> Pendiente
-                </th:block>
-              </span>
-            </div>
-            <div class="ticket-body">
-              <p th:text="${ticket.descripcion}">Descripción</p>
-              <div class="ticket-meta">
-                <span><i class='bx bx-calendar'></i> 
-                  <span th:if="${ticket.fechaConsulta != null}" 
-                        th:text="${#temporals.format(ticket.fechaConsulta, 'dd/MM/yyyy HH:mm')}">Fecha</span>
-                  <span th:if="${ticket.fechaConsulta == null}">N/A</span>
-                </span>
-                <span><i class='bx bx-user'></i> Usuario ID: <span th:text="${ticket.usuarioId != null ? ticket.usuarioId : 'N/A'}">-</span></span>
-                <span th:if="${ticket.emailUsuario != null && !ticket.emailUsuario.isEmpty()}">
-                  <i class='bx bx-envelope'></i> Email: <span th:text="${ticket.emailUsuario}">-</span>
-                </span>
-              </div>
-              <th:block th:if="${ticket.respuesta != null && !ticket.respuesta.isEmpty()}">
-                <div class="respuesta-section">
-                  <h4>Respuesta:</h4>
-                  <p th:text="${ticket.respuesta}">Respuesta</p>
+          <!-- Tab Mensajes -->
+          <div id="tabMensajes" class="tab-content active">
+            <div class="chat-container">
+              <!-- Lista de Conversaciones -->
+              <div class="conversaciones-list">
+                <div class="conversaciones-header">
+                  <h3><i class='bx bx-message-rounded'></i> Conversaciones</h3>
+                  <button class="btn-nuevo-mensaje" onclick="abrirModalNuevoMensaje()">
+                    <i class='bx bx-plus'></i> Nuevo
+                  </button>
                 </div>
-              </th:block>
-            </div>
-            <div class="ticket-actions">
-              <th:block th:if="${ticket.estado != 'resuelto' && ticket.estado != 'cerrado'}">
-                <button class="btn-accion btn-responder" th:onclick="'responderTicket(' + ${ticket.id} + ')'">
-                  <i class='bx bx-reply'></i> Responder
-                </button>
-                <button class="btn-accion btn-cerrar" th:onclick="'cerrarTicket(' + ${ticket.id} + ')'">
-                  <i class='bx bx-check'></i> Cerrar Ticket
-                </button>
-              </th:block>
-              <th:block th:if="${ticket.estado == 'resuelto' || ticket.estado == 'cerrado'}">
-                <span style="color: #00cc44; font-weight: 600;"><i class='bx bx-check-circle'></i> Ticket cerrado</span>
-              </th:block>
+                <div th:if="${conversaciones != null && !conversaciones.isEmpty()}">
+                  <div class="conversacion-item" 
+                       th:each="entry : ${conversaciones}"
+                       th:data-conversacion-id="${entry.key}"
+                       th:classappend="${conversacionId != null && conversacionId == entry.key ? 'active' : ''}"
+                       th:onclick="'abrirConversacion(' + ${entry.key} + ')'">
+                    <div class="conversacion-avatar" th:text="${nombresEmpleados != null && nombresEmpleados.containsKey(entry.key) ? nombresEmpleados.get(entry.key).substring(0, 1).toUpperCase() : 'E'}">E</div>
+                    <div class="conversacion-info">
+                      <div class="conversacion-nombre" th:text="${nombresEmpleados != null && nombresEmpleados.containsKey(entry.key) ? nombresEmpleados.get(entry.key) : 'Empleado #' + entry.key}">Empleado</div>
+                      <div class="conversacion-preview" th:text="${entry.value != null && !entry.value.isEmpty() ? entry.value[0].asunto : 'Sin mensajes'}">Último mensaje</div>
+                    </div>
+                    <div class="conversacion-meta">
+                      <div class="conversacion-fecha" 
+                           th:if="${entry.value != null && !entry.value.isEmpty() && entry.value[0].createdAt != null}"
+                           th:text="${#temporals.format(entry.value[0].createdAt, 'dd/MM HH:mm')}">Fecha</div>
+                      <div th:if="${entry.value != null && entry.value.stream().anyMatch(m -> !m.leido)}" class="no-leido-badge">
+                        <span th:text="${entry.value.stream().filter(m -> !m.leido).count()}">1</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div th:if="${conversaciones == null || conversaciones.isEmpty()}" style="padding: 40px 20px; text-align: center; color: #94a3b8;">
+                  <i class='bx bx-inbox' style="font-size: 3rem; opacity: 0.5; margin-bottom: 10px; display: block;"></i>
+                  <p>No hay conversaciones</p>
+                </div>
+              </div>
+
+              <!-- Área de Chat -->
+              <div class="chat-area">
+                <th:block th:if="${conversacionId != null && mensajesConversacion != null && !mensajesConversacion.isEmpty()}">
+                  <div class="chat-header">
+                    <div class="chat-header-avatar" th:text="${empleadoConversacion != null && empleadoConversacion.name != null ? empleadoConversacion.name.substring(0, 1).toUpperCase() : 'E'}">E</div>
+                    <div class="chat-header-info">
+                      <h3 th:text="${empleadoConversacion != null && empleadoConversacion.name != null ? empleadoConversacion.name : 'Empleado #' + conversacionId}">Empleado</h3>
+                    </div>
+                  </div>
+                  <div class="chat-messages" id="chatMessages">
+                    <div class="message" 
+                         th:each="mensaje : ${mensajesConversacion}"
+                         th:classappend="${mensaje.tipoRemitente == 'admin' ? 'sent' : 'received'}"
+                         th:data-mensaje-id="${mensaje.id}">
+                      <div class="message-bubble" th:text="${mensaje.mensaje}">Mensaje</div>
+                      <div class="message-time" 
+                           th:if="${mensaje.createdAt != null}"
+                           th:text="${#temporals.format(mensaje.createdAt, 'dd/MM/yyyy HH:mm')}">Fecha</div>
+                    </div>
+                  </div>
+                  <div class="chat-input-area">
+                    <form class="chat-input-form" onsubmit="enviarMensaje(event)">
+                      <input type="text" class="chat-input" id="mensajeInput" placeholder="Escribe un mensaje..." required>
+                      <button type="submit" class="btn-send">
+                        <i class='bx bx-send'></i> Enviar
+                      </button>
+                    </form>
+                  </div>
+                </th:block>
+                <div th:if="${conversacionId == null || mensajesConversacion == null || mensajesConversacion.isEmpty()}" class="empty-chat">
+                  <i class='bx bx-message-rounded-dots'></i>
+                  <h3>Selecciona una conversación</h3>
+                  <p>Elige una conversación de la lista o crea un nuevo mensaje</p>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div class="empty-state" th:if="${tickets == null || tickets.isEmpty()}">
-          <i class='bx bx-inbox'></i>
-          <h3>No se encontraron tickets</h3>
-          <p>No hay tickets que coincidan con los filtros seleccionados.</p>
+          <!-- Tab Quejas -->
+          <div id="tabQuejas" class="tab-content">
+            <div style="padding: 20px;">
+              <h2 style="margin: 0 0 20px 0; color: #2c3e50; display: flex; align-items: center; gap: 10px;">
+                <i class='bx bx-error-circle'></i> Quejas Enviadas por Empleados
+              </h2>
+              
+              <div th:if="${quejasEmpleados != null && !quejasEmpleados.isEmpty()}" style="display: grid; gap: 15px;">
+                <div class="queja-card" 
+                     th:each="queja : ${quejasEmpleados}"
+                     th:data-queja-id="${queja.id}"
+                     onclick="mostrarDetalleQueja([[${queja.id}]])"
+                     style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer; transition: all 0.3s ease;">
+                  <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
+                    <div style="flex: 1;">
+                      <h3 style="margin: 0 0 8px 0; color: #2c3e50; font-size: 1.1rem;" th:text="${queja.titulo != null ? queja.titulo : 'Sin título'}">Título</h3>
+                      <p style="margin: 0; color: #718096; font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;" 
+                         th:text="${queja.descripcion != null ? queja.descripcion : 'Sin descripción'}">Descripción</p>
+                    </div>
+                    <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
+                      <span th:classappend="'queja-status status-' + (${queja.estado != null ? #strings.toLowerCase(queja.estado) : 'pendiente'})"
+                            class="queja-status"
+                            th:text="${queja.estado != null ? #strings.capitalize(queja.estado) : 'Pendiente'}">Estado</span>
+                      <span th:classappend="'queja-prioridad priority-' + (${queja.prioridad != null ? #strings.toLowerCase(queja.prioridad) : 'normal'})"
+                            class="queja-prioridad"
+                            th:text="${queja.prioridad != null ? #strings.capitalize(queja.prioridad) : 'Normal'}">Prioridad</span>
+                    </div>
+                  </div>
+                  <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 12px; border-top: 1px solid #e2e8f0;">
+                    <div style="display: flex; align-items: center; gap: 8px; color: #94a3b8; font-size: 0.85rem;">
+                      <i class='bx bx-calendar'></i>
+                      <span th:if="${queja.fechaReclamo != null}" 
+                            th:text="${#temporals.format(queja.fechaReclamo, 'dd/MM/yyyy HH:mm')}">Fecha</span>
+                    </div>
+                    <div th:if="${queja.evaluacionCliente != null && !#strings.isEmpty(queja.evaluacionCliente)}" 
+                         style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem;">
+                      <i th:class="'bx ' + (${queja.evaluacionCliente == 'resuelta'} ? 'bx-check-circle' : 'bx-x-circle')"
+                         th:style="'color: ' + (${queja.evaluacionCliente == 'resuelta'} ? '#28a745' : '#dc3545')"></i>
+                      <span th:text="${queja.evaluacionCliente == 'resuelta'} ? 'Cliente indica que fue resuelta' : 'Cliente indica que no fue resuelta'"
+                            th:style="'color: ' + (${queja.evaluacionCliente == 'resuelta'} ? '#28a745' : '#dc3545')">Evaluación</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div th:if="${quejasEmpleados == null || quejasEmpleados.isEmpty()}" 
+                   style="padding: 60px 20px; text-align: center; color: #7f8c8d; background: white; border-radius: 12px;">
+                <i class='bx bx-inbox' style="font-size: 4rem; margin-bottom: 20px; opacity: 0.5; display: block;"></i>
+                <h3>No hay quejas</h3>
+                <p>No hay quejas enviadas por empleados en este momento.</p>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </main>
   </div>
 
-  <footer>
-    <p>&copy; 2025 Technova</p>
-  </footer>
+  <!-- Modal Nuevo Mensaje -->
+  <div id="modalNuevoMensaje" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class='bx bx-message-add'></i> Nuevo Mensaje</h3>
+        <button onclick="cerrarModalNuevoMensaje()" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #94a3b8;">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="modal-body">
+        <form id="formNuevoMensaje" onsubmit="crearNuevoMensaje(event)">
+          <div class="form-group">
+            <label for="empleadoSelect">Seleccionar Empleado</label>
+            <select id="empleadoSelect" required>
+              <option value="">-- Selecciona un empleado --</option>
+              <option th:each="empleado : ${empleados}" 
+                      th:value="${empleado.id}" 
+                      th:text="${empleado.name != null ? empleado.name : 'Empleado #' + empleado.id}">Empleado</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="asuntoInput">Asunto</label>
+            <input type="text" id="asuntoInput" placeholder="Asunto del mensaje" required>
+          </div>
+          <div class="form-group">
+            <label for="mensajeTextarea">Mensaje</label>
+            <textarea id="mensajeTextarea" rows="4" placeholder="Escribe tu mensaje aquí..." required></textarea>
+          </div>
+          <div class="form-group">
+            <label for="prioridadSelect">Prioridad</label>
+            <select id="prioridadSelect" required>
+              <option value="normal">Normal</option>
+              <option value="alta">Alta</option>
+              <option value="urgente">Urgente</option>
+            </select>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn-modal btn-secondary" onclick="cerrarModalNuevoMensaje()">Cancelar</button>
+            <button type="submit" class="btn-modal btn-primary">Enviar Mensaje</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
 
+  <!-- Modal Detalle Queja -->
+  <div id="modalQueja" class="queja-modal">
+    <div class="queja-modal-content">
+      <div class="queja-modal-header">
+        <h3><i class='bx bx-error-circle'></i> Detalle de Queja</h3>
+        <button onclick="cerrarModalQueja()" style="background: none; border: none; color: white; font-size: 28px; cursor: pointer; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="queja-modal-body" id="quejaModalBody">
+        <!-- Contenido dinámico -->
+      </div>
+    </div>
+  </div>
+
+  <script th:inline="javascript">
+    var datosIniciales = {
+      usuarioId: /*[[${usuario != null ? usuario.id : null}]]*/ null,
+      conversacionId: /*[[${conversacionId != null ? conversacionId : null}]]*/ null
+    };
+  </script>
   <script>
-    function aplicarFiltros() {
-      const estado = document.getElementById('filtroEstado').value;
-      const busqueda = document.getElementById('filtroBusqueda').value;
+    function mostrarTab(tab, eventElement) {
+      document.querySelectorAll('.tab-content').forEach(content => {
+        content.classList.remove('active');
+      });
+      document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
+      });
       
-      let url = '/admin/mensajes?';
-      if (estado) url += 'estado=' + encodeURIComponent(estado) + '&';
-      if (busqueda) url += 'busqueda=' + encodeURIComponent(busqueda);
+      var tabId = 'tab' + tab.charAt(0).toUpperCase() + tab.slice(1);
+      var tabElement = document.getElementById(tabId);
+      if (tabElement) {
+        tabElement.classList.add('active');
+      }
       
-      window.location.href = url;
+      if (eventElement) {
+        eventElement.classList.add('active');
+      }
     }
 
-    function responderTicket(id) {
-      Swal.fire({
-        title: 'Responder Ticket',
-        input: 'textarea',
-        inputLabel: 'Respuesta',
-        inputPlaceholder: 'Escribe tu respuesta aquí...',
-        inputAttributes: {
-          'aria-label': 'Escribe tu respuesta aquí'
-        },
-        showCancelButton: true,
-        confirmButtonText: 'Enviar Respuesta',
-        cancelButtonText: 'Cancelar',
-        inputValidator: (value) => {
-          if (!value) {
-            return 'Debes escribir una respuesta';
-          }
-        }
-      }).then((result) => {
-        if (result.isConfirmed) {
-          const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
-          const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || '';
-          
-          const headers = {
-            'Content-Type': 'application/json'
-          };
-          
-          if (csrfToken && csrfHeader) {
-            headers[csrfHeader] = csrfToken;
-          }
-          
-          fetch('/api/atencion-cliente/' + id + '/responder', {
-            method: 'PUT',
-            headers: headers,
-            body: JSON.stringify({ respuesta: result.value })
-          })
-          .then(async response => {
-            if (response.ok) {
-              Swal.fire({
-                title: 'Respuesta enviada',
-                text: 'La respuesta ha sido enviada correctamente',
-                icon: 'success',
-                confirmButtonText: 'OK'
-              }).then(() => {
-                location.reload();
-              });
-            } else {
-              let errorMessage = 'No se pudo enviar la respuesta';
-              try {
-                const errorText = await response.text();
-                if (errorText) {
-                  errorMessage = errorText;
-                }
-              } catch (e) {
-                // Si no se puede leer el error, usar el mensaje por defecto
-              }
-              console.error('Error al responder ticket:', response.status, errorMessage);
-              Swal.fire({
-                title: 'Error',
-                text: errorMessage,
-                icon: 'error',
-                confirmButtonText: 'OK'
-              });
-            }
-          })
-          .catch(error => {
-            console.error('Error al responder ticket:', error);
-            Swal.fire({
-              title: 'Error',
-              text: 'Ocurrió un error al enviar la respuesta: ' + error.message,
-              icon: 'error',
-              confirmButtonText: 'OK'
-            });
-          });
-        }
+    function abrirConversacion(conversacionId) {
+      window.location.href = '/admin/mensajes?conversacionId=' + conversacionId;
+    }
+
+    function abrirModalNuevoMensaje() {
+      document.getElementById('modalNuevoMensaje').classList.add('active');
+    }
+
+    function cerrarModalNuevoMensaje() {
+      document.getElementById('modalNuevoMensaje').classList.remove('active');
+      document.getElementById('formNuevoMensaje').reset();
+    }
+
+    function crearNuevoMensaje(event) {
+      event.preventDefault();
+      var empleadoId = document.getElementById('empleadoSelect').value;
+      var asunto = document.getElementById('asuntoInput').value.trim();
+      var mensaje = document.getElementById('mensajeTextarea').value.trim();
+      var prioridad = document.getElementById('prioridadSelect').value;
+
+      if (!empleadoId || !asunto || !mensaje) {
+        alert('Por favor completa todos los campos');
+        return;
+      }
+
+      var csrfToken = document.querySelector('meta[name="_csrf"]') ? document.querySelector('meta[name="_csrf"]').content : '';
+      var csrfHeaderName = document.querySelector('meta[name="_csrf_header"]') ? document.querySelector('meta[name="_csrf_header"]').content : '';
+      
+      var headers = {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      };
+      
+      if (csrfToken && csrfHeaderName) {
+        headers[csrfHeaderName] = csrfToken;
+      }
+
+      var mensajeData = {
+        empleadoId: parseInt(empleadoId),
+        remitenteId: datosIniciales.usuarioId,
+        tipoRemitente: 'admin',
+        asunto: asunto,
+        mensaje: mensaje,
+        tipo: 'general',
+        prioridad: prioridad
+      };
+
+      fetch('/api/mensajes-empleado', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(mensajeData)
+      })
+      .then(response => response.ok ? response.json() : response.text().then(t => { throw new Error(t); }))
+      .then(data => {
+        cerrarModalNuevoMensaje();
+        window.location.href = '/admin/mensajes?conversacionId=' + empleadoId;
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error al enviar el mensaje: ' + error.message);
       });
     }
 
-    function cerrarTicket(id) {
-      Swal.fire({
-        title: '¿Cerrar ticket?',
-        text: 'El ticket se marcará como resuelto',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#00cc44',
-        cancelButtonColor: '#6c757d',
-        confirmButtonText: 'Sí, cerrar',
-        cancelButtonText: 'Cancelar'
-      }).then((result) => {
-        if (result.isConfirmed) {
-          const csrfToken = document.querySelector('meta[name="_csrf"]')?.getAttribute('content') || '';
-          const csrfHeader = document.querySelector('meta[name="_csrf_header"]')?.getAttribute('content') || '';
-          
-          const headers = {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          };
-          
-          if (csrfToken && csrfHeader) {
-            headers[csrfHeader] = csrfToken;
-          }
-          
-          fetch('/api/atencion-cliente/' + id + '/cerrar', {
-            method: 'PUT',
-            headers: headers
-          })
-          .then(response => {
-            if (response.ok) {
-              Swal.fire({
-                title: 'Ticket cerrado',
-                text: 'El ticket ha sido cerrado correctamente',
-                icon: 'success',
-                confirmButtonText: 'OK'
-              }).then(() => {
-                location.reload();
-              });
-            } else {
-              Swal.fire({
-                title: 'Error',
-                text: 'No se pudo cerrar el ticket',
-                icon: 'error',
-                confirmButtonText: 'OK'
-              });
-            }
-          })
-          .catch(error => {
-            Swal.fire({
-              title: 'Error',
-              text: 'Ocurrió un error al cerrar el ticket',
-              icon: 'error',
-              confirmButtonText: 'OK'
-            });
-          });
-        }
+    function enviarMensaje(event) {
+      event.preventDefault();
+      var mensaje = document.getElementById('mensajeInput').value.trim();
+      if (!mensaje) return;
+
+      var csrfToken = document.querySelector('meta[name="_csrf"]') ? document.querySelector('meta[name="_csrf"]').content : '';
+      var csrfHeaderName = document.querySelector('meta[name="_csrf_header"]') ? document.querySelector('meta[name="_csrf_header"]').content : '';
+      
+      var headers = {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      };
+      
+      if (csrfToken && csrfHeaderName) {
+        headers[csrfHeaderName] = csrfToken;
+      }
+
+      if (!datosIniciales.conversacionId) {
+        alert('Por favor selecciona una conversación primero');
+        return;
+      }
+
+      var mensajeData = {
+        empleadoId: datosIniciales.conversacionId,
+        remitenteId: datosIniciales.usuarioId,
+        tipoRemitente: 'admin',
+        asunto: 'Mensaje',
+        mensaje: mensaje,
+        tipo: 'general',
+        prioridad: 'normal'
+      };
+
+      fetch('/api/mensajes-empleado', {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(mensajeData)
+      })
+      .then(response => response.ok ? response.json() : response.text().then(t => { throw new Error(t); }))
+      .then(data => {
+        document.getElementById('mensajeInput').value = '';
+        location.reload();
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Error al enviar el mensaje: ' + error.message);
       });
     }
 
-    // Permitir buscar al presionar Enter
-    document.getElementById('filtroBusqueda').addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') {
-        aplicarFiltros();
+    document.addEventListener('DOMContentLoaded', function() {
+      var chatMessages = document.getElementById('chatMessages');
+      if (chatMessages) {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+      }
+
+      var modalNuevoMensaje = document.getElementById('modalNuevoMensaje');
+      if (modalNuevoMensaje) {
+        modalNuevoMensaje.addEventListener('click', function(e) {
+          if (e.target === this) {
+            cerrarModalNuevoMensaje();
+          }
+        });
+      }
+
+      var modalQueja = document.getElementById('modalQueja');
+      if (modalQueja) {
+        modalQueja.addEventListener('click', function(e) {
+          if (e.target === this) {
+            cerrarModalQueja();
+          }
+        });
       }
     });
+
+    function mostrarDetalleQueja(quejaId) {
+      if (!quejaId) {
+        alert('Error: No se pudo obtener el ID de la queja');
+        return;
+      }
+
+      fetch('/api/reclamos/' + quejaId)
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Error al cargar la queja: ' + response.status);
+          }
+          return response.json();
+        })
+        .then(queja => {
+          var html = '<div class="queja-detalle-item">' +
+                    '<label><i class="bx bx-text"></i> Título</label>' +
+                    '<div class="value">' + (queja.titulo || 'Sin título') + '</div>' +
+                    '</div>' +
+                    '<div class="queja-detalle-item">' +
+                    '<label><i class="bx bx-detail"></i> Descripción</label>' +
+                    '<div class="value">' + (queja.descripcion || 'Sin descripción') + '</div>' +
+                    '</div>' +
+                    '<div class="queja-detalle-item">' +
+                    '<label><i class="bx bx-info-circle"></i> Estado</label>' +
+                    '<div class="value"><span class="queja-status status-' + (queja.estado || 'pendiente').toLowerCase() + '">' + 
+                    (queja.estado ? queja.estado.charAt(0).toUpperCase() + queja.estado.slice(1) : 'Pendiente') + 
+                    '</span></div>' +
+                    '</div>' +
+                    '<div class="queja-detalle-item">' +
+                    '<label><i class="bx bx-flag"></i> Prioridad</label>' +
+                    '<div class="value"><span class="queja-prioridad priority-' + (queja.prioridad || 'normal').toLowerCase() + '">' + 
+                    (queja.prioridad ? queja.prioridad.charAt(0).toUpperCase() + queja.prioridad.slice(1) : 'Normal') + 
+                    '</span></div>' +
+                    '</div>';
+
+          if (queja.fechaReclamo) {
+            var fecha = new Date(queja.fechaReclamo);
+            var fechaFormateada = fecha.toLocaleDateString('es-ES', { 
+              year: 'numeric', 
+              month: '2-digit', 
+              day: '2-digit',
+              hour: '2-digit',
+              minute: '2-digit'
+            });
+            html += '<div class="queja-detalle-item">' +
+                   '<label><i class="bx bx-calendar"></i> Fecha del Reclamo</label>' +
+                   '<div class="value">' + fechaFormateada + '</div>' +
+                   '</div>';
+          }
+
+          if (queja.respuesta) {
+            html += '<div class="queja-detalle-item">' +
+                   '<label><i class="bx bx-message"></i> Respuesta</label>' +
+                   '<div class="value" style="background: #e8f5e9; border-left: 4px solid #28a745; padding: 15px;">' + queja.respuesta + '</div>' +
+                   '</div>';
+          }
+
+          if (queja.evaluacionCliente) {
+            var evaluacionTexto = queja.evaluacionCliente === 'resuelta' ? 
+              'El cliente indica que la queja fue resuelta' : 
+              'El cliente indica que la queja no fue resuelta';
+            var evaluacionColor = queja.evaluacionCliente === 'resuelta' ? '#28a745' : '#dc3545';
+            var evaluacionIcono = queja.evaluacionCliente === 'resuelta' ? 'bx-check-circle' : 'bx-x-circle';
+            
+            html += '<div class="queja-detalle-item">' +
+                   '<label><i class="bx bx-user-check"></i> Evaluación del Cliente</label>' +
+                   '<div class="value" style="display: flex; align-items: center; gap: 8px; color: ' + evaluacionColor + ';">' +
+                   '<i class="bx ' + evaluacionIcono + '" style="font-size: 1.2rem;"></i>' +
+                   '<span style="font-weight: 600;">' + evaluacionTexto + '</span>' +
+                   '</div>' +
+                   '</div>';
+          }
+
+          document.getElementById('quejaModalBody').innerHTML = html;
+          document.getElementById('modalQueja').classList.add('active');
+        })
+        .catch(error => {
+          console.error('Error:', error);
+          alert('Error al cargar el detalle de la queja: ' + error.message);
+        });
+    }
+
+    function cerrarModalQueja() {
+      document.getElementById('modalQueja').classList.remove('active');
+    }
   </script>
 </body>
 </html>

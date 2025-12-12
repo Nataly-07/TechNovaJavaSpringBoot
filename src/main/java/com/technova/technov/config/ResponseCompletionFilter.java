@@ -26,28 +26,46 @@ public class ResponseCompletionFilter implements Filter {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
         
-        // Solo aplicar a la ruta problemática
+        // Aplicar a rutas que pueden tener problemas de encoding
         String requestURI = httpRequest.getRequestURI();
-        if (requestURI != null && requestURI.contains("/cliente/atencion-cliente")) {
+        if (requestURI != null && (requestURI.contains("/cliente/atencion-cliente") || 
+                                   requestURI.contains("/cliente/reclamos") ||
+                                   requestURI.contains("/empleado/reclamos"))) {
             try {
                 // Asegurar que la respuesta tenga los headers correctos
                 httpResponse.setCharacterEncoding("UTF-8");
                 httpResponse.setContentType("text/html;charset=UTF-8");
+                httpResponse.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+                httpResponse.setHeader("Pragma", "no-cache");
+                httpResponse.setHeader("Expires", "0");
                 
                 // Continuar con la cadena de filtros
                 chain.doFilter(request, response);
                 
-                // Asegurar que la respuesta se complete
+                // Asegurar que la respuesta se complete correctamente
                 if (!httpResponse.isCommitted()) {
                     httpResponse.flushBuffer();
                 }
             } catch (Exception e) {
                 System.err.println("Error en ResponseCompletionFilter: " + e.getMessage());
+                e.printStackTrace();
                 if (!httpResponse.isCommitted()) {
-                    httpResponse.sendRedirect("/cliente/perfil");
+                    try {
+                        if (requestURI.contains("/cliente/")) {
+                            httpResponse.sendRedirect("/cliente/perfil");
+                        } else if (requestURI.contains("/empleado/")) {
+                            httpResponse.sendRedirect("/empleado/perfil");
+                        } else {
+                            httpResponse.sendRedirect("/login");
+                        }
+                    } catch (IOException ioException) {
+                        System.err.println("Error al redirigir: " + ioException.getMessage());
+                    }
                 }
             }
         } else {
+            // Para otras rutas, asegurar encoding UTF-8
+            httpResponse.setCharacterEncoding("UTF-8");
             chain.doFilter(request, response);
         }
     }
@@ -62,4 +80,5 @@ public class ResponseCompletionFilter implements Filter {
         // No se requiere limpieza
     }
 }
+
 

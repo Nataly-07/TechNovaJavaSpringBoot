@@ -207,7 +207,47 @@
         .consultas-list {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 20px;
+        }
+
+        /* Estilos para las tarjetas de consultas */
+        .ticket-card {
+            background: white;
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+            position: relative;
+        }
+
+        .ticket-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px 0 0 12px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .ticket-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.15);
+            transform: translateY(-3px);
+        }
+
+        .ticket-card:hover::before {
+            opacity: 1;
+        }
+
+        .ticket-card:not(:last-child) {
+            margin-bottom: 25px;
         }
 
         .consulta-item {
@@ -223,6 +263,105 @@
             border-color: #667eea;
             box-shadow: 0 4px 12px rgba(102, 126, 234, 0.1);
             transform: translateY(-2px);
+        }
+
+        .ticket-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .ticket-header h3 {
+            margin: 0;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+            flex: 1;
+        }
+
+        .ticket-body {
+            margin-bottom: 15px;
+        }
+
+        .ticket-body p {
+            color: #495057;
+            line-height: 1.6;
+            margin: 0 0 15px 0;
+            font-size: 0.95rem;
+        }
+
+        .ticket-meta {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            color: #6c757d;
+            font-size: 0.85rem;
+            margin-top: 10px;
+        }
+
+        .ticket-meta span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .status-badge {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            white-space: nowrap;
+        }
+
+        .status-badge.status-abierto {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-badge.status-en_proceso {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+
+        .status-badge.status-resuelto,
+        .status-badge.status-cerrado {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .respuesta-section {
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e9ecef;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+        }
+
+        .respuesta-section h4 {
+            color: #667eea;
+            margin-bottom: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .respuesta-section p {
+            background: white;
+            padding: 12px 15px;
+            border-radius: 8px;
+            color: #2c3e50;
+            margin: 0;
+            line-height: 1.6;
+            border-left: 3px solid #28a745;
         }
 
         .consulta-header {
@@ -695,6 +834,89 @@
             border: 1px solid #bee5eb;
     }
 
+        /* Modal de Detalle de Consulta */
+        .consulta-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+
+        .consulta-modal.active {
+            display: flex;
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .consulta-modal-content {
+            background: white;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4);
+            transform: translateY(20px);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .consulta-modal.active .consulta-modal-content {
+            transform: translateY(0);
+        }
+
+        .consulta-modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .consulta-modal-header h3 {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+
+        .consulta-modal-close {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            padding: 5px;
+            border-radius: 50%;
+            transition: background 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 35px;
+            height: 35px;
+        }
+
+        .consulta-modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .consulta-modal-body {
+            padding: 25px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
     @media (max-width: 768px) {
             .tabs-header {
                 flex-direction: column;
@@ -734,6 +956,14 @@
       <div class="welcome-section">
         <h1><i class='bx bx-headphone'></i> Atención al Cliente</h1>
         <p>Estamos aquí para ayudarte. Envíanos tu consulta y te responderemos lo antes posible.</p>
+      </div>
+
+      <!-- Botón para ir a Reclamos -->
+      <div style="text-align: center; margin-bottom: 25px;">
+        <a th:href="@{/cliente/reclamos}" style="display: inline-flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);">
+          <i class='bx bx-error-circle' style="font-size: 1.5rem;"></i>
+          <span>Reclamos</span>
+        </a>
       </div>
 
       <!-- Pestañas de Atención al Cliente -->
@@ -782,24 +1012,16 @@
           </form>
         </div>
 
-          <div th:if="${tickets != null && !tickets.isEmpty()}"><div class="ticket-card" th:each="ticket : ${tickets}" th:data-ticket-id="${ticket.id}">
+          <div th:if="${tickets != null && !tickets.isEmpty()}" class="consultas-list">
+            <div class="ticket-card" th:each="ticket : ${tickets}" th:data-ticket-id="${ticket.id}">
               <div class="ticket-header">
         <h3 th:text="${ticket.tema != null ? ticket.tema : 'Sin tema'}">Tema</h3>
-                <span th:classappend="'status-' + ${ticket.estado != null ? #strings.toLowerCase(ticket.estado) : 'pendiente'}" class="status-badge">
-                  <th:block th:if="${ticket.estado == 'abierto'}">
-                    <i class='bx bx-time-five'></i> Abierto
-                  </th:block>
-                  <th:block th:if="${ticket.estado == 'en_proceso'}">
-                    <i class='bx bx-loader'></i> En Proceso
-                  </th:block>
-                  <th:block th:if="${ticket.estado == 'resuelto' || ticket.estado == 'cerrado'}">
+                <span th:classappend="'status-' + (${ticket.respuesta != null && !ticket.respuesta.isEmpty()} ? 'resuelto' : 'en_proceso')" class="status-badge">
+                  <th:block th:if="${ticket.respuesta != null && !ticket.respuesta.isEmpty()}">
                     <i class='bx bx-check-circle'></i> Resuelto
                   </th:block>
-                  <th:block th:if="${ticket.estado != null && ticket.estado != 'abierto' && ticket.estado != 'en_proceso' && ticket.estado != 'resuelto' && ticket.estado != 'cerrado'}">
-                    <i class='bx bx-info-circle'></i> <span th:text="${ticket.estado}">Estado</span>
-                  </th:block>
-                  <th:block th:if="${ticket.estado == null}">
-                    <i class='bx bx-time-five'></i> Pendiente
+                  <th:block th:if="${ticket.respuesta == null || ticket.respuesta.isEmpty()}">
+                    <i class='bx bx-loader'></i> En Proceso
                   </th:block>
                 </span>
               </div>
@@ -811,17 +1033,17 @@
             </span>
                 </div>
         <th:block th:if="${ticket.respuesta != null && !ticket.respuesta.isEmpty()}">
-            <div class="respuesta-section" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #e0e0e0;">
-                <h4 style="color: #667eea; margin-bottom: 10px; font-size: 1rem;">
+            <div class="respuesta-section">
+                <h4>
                     <i class='bx bx-message-check'></i> Respuesta del Administrador:
                 </h4>
-                <p style="background: #f5f5f5; padding: 10px; border-radius: 8px; color: #555; margin: 0;" 
-                   th:text="${ticket.respuesta}">Respuesta</p>
+                <p th:text="${ticket.respuesta}">Respuesta</p>
             </div>
         </th:block>
     </div>
               </div>
             </div>
+          </div>
           </div>
           <div th:if="${tickets == null || tickets.isEmpty()}" class="empty-state">
                       <i class='bx bx-clipboard'></i>
@@ -920,6 +1142,21 @@
   <footer>
     <p>&copy; 2025 Technova</p>
   </footer>
+
+  <!-- Modal de Detalle de Consulta -->
+  <div id="consultaModal" class="consulta-modal">
+    <div class="consulta-modal-content">
+      <div class="consulta-modal-header">
+        <h3 id="consultaModalTitle">Detalle de Consulta</h3>
+        <button class="consulta-modal-close" onclick="gestionAtencionCliente.cerrarModalConsulta()">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="consulta-modal-body" id="consultaModalBody">
+        <!-- Contenido dinámico -->
+      </div>
+    </div>
+  </div>
 
   <!-- Modal de Conversación -->
   <div id="conversationModal" class="conversation-modal">
@@ -1063,7 +1300,7 @@
         }
 
         // Tarjetas de consultas
-        var consultasCards = document.querySelectorAll('.consulta-item[data-ticket-id]');
+        var consultasCards = document.querySelectorAll('.ticket-card[data-ticket-id]');
         console.log('Tarjetas de consultas encontradas:', consultasCards.length);
         consultasCards.forEach(function(card) {
           card.addEventListener('click', function() {
@@ -1090,6 +1327,16 @@
         });
         
         console.log('Event listeners configurados correctamente');
+
+        // Modal de consulta
+        var modalConsulta = document.getElementById('consultaModal');
+        if (modalConsulta) {
+          modalConsulta.addEventListener('click', function(e) {
+            if (e.target === modalConsulta) {
+              cerrarModalConsulta();
+            }
+          });
+        }
 
         // Modal de conversación
         var modalConversacion = document.getElementById('conversationModal');
@@ -1366,6 +1613,16 @@
 
       // Mostrar detalle de consulta
       function mostrarDetalleConsulta(ticketId) {
+        var modal = document.getElementById('consultaModal');
+        var modalBody = document.getElementById('consultaModalBody');
+        var modalTitle = document.getElementById('consultaModalTitle');
+        
+        if (!modal || !modalBody) return;
+        
+        // Mostrar modal con loading
+        modal.classList.add('active');
+        modalBody.innerHTML = '<div style="text-align: center; padding: 40px;"><i class="bx bx-loader-alt bx-spin" style="font-size: 3rem; color: #667eea;"></i><p style="margin-top: 15px; color: #6c757d;">Cargando detalles...</p></div>';
+        
         fetch('/api/atencion-cliente/' + ticketId)
           .then(function(response) {
             if (!response.ok) {
@@ -1375,57 +1632,73 @@
           })
           .then(function(ticket) {
             var fecha = formatearFecha(ticket.fechaConsulta);
-            var estadoTexto = formatearEstado(ticket.estado);
+            var tieneRespuesta = ticket.respuesta != null && ticket.respuesta.trim() !== '';
+            var estadoTexto = tieneRespuesta ? 'Resuelto' : 'En Proceso';
+            var estadoClass = tieneRespuesta ? 'resuelto' : 'en_proceso';
             var descripcion = ticket.descripcion || 'Sin descripción';
+            var tema = ticket.tema || 'Sin tema';
+            
+            // Actualizar título del modal
+            if (modalTitle) {
+              modalTitle.textContent = tema;
+            }
             
             var htmlRespuesta = '';
-            if (ticket.respuesta) {
+            if (tieneRespuesta) {
               htmlRespuesta = 
-                '<div style="background: #e8f5e8; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745; margin-top: 20px;">' +
-                  '<h4 style="color: #28a745; margin-bottom: 10px; display: flex; align-items: center; gap: 8px;">' +
-                    '<i class="bx bx-check-circle"></i> Respuesta del Soporte:' +
+                '<div class="respuesta-section" style="margin-top: 20px;">' +
+                  '<h4 style="color: #667eea; margin-bottom: 12px; font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 8px;">' +
+                    '<i class="bx bx-message-check"></i> Respuesta del Administrador:' +
                   '</h4>' +
-                  '<p style="color: #2c3e50; line-height: 1.6; margin: 0;">' +
+                  '<p style="background: white; padding: 12px 15px; border-radius: 8px; color: #2c3e50; margin: 0; line-height: 1.6; border-left: 3px solid #28a745;">' +
                     escapeHtml(ticket.respuesta) +
                   '</p>' +
                 '</div>';
-        } else {
+            } else {
               htmlRespuesta = 
                 '<div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 2px dashed #dee2e6; text-align: center; margin-top: 20px;">' +
                   '<i class="bx bx-time" style="font-size: 2rem; color: #6c757d; margin-bottom: 10px; display: block;"></i>' +
-                  '<p style="color: #6c757d; margin: 0;">Tu consulta está siendo revisada. Te responderemos pronto.</p>' +
+                  '<p style="color: #6c757d; margin: 0; font-weight: 500;">Tu consulta está siendo revisada. Te responderemos pronto.</p>' +
                 '</div>';
             }
             
             var contenido = 
-              '<div style="padding: 20px;">' +
-                '<div style="margin-bottom: 20px;">' +
-                  '<div style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;">' +
-                    '<span style="display: flex; align-items: center; gap: 5px; color: #6c757d; font-size: 0.9rem;">' +
-                      '<i class="bx bx-calendar"></i> ' + fecha +
-                    '</span>' +
-                    '<span class="consulta-estado estado-' + (ticket.estado || 'abierto') + '" style="font-size: 0.8rem;">' +
-                      estadoTexto +
-                    '</span>' +
-                  '</div>' +
-                  '<div style="margin-bottom: 20px;">' +
-                    '<h4 style="color: #2c3e50; margin-bottom: 10px;">Descripción:</h4>' +
-                    '<p style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea; color: #495057; line-height: 1.6;">' +
-                      escapeHtml(descripcion) +
-                    '</p>' +
-                  '</div>' +
-                  htmlRespuesta +
+              '<div style="margin-bottom: 20px;">' +
+                '<div style="display: flex; gap: 15px; margin-bottom: 20px; flex-wrap: wrap; align-items: center;">' +
+                  '<span style="display: flex; align-items: center; gap: 5px; color: #6c757d; font-size: 0.9rem;">' +
+                    '<i class="bx bx-calendar"></i> ' + fecha +
+                  '</span>' +
+                  '<span class="status-badge status-' + estadoClass + '">' +
+                    '<i class="bx ' + (tieneRespuesta ? 'bx-check-circle' : 'bx-loader') + '"></i> ' + estadoTexto +
+                  '</span>' +
                 '</div>' +
+                '<div style="margin-bottom: 20px;">' +
+                  '<h4 style="color: #2c3e50; margin-bottom: 10px; font-size: 1.1rem; font-weight: 600;">Descripción:</h4>' +
+                  '<p style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #667eea; color: #495057; line-height: 1.6; margin: 0;">' +
+                    escapeHtml(descripcion) +
+                  '</p>' +
+                '</div>' +
+                htmlRespuesta +
               '</div>';
             
-            alert('Consulta #' + ticketId + '\n\nTema: ' + (ticket.tema || 'Sin tema') + '\n\n' + 
-                  'Descripción: ' + descripcion + '\n\n' + 
-                  (ticket.respuesta ? 'Respuesta: ' + ticket.respuesta : 'Estado: Pendiente de respuesta'));
+            modalBody.innerHTML = contenido;
           })
           .catch(function(error) {
             console.error('Error:', error);
-            alert('Error al cargar la consulta: ' + error.message);
+            modalBody.innerHTML = 
+              '<div style="text-align: center; padding: 40px;">' +
+                '<i class="bx bx-error" style="font-size: 3rem; color: #dc3545; margin-bottom: 15px;"></i>' +
+                '<p style="color: #dc3545; font-weight: 500;">Error al cargar la consulta: ' + escapeHtml(error.message) + '</p>' +
+              '</div>';
           });
+      }
+
+      // Cerrar modal de consulta
+      function cerrarModalConsulta() {
+        var modal = document.getElementById('consultaModal');
+        if (modal) {
+          modal.classList.remove('active');
+        }
       }
 
       // Mostrar conversación
@@ -1651,6 +1924,7 @@
         inicializar: inicializar,
         cambiarTab: cambiarTab,
         mostrarDetalleConsulta: mostrarDetalleConsulta,
+        cerrarModalConsulta: cerrarModalConsulta,
         mostrarConversacion: mostrarConversacion,
         cerrarModalConversacion: cerrarModalConversacion
       };

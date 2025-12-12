@@ -91,7 +91,17 @@ public class SecurityConfig {
         "/api/favoritos/**",
         "/api/carrito/**",
         "/api/mensajes-directos/**",
-        "/cliente/perfil/desactivar"
+
+/*         "/cliente/perfil/desactivar"
+
+        "/api/reclamos",
+        "/api/reclamos/**" */
+
+                "/cliente/perfil/desactivar",
+        "/api/reclamos",
+        "/api/reclamos/**"
+
+
     )
 )
 

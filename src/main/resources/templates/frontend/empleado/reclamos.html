@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}"/>
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}"/>
+    <title>Reclamos - Technova</title>
+    <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" th:href="@{/frontend/css/estilodas.css}">
+    <link rel="stylesheet" th:href="@{/frontend/css/stilotech.css}">
+    <link rel="stylesheet" th:href="@{/frontend/css/color-palette.css}">
+    <style>
+        body { background: #e8f0f8; }
+        .main-content { background: transparent; }
+        .reclamos-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            padding: 20px;
+        }
+        .header-banner {
+            background: linear-gradient(to right, #DD6371 0%, #D83141 3%, #D83141 97%, #DD6371 100%);
+            border-radius: 20px;
+            padding: 35px 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 24px rgba(220, 53, 69, 0.25);
+            text-align: center;
+            color: white;
+        }
+        .header-banner h1 {
+            margin: 0 0 10px 0;
+            font-size: 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            font-weight: 700;
+            -webkit-text-stroke: 0;
+            text-stroke: 0;
+            text-shadow: none;
+        }
+        .filters-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            padding: 10px 22px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: #1a202c;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .filter-btn:hover {
+            border-color: #dc3545;
+            color: #dc3545;
+            transform: translateY(-2px);
+        }
+        .filter-btn.active {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            border-color: #dc3545;
+            color: white;
+        }
+        .search-container {
+            margin-bottom: 25px;
+        }
+        .search-box {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 14px 18px 14px 48px;
+            border: 1px solid #e2e8f0;
+            border-radius: 50px;
+            font-size: 15px;
+            background: white;
+        }
+        .search-box i {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+        }
+        .main-content-area {
+            background: white;
+            border-radius: 16px;
+            padding: 25px 28px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        .reclamos-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .reclamo-card {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 24px;
+            border-left: 4px solid #dc3545;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .reclamo-card:hover {
+            border-color: #dc3545;
+            box-shadow: 0 8px 24px rgba(220, 53, 69, 0.2);
+            transform: translateX(6px) translateY(-2px);
+            background: #ffffff;
+        }
+        .reclamo-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .reclamo-header h3 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1.2rem;
+        }
+        .reclamo-status {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .reclamo-status.pendiente {
+            background: #fff3cd;
+            color: #856404;
+        }
+        .reclamo-status.en_revision {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        .reclamo-status.resuelto {
+            background: #d4edda;
+            color: #155724;
+        }
+        .priority-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            margin-right: 8px;
+        }
+        .priority-baja { background: #d4edda; color: #155724; }
+        .priority-normal { background: #d1ecf1; color: #0c5460; }
+        .priority-alta { background: #fff3cd; color: #856404; }
+        .priority-urgente { background: #f8d7da; color: #721c24; }
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 700px;
+            max-height: 80vh;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        .modal-header {
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .modal-body {
+            padding: 25px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+  <header class="header">
+    <div class="logo" style="cursor: default;">
+      <img th:src="@{/frontend/imagenes/logo technova.png}" alt="Logo">
+      <span>TECHNOVA</span>
+    </div>
+    <div class="acciones-usuario">
+      <a th:href="@{/empleado/perfil}" class="account"><i class='bx bx-user-circle'></i> <span>Perfil</span></a>
+      <a th:href="@{/empleado/atencion-cliente}" class="account"><i class='bx bx-headphone'></i> <span>Atención al Cliente</span></a>
+      <form method="POST" th:action="@{/logout}" style="display:inline;">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        <button type="submit" style="background:none;border:none;color:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:5px;" class="account">
+          <i class='bx bx-log-out'></i> <span>Cerrar Sesión</span>
+        </button>
+      </form>
+    </div>
+  </header>
+
+  <div class="dashboard-wrapper">
+    <div th:replace="~{frontend/layouts/sidebar-empleado :: sidebar}"></div>
+    <main class="main-content">
+      <div class="reclamos-container">
+        <div class="header-banner">
+          <h1 style="color: #000000;"><i class='bx bx-error-circle'></i> Gestión de Reclamos</h1>
+          <p>Gestiona los reclamos de los clientes de manera eficiente</p>
+        </div>
+
+        <div class="filters-container">
+          <button class="filter-btn active" onclick="filtrar('todos')">Todos</button>
+          <button class="filter-btn" onclick="filtrar('pendiente')">Pendientes</button>
+          <button class="filter-btn" onclick="filtrar('en_revision')">En Revisión</button>
+          <button class="filter-btn" onclick="filtrar('resuelto')">Resueltos</button>
+        </div>
+
+        <div class="search-container">
+          <div class="search-box">
+            <i class='bx bx-search'></i>
+            <input type="text" id="searchInput" placeholder="Buscar por título, descripción o cliente..." 
+                   th:value="${busqueda != null ? busqueda : ''}" onkeypress="if(event.key === 'Enter') buscar()">
+          </div>
+        </div>
+
+        <div class="main-content-area">
+          <div class="reclamos-list" th:if="${reclamos != null && !reclamos.isEmpty()}">
+            <div class="reclamo-card" th:each="reclamo : ${reclamos}" th:data-reclamo-id="${reclamo.id}">
+              <div class="reclamo-header">
+                <h3 th:text="${reclamo.titulo != null ? reclamo.titulo : 'Sin título'}">Título</h3>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                  <span th:classappend="'priority-badge priority-' + (${reclamo.prioridad != null ? #strings.toLowerCase(reclamo.prioridad) : 'normal'})" 
+                        th:text="${reclamo.prioridad != null ? #strings.capitalize(reclamo.prioridad) : 'Normal'}">Prioridad</span>
+                  <span th:classappend="'reclamo-status ' + (${reclamo.respuesta != null && !#strings.isEmpty(reclamo.respuesta)} ? 'resuelto' : (${reclamo.estado != null ? #strings.toLowerCase(reclamo.estado) : 'pendiente'}))" class="reclamo-status">
+                    <th:block th:if="${reclamo.respuesta != null && !#strings.isEmpty(reclamo.respuesta)}">
+                      <i class='bx bx-check-circle'></i> Resuelto
+                    </th:block>
+                    <th:block th:if="${reclamo.respuesta == null || #strings.isEmpty(reclamo.respuesta)}">
+                      <i th:if="${reclamo.estado == 'pendiente'}" class='bx bx-time-five'></i>
+                      <i th:if="${reclamo.estado == 'en_revision'}" class='bx bx-loader'></i>
+                      <span th:text="${reclamo.estado != null ? #strings.capitalize(reclamo.estado) : 'Pendiente'}">Estado</span>
+                    </th:block>
+                  </span>
+                </div>
+              </div>
+              <div style="color: #4a5568; margin-bottom: 15px;">
+                <p th:text="${reclamo.descripcion != null ? reclamo.descripcion : 'Sin descripción'}">Descripción</p>
+                <th:block th:if="${reclamo.respuesta != null && !#strings.isEmpty(reclamo.respuesta)}">
+                  <div style="margin-top: 10px; padding: 10px; background: #e8f5e8; border-radius: 6px; border-left: 3px solid #28a745;">
+                    <strong style="color: #28a745;">Respuesta:</strong>
+                    <p style="margin: 5px 0 0 0; color: #2c3e50;" th:text="${reclamo.respuesta}">Respuesta</p>
+                  </div>
+                  <th:block th:if="${reclamo.evaluacionCliente != null && !#strings.isEmpty(reclamo.evaluacionCliente)}">
+                    <div style="margin-top: 10px; padding: 12px; border-radius: 6px; border-left: 3px solid #667eea; background: #f0f4ff;">
+                      <strong style="color: #667eea; display: flex; align-items: center; gap: 6px;">
+                        <i th:if="${reclamo.evaluacionCliente == 'resuelta'}" class='bx bx-check-circle' style="color: #28a745;"></i>
+                        <i th:if="${reclamo.evaluacionCliente == 'no_resuelta'}" class='bx bx-x-circle' style="color: #dc3545;"></i>
+                        Evaluación del Cliente:
+                      </strong>
+                      <p style="margin: 5px 0 0 0; color: #2c3e50; font-weight: 600;" 
+                         th:text="${reclamo.evaluacionCliente == 'resuelta' ? 'El cliente indica que la queja fue resuelta ✓' : 'El cliente indica que la queja NO fue resuelta ✗'}">Evaluación</p>
+                    </div>
+                  </th:block>
+                </th:block>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+                <div style="display: flex; gap: 20px; font-size: 0.9rem; color: #718096;">
+                  <span><i class='bx bx-calendar'></i> <span th:text="${reclamo.fechaReclamo != null ? #temporals.format(reclamo.fechaReclamo, 'dd/MM/yyyy HH:mm') : 'N/A'}">Fecha</span></span>
+                  <span><i class='bx bx-user'></i> <span th:text="${reclamo.usuarioId != null && nombresUsuarios != null && nombresUsuarios.containsKey(reclamo.usuarioId) ? nombresUsuarios.get(reclamo.usuarioId) : 'Usuario ID: ' + reclamo.usuarioId}">Cliente</span></span>
+                </div>
+                <button th:if="${reclamo.enviadoAlAdmin == null || !reclamo.enviadoAlAdmin}" 
+                        th:onclick="'enviarAlAdministrador(' + ${reclamo.id} + ')'"
+                        style="padding: 8px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 6px; transition: all 0.3s ease;"
+                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 4px 12px rgba(102, 126, 234, 0.3)';"
+                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none';">
+                  <i class='bx bx-send'></i> Enviar al Administrador
+                </button>
+                <span th:if="${reclamo.enviadoAlAdmin != null && reclamo.enviadoAlAdmin}" 
+                      style="padding: 8px 16px; background: #d4edda; color: #155724; border-radius: 8px; font-size: 0.85rem; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                  <i class='bx bx-check-circle'></i> Enviado al Administrador
+                </span>
+              </div>
+            </div>
+          </div>
+          <div th:if="${reclamos == null || reclamos.isEmpty()}" style="text-align: center; padding: 60px 20px; color: #7f8c8d;">
+            <i class='bx bx-inbox' style="font-size: 4rem; margin-bottom: 20px; opacity: 0.5;"></i>
+            <h3>No hay reclamos</h3>
+            <p>No se encontraron reclamos con los filtros seleccionados.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal de Detalle -->
+  <div id="reclamoModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="modalReclamoTitle">Detalle de Reclamo</h3>
+        <button onclick="cerrarModal()" style="background: none; border: none; font-size: 28px; cursor: pointer; color: white; font-weight: bold; padding: 0; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;" 
+                onmouseover="this.style.transform='scale(1.2)'; this.style.color='#ffcccc';" 
+                onmouseout="this.style.transform='scale(1)'; this.style.color='white';">
+          <i class='bx bx-x'></i>
+        </button>
+      </div>
+      <div class="modal-body" id="modalReclamoContent"></div>
+    </div>
+  </div>
+
+  <script th:inline="javascript">
+    var datosIniciales = {
+      estadoActual: /*[[${estado != null ? estado : 'todos'}]]*/ 'todos',
+      busquedaActual: /*[[${busqueda != null ? busqueda : ''}]]*/ ''
+    };
+  </script>
+  <script>
+    function filtrar(estado) {
+      var url = '/empleado/reclamos?estado=' + estado;
+      if (datosIniciales.busquedaActual) {
+        url += '&busqueda=' + encodeURIComponent(datosIniciales.busquedaActual);
+      }
+      window.location.href = url;
+    }
+
+    function buscar() {
+      var busqueda = document.getElementById('searchInput').value.trim();
+      var url = '/empleado/reclamos?estado=' + datosIniciales.estadoActual;
+      if (busqueda) {
+        url += '&busqueda=' + encodeURIComponent(busqueda);
+      }
+      window.location.href = url;
+    }
+
+    function cerrarModal() {
+      document.getElementById('reclamoModal').style.display = 'none';
+    }
+
+    function responderReclamo(reclamoId) {
+      var respuesta = prompt('Ingresa tu respuesta al reclamo:');
+      if (!respuesta || respuesta.trim() === '') {
+        return;
+      }
+
+      var csrfToken = document.querySelector('meta[name="_csrf"]') ? document.querySelector('meta[name="_csrf"]').content : '';
+      var csrfHeaderName = document.querySelector('meta[name="_csrf_header"]') ? document.querySelector('meta[name="_csrf_header"]').content : '';
+      
+      var headers = {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      };
+      
+      if (csrfToken && csrfHeaderName) {
+        headers[csrfHeaderName] = csrfToken;
+      }
+
+      fetch('/api/reclamos/' + reclamoId + '/responder', {
+        method: 'PUT',
+        headers: headers,
+        body: JSON.stringify({ respuesta: respuesta.trim() })
+      })
+      .then(function(response) {
+        if (!response.ok) {
+          return response.text().then(function(errorText) {
+            throw new Error(errorText || 'Error al responder el reclamo');
+          });
+        }
+        return response.json();
+      })
+      .then(function(data) {
+        alert('Respuesta enviada correctamente');
+        cerrarModal();
+        setTimeout(function() {
+          location.reload();
+        }, 500);
+      })
+      .catch(function(error) {
+        console.error('Error:', error);
+        alert('Error al responder el reclamo: ' + error.message);
+      });
+    }
+
+    function enviarAlAdministrador(reclamoId) {
+      if (!confirm('¿Estás seguro de que deseas enviar este reclamo al administrador?')) {
+        return;
+      }
+
+      var csrfToken = document.querySelector('meta[name="_csrf"]') ? document.querySelector('meta[name="_csrf"]').content : '';
+      var csrfHeaderName = document.querySelector('meta[name="_csrf_header"]') ? document.querySelector('meta[name="_csrf_header"]').content : '';
+      
+      var headers = {
+        'Content-Type': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      };
+      
+      if (csrfToken && csrfHeaderName) {
+        headers[csrfHeaderName] = csrfToken;
+      }
+
+      fetch('/api/reclamos/' + reclamoId + '/enviar-al-admin', {
+        method: 'PUT',
+        headers: headers
+      })
+      .then(function(response) {
+        if (!response.ok) {
+          return response.text().then(function(errorText) {
+            throw new Error(errorText || 'Error al enviar el reclamo al administrador');
+          });
+        }
+        return response.json();
+      })
+      .then(function(data) {
+        alert('Reclamo enviado al administrador correctamente');
+        setTimeout(function() {
+          location.reload();
+        }, 500);
+      })
+      .catch(function(error) {
+        console.error('Error:', error);
+        alert('Error al enviar el reclamo al administrador: ' + error.message);
+      });
+    }
+
+    document.querySelectorAll('.reclamo-card').forEach(card => {
+      card.addEventListener('click', function() {
+        var reclamoId = this.getAttribute('data-reclamo-id');
+        fetch('/api/reclamos/' + reclamoId)
+          .then(response => response.json())
+          .then(reclamo => {
+            var tieneRespuesta = reclamo.respuesta != null && reclamo.respuesta.trim() !== '';
+            var estadoClass = tieneRespuesta ? 'resuelto' : (reclamo.estado || 'pendiente');
+            var estadoTexto = tieneRespuesta ? 'Resuelto' : (reclamo.estado ? reclamo.estado.charAt(0).toUpperCase() + reclamo.estado.slice(1) : 'Pendiente');
+            
+            var htmlRespuesta = '';
+            if (tieneRespuesta) {
+              htmlRespuesta = '<div style="background: #e8f5e8; padding: 15px; border-radius: 8px; border-left: 4px solid #28a745; margin-top: 20px;"><h4 style="color: #28a745; margin-bottom: 10px;">Respuesta:</h4><p style="color: #2c3e50; line-height: 1.6; margin: 0 0 15px 0;">' + 
+                              (reclamo.respuesta || '') + '</p></div>';
+              
+              // Agregar evaluación del cliente si existe
+              if (reclamo.evaluacionCliente && reclamo.evaluacionCliente.trim() !== '') {
+                var evaluacionTexto = reclamo.evaluacionCliente === 'resuelta' ? 
+                  'El cliente indica que la queja fue resuelta ✓' : 
+                  'El cliente indica que la queja NO fue resuelta ✗';
+                var evaluacionColor = reclamo.evaluacionCliente === 'resuelta' ? '#28a745' : '#dc3545';
+                var evaluacionIcono = reclamo.evaluacionCliente === 'resuelta' ? 'bx-check-circle' : 'bx-x-circle';
+                
+                htmlRespuesta += '<div style="background: #f0f4ff; padding: 12px 15px; border-radius: 8px; border-left: 4px solid #667eea; margin-top: 15px;"><h4 style="color: #667eea; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; font-size: 0.95rem;"><i class="bx ' + evaluacionIcono + '" style="color: ' + evaluacionColor + ';"></i> Evaluación del Cliente:</h4><p style="color: #2c3e50; line-height: 1.6; margin: 0; font-weight: 600;">' + evaluacionTexto + '</p></div>';
+              }
+            } else {
+              htmlRespuesta = '<div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border: 2px dashed #dee2e6; text-align: center; margin-top: 20px;"><i class="bx bx-time" style="font-size: 2rem; color: #6c757d; margin-bottom: 10px; display: block;"></i><p style="color: #6c757d; margin: 0;">Este reclamo aún no tiene respuesta.</p><button onclick="responderReclamo(' + reclamo.id + ')" style="margin-top: 15px; padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 8px; cursor: pointer;"><i class="bx bx-reply"></i> Responder</button></div>';
+            }
+            
+            var contenido = '<div style="margin-bottom: 20px;"><div style="display: flex; gap: 15px; margin-bottom: 15px; flex-wrap: wrap;"><span style="display: flex; align-items: center; gap: 5px; color: #6c757d; font-size: 0.9rem;"><i class="bx bx-calendar"></i> ' + 
+                            (reclamo.fechaReclamo ? new Date(reclamo.fechaReclamo).toLocaleString('es-ES') : 'N/A') + '</span>' +
+                            '<span class="reclamo-status ' + estadoClass + '" style="font-size: 0.8rem;">' + estadoTexto + '</span></div>' +
+                            '<div style="margin-bottom: 20px;"><h4 style="color: #2c3e50; margin-bottom: 10px;">Descripción:</h4><p style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #dc3545; color: #495057; line-height: 1.6;">' + 
+                            (reclamo.descripcion || 'Sin descripción') + '</p></div>' + htmlRespuesta + '</div>';
+            
+            document.getElementById('modalReclamoTitle').textContent = reclamo.titulo || 'Sin título';
+            document.getElementById('modalReclamoContent').innerHTML = contenido;
+            document.getElementById('reclamoModal').style.display = 'flex';
+          })
+          .catch(error => {
+            console.error('Error:', error);
+            alert('Error al cargar el reclamo');
+          });
+      });
+    });
+
+    // Marcar filtro activo
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+      if (btn.textContent.trim().toLowerCase() === datosIniciales.estadoActual.toLowerCase() || 
+          (datosIniciales.estadoActual === 'todos' && btn.textContent.trim().toLowerCase() === 'todos')) {
+        btn.classList.add('active');
+      }
+    });
+  </script>
+</body>
+</html>
+

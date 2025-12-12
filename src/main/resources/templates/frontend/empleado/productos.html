@@ -98,7 +98,7 @@
 
         .stats-card {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
+            color: #000000;
             padding: 20px 30px;
             border-radius: 16px;
             box-shadow: 0 8px 24px rgba(102, 126, 234, 0.3);
@@ -108,12 +108,14 @@
             font-size: 2.5rem;
             font-weight: 700;
             margin: 0;
+            color: #000000;
         }
 
         .stats-card .stat-label {
             font-size: 0.9rem;
-            opacity: 0.9;
+            color: #000000;
             margin-top: 5px;
+            font-weight: 600;
         }
 
         .search-container {
@@ -417,6 +419,213 @@
             color: #991b1b;
         }
 
+        .badge-estado {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .badge-activo {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .badge-inactivo {
+            background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+            color: white;
+        }
+
+        .nivel-stock-badge {
+            display: inline-block;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .nivel-alto {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .nivel-medio {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .nivel-bajo {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        /* Modal de detalles del producto */
+        .producto-modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .producto-modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 0;
+            border: none;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 800px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .producto-modal-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 16px 16px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .producto-modal-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .producto-modal-close {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .producto-modal-close:hover {
+            transform: scale(1.2);
+        }
+
+        .producto-modal-body {
+            padding: 40px;
+        }
+
+        .producto-detalle-grid {
+            display: grid;
+            grid-template-columns: 1fr 1.8fr;
+            gap: 50px;
+            margin-bottom: 30px;
+            align-items: center;
+        }
+
+        .producto-detalle-grid.sin-imagen {
+            grid-template-columns: 1fr;
+            justify-items: center;
+        }
+
+        .producto-detalle-grid.sin-imagen .producto-detalle-info {
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .producto-detalle-grid > div:first-child {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .producto-detalle-imagen {
+            width: 100%;
+            max-width: 350px;
+            height: 350px;
+            object-fit: cover;
+            border-radius: 12px;
+            border: 2px solid #e2e8f0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .producto-detalle-info {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            justify-content: center;
+        }
+
+        .producto-detalle-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .producto-detalle-label {
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .producto-detalle-value {
+            color: #2c3e50;
+            font-size: 1rem;
+        }
+
+        .producto-detalle-descripcion {
+            margin-top: 20px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .producto-detalle-descripcion .producto-detalle-label {
+            margin-bottom: 10px;
+        }
+
+        .producto-detalle-descripcion .producto-detalle-value {
+            line-height: 1.6;
+            color: #4a5568;
+        }
+
+        @media (max-width: 768px) {
+            .producto-detalle-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .producto-modal-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+        }
+
         .empty-state {
             text-align: center;
             padding: 60px 20px;
@@ -499,7 +708,7 @@
         <div class="search-container">
           <div class="search-box">
             <i class='bx bx-search'></i>
-            <input type="text" id="searchInput" placeholder="Buscar por ID, nombre, código, categoría, marca, color, descripción o proveedor...">
+            <input type="text" id="searchInput" placeholder="Buscar por ID, nombre, código, categoría, marca, color...">
           </div>
         </div>
 
@@ -518,8 +727,8 @@
                 <th><i class='bx bx-palette'></i> Color</th>
                 <th><i class='bx bx-dollar-circle'></i> Precio Venta</th>
                 <th><i class='bx bx-box'></i> Stock</th>
-                <th><i class='bx bx-store'></i> Proveedor</th>
-                <th><i class='bx bx-file-blank'></i> Descripción</th>
+                <th><i class='bx bx-check-circle'></i> Estado</th>
+                <th><i class='bx bx-bar-chart-alt-2'></i> Nivel de Stock</th>
               </tr>
             </thead>
             <tbody id="productosBody">
@@ -532,7 +741,21 @@
                   </div>
                 </td>
               </tr>
-              <tr th:each="producto : ${productos}" class="producto-row">
+              <tr th:each="producto : ${productos}" 
+                  class="producto-row" 
+                  th:attr="data-producto-id=${producto.id},
+                          data-producto-nombre=${producto.nombre != null ? producto.nombre : 'N/A'},
+                          data-producto-codigo=${producto.codigo != null ? producto.codigo : 'N/A'},
+                          data-producto-imagen=${producto.imagen != null ? (producto.imagen.startsWith('http') ? producto.imagen : '/frontend/imagenes/' + producto.imagen) : ''},
+                          data-producto-categoria=${producto.caracteristica?.categoria != null ? producto.caracteristica.categoria : 'N/A'},
+                          data-producto-marca=${producto.caracteristica?.marca != null ? producto.caracteristica.marca : 'N/A'},
+                          data-producto-color=${producto.caracteristica?.color != null ? producto.caracteristica.color : 'N/A'},
+                          data-producto-precio=${producto.caracteristica?.precioVenta != null ? #numbers.formatDecimal(producto.caracteristica.precioVenta, 0, 0) : 'N/A'},
+                          data-producto-stock=${producto.stock != null ? producto.stock : 0},
+                          data-producto-estado=${producto.estado != null ? (producto.estado ? 'Activo' : 'Inactivo') : 'N/A'},
+                          data-producto-proveedor=${producto.proveedor != null ? producto.proveedor : 'No disponible'},
+                          data-producto-descripcion=${producto.caracteristica?.descripcion != null ? producto.caracteristica.descripcion : 'No disponible'}"
+                  style="cursor: pointer;">
                 <td style="text-align: center; font-weight: 600; color: #667eea;" th:text="${producto.id != null ? producto.id : 'N/A'}">ID</td>
                 <td>
                   <div class="producto-info">
@@ -571,24 +794,22 @@
                   </span>
                   <span th:if="${producto.caracteristica?.precioVenta == null}" style="color: #718096;">N/A</span>
                 </td>
-                <td>
-                  <div class="stock-info">
-                    <span th:if="${producto.stock != null and producto.stock > 50}" 
-                          class="stock-badge alto"
-                          th:text="${producto.stock}">0</span>
-                    <span th:if="${producto.stock != null and producto.stock > 10 and producto.stock <= 50}" 
-                          class="stock-badge medio"
-                          th:text="${producto.stock}">0</span>
-                    <span th:if="${producto.stock == null or producto.stock <= 10}" 
-                          class="stock-badge bajo"
-                          th:text="${producto.stock != null ? producto.stock : 0}">0</span>
-                  </div>
+                <td style="text-align: center;">
+                  <span th:if="${producto.stock != null}" th:text="${producto.stock}">0</span>
+                  <span th:if="${producto.stock == null}" style="color: #718096;">0</span>
                 </td>
-                <td style="color: #4a5568;" th:text="${producto.proveedor != null ? producto.proveedor : 'N/A'}">N/A</td>
-                <td style="max-width: 200px; word-wrap: break-word; font-size: 0.85rem; color: #4a5568;">
-                  <span th:if="${producto.caracteristica?.descripcion != null}" 
-                        th:text="${producto.caracteristica.descripcion}">Descripción</span>
-                  <span th:if="${producto.caracteristica?.descripcion == null}" style="color: #718096;">N/A</span>
+                <td style="text-align: center;">
+                  <span th:if="${producto.estado == true}" class="badge-estado badge-activo">Activo</span>
+                  <span th:if="${producto.estado == false}" class="badge-estado badge-inactivo">Inactivo</span>
+                  <span th:if="${producto.estado == null}" style="color: #718096;">N/A</span>
+                </td>
+                <td style="text-align: center;">
+                  <span th:if="${producto.stock != null and producto.stock > 50}" 
+                        class="nivel-stock-badge nivel-alto">Alto</span>
+                  <span th:if="${producto.stock != null and producto.stock > 10 and producto.stock <= 50}" 
+                        class="nivel-stock-badge nivel-medio">Medio</span>
+                  <span th:if="${producto.stock == null or producto.stock <= 10}" 
+                        class="nivel-stock-badge nivel-bajo">Bajo</span>
                 </td>
               </tr>
             </tbody>
@@ -597,6 +818,19 @@
         </div>
       </div>
     </main>
+  </div>
+
+  <!-- Modal de detalles del producto -->
+  <div id="productoModal" class="producto-modal">
+    <div class="producto-modal-content">
+      <div class="producto-modal-header">
+        <h2><i class='bx bx-package'></i> Detalles del Producto</h2>
+        <span class="producto-modal-close" onclick="cerrarModal()">&times;</span>
+      </div>
+      <div class="producto-modal-body" id="productoModalBody">
+        <!-- El contenido se llenará dinámicamente -->
+      </div>
+    </div>
   </div>
 
   <footer>
@@ -796,7 +1030,142 @@
       if (searchInput) {
         searchInput.addEventListener('keyup', window.filtrarProductos);
       }
+
+      // Agregar event listeners a las filas de productos
+      const productoRows = document.querySelectorAll('.producto-row');
+      productoRows.forEach(row => {
+        row.addEventListener('click', function() {
+          const productoId = this.getAttribute('data-producto-id');
+          if (productoId) {
+            mostrarDetallesProducto(this);
+          }
+        });
+      });
     });
+
+    // Función para mostrar los detalles del producto en el modal
+    function mostrarDetallesProducto(row) {
+      const modal = document.getElementById('productoModal');
+      const modalBody = document.getElementById('productoModalBody');
+      
+      // Extraer datos de los atributos data-*
+      const id = row.getAttribute('data-producto-id') || 'N/A';
+      const nombre = row.getAttribute('data-producto-nombre') || 'N/A';
+      const codigo = row.getAttribute('data-producto-codigo') || 'N/A';
+      const imagen = row.getAttribute('data-producto-imagen') || '';
+      const categoria = row.getAttribute('data-producto-categoria') || 'N/A';
+      const marca = row.getAttribute('data-producto-marca') || 'N/A';
+      const color = row.getAttribute('data-producto-color') || 'N/A';
+      const precioVenta = row.getAttribute('data-producto-precio') || 'N/A';
+      const stock = row.getAttribute('data-producto-stock') || '0';
+      const estado = row.getAttribute('data-producto-estado') || 'N/A';
+      const proveedor = row.getAttribute('data-producto-proveedor') || 'No disponible';
+      const descripcion = row.getAttribute('data-producto-descripcion') || 'No disponible';
+
+      // Verificar si hay imagen
+      const tieneImagen = imagen && imagen.trim() !== '';
+
+      // Calcular nivel de stock
+      const stockNum = parseInt(stock) || 0;
+      let nivelStock = 'Bajo';
+      let nivelStockClass = 'nivel-bajo';
+      if (stockNum > 50) {
+        nivelStock = 'Alto';
+        nivelStockClass = 'nivel-alto';
+      } else if (stockNum > 10) {
+        nivelStock = 'Medio';
+        nivelStockClass = 'nivel-medio';
+      }
+
+      // Determinar clase de estado
+      const estadoClass = estado === 'Activo' ? 'badge-activo' : 'badge-inactivo';
+
+      // Función auxiliar para escapar HTML
+      function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      // Construir el HTML del modal
+      const imagenHtml = tieneImagen ? `
+          <div>
+            <img src="${escapeHtml(imagen)}" alt="${escapeHtml(nombre)}" class="producto-detalle-imagen">
+          </div>
+      ` : '';
+
+      modalBody.innerHTML = `
+        <div class="producto-detalle-grid ${!tieneImagen ? 'sin-imagen' : ''}">
+          ${imagenHtml}
+          <div class="producto-detalle-info">
+            <div class="producto-detalle-item">
+              <span class="producto-detalle-label">ID</span>
+              <span class="producto-detalle-value">${escapeHtml(id)}</span>
+            </div>
+            <div class="producto-detalle-item">
+              <span class="producto-detalle-label">Nombre</span>
+              <span class="producto-detalle-value" style="font-weight: 600; font-size: 1.2rem; color: #2c3e50;">${escapeHtml(nombre)}</span>
+            </div>
+            <div class="producto-detalle-item">
+              <span class="producto-detalle-label">Código</span>
+              <span class="producto-detalle-value">${escapeHtml(codigo)}</span>
+            </div>
+            <div class="producto-detalle-item">
+              <span class="producto-detalle-label">Categoría</span>
+              <span class="producto-detalle-value">${escapeHtml(categoria)}</span>
+            </div>
+            <div class="producto-detalle-item">
+              <span class="producto-detalle-label">Marca</span>
+              <span class="producto-detalle-value">${escapeHtml(marca)}</span>
+            </div>
+            <div class="producto-detalle-item">
+              <span class="producto-detalle-label">Color</span>
+              <span class="producto-detalle-value">${escapeHtml(color)}</span>
+            </div>
+            <div class="producto-detalle-item">
+              <span class="producto-detalle-label">Precio de Venta</span>
+              <span class="producto-detalle-value" style="font-weight: 700; color: #10b981; font-size: 1.1rem;">$${escapeHtml(precioVenta)}</span>
+            </div>
+            <div class="producto-detalle-item">
+              <span class="producto-detalle-label">Stock</span>
+              <span class="producto-detalle-value">${escapeHtml(stock)} unidades</span>
+            </div>
+            <div class="producto-detalle-item">
+              <span class="producto-detalle-label">Estado</span>
+              <span class="producto-detalle-value"><span class="badge-estado ${estadoClass}">${escapeHtml(estado)}</span></span>
+            </div>
+            <div class="producto-detalle-item">
+              <span class="producto-detalle-label">Nivel de Stock</span>
+              <span class="producto-detalle-value"><span class="nivel-stock-badge ${nivelStockClass}">${escapeHtml(nivelStock)}</span></span>
+            </div>
+            <div class="producto-detalle-item">
+              <span class="producto-detalle-label">Proveedor</span>
+              <span class="producto-detalle-value">${escapeHtml(proveedor)}</span>
+            </div>
+          </div>
+        </div>
+        <div class="producto-detalle-descripcion">
+          <span class="producto-detalle-label">Descripción</span>
+          <div class="producto-detalle-value">${escapeHtml(descripcion)}</div>
+        </div>
+      `;
+
+      modal.style.display = 'block';
+    }
+
+    // Función para cerrar el modal
+    function cerrarModal() {
+      const modal = document.getElementById('productoModal');
+      modal.style.display = 'none';
+    }
+
+    // Cerrar modal al hacer click fuera de él
+    window.onclick = function(event) {
+      const modal = document.getElementById('productoModal');
+      if (event.target == modal) {
+        cerrarModal();
+      }
+    }
   </script>
 </body>
 </html>

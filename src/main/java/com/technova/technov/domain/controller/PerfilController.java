@@ -24,6 +24,8 @@ import com.technova.technov.domain.service.VentaService;
 import com.technova.technov.domain.service.ProveedorService;
 import com.technova.technov.domain.service.PagoService;
 import com.technova.technov.domain.service.MensajeDirectoService;
+import com.technova.technov.domain.service.ReclamoService;
+import com.technova.technov.domain.service.MensajeEmpleadoService;
 import com.technova.technov.domain.repository.CaracteristicaRepository;
 import com.technova.technov.domain.repository.AtencionClienteRepository;
 import org.modelmapper.ModelMapper;
@@ -50,6 +52,8 @@ public class PerfilController {
     private final ProveedorService proveedorService;
     private final PagoService pagoService;
     private final MensajeDirectoService mensajeDirectoService;
+    private final ReclamoService reclamoService;
+    private final MensajeEmpleadoService mensajeEmpleadoService;
     
     @Autowired
     private SecurityUtil securityUtil;
@@ -74,7 +78,9 @@ public class PerfilController {
             VentaService ventaService,
             ProveedorService proveedorService,
             PagoService pagoService,
-            MensajeDirectoService mensajeDirectoService) {
+            MensajeDirectoService mensajeDirectoService,
+            ReclamoService reclamoService,
+            MensajeEmpleadoService mensajeEmpleadoService) {
         this.favoritoService = favoritoService;
         this.carritoService = carritoService;
         this.comprasService = comprasService;
@@ -86,6 +92,8 @@ public class PerfilController {
         this.proveedorService = proveedorService;
         this.pagoService = pagoService;
         this.mensajeDirectoService = mensajeDirectoService;
+        this.reclamoService = reclamoService;
+        this.mensajeEmpleadoService = mensajeEmpleadoService;
     }
 
     @GetMapping("/cliente/perfil")
@@ -815,6 +823,152 @@ public class PerfilController {
         return "frontend/empleado/atencion-cliente";
     }
 
+    @GetMapping("/cliente/reclamos")
+    public String reclamosCliente(Model model, jakarta.servlet.http.HttpServletResponse response) {
+        // Asegurar headers correctos para evitar problemas de encoding
+        response.setCharacterEncoding("UTF-8");
+        response.setContentType("text/html;charset=UTF-8");
+        response.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        
+        UsuarioDto usuario = null;
+        List<com.technova.technov.domain.dto.ReclamoDto> reclamos = new java.util.ArrayList<>();
+        
+        model.addAttribute("usuario", usuario);
+        model.addAttribute("reclamos", reclamos);
+        
+        try {
+            usuario = securityUtil.getUsuarioAutenticado().orElse(null);
+            
+            if (usuario == null || !"cliente".equalsIgnoreCase(usuario.getRole())) {
+                return "redirect:/login";
+            }
+            
+            model.addAttribute("usuario", usuario);
+            
+            if (usuario.getId() != null) {
+                try {
+                    reclamos = reclamoService.listarPorUsuario(usuario.getId().intValue());
+                } catch (Exception e) {
+                    System.err.println("Error al cargar reclamos: " + e.getMessage());
+                    e.printStackTrace();
+                    reclamos = new java.util.ArrayList<>();
+                }
+            }
+            
+            model.addAttribute("reclamos", reclamos);
+        } catch (Exception e) {
+            System.err.println("Error crítico en reclamosCliente: " + e.getMessage());
+            e.printStackTrace();
+            if (!model.containsAttribute("usuario")) {
+                model.addAttribute("usuario", null);
+            }
+            if (!model.containsAttribute("reclamos")) {
+                model.addAttribute("reclamos", new java.util.ArrayList<>());
+            }
+        }
+        
+        return "frontend/cliente/reclamos";
+    }
+
+    @GetMapping("/empleado/reclamos")
+    public String reclamosEmpleado(
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String estado,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String busqueda,
+            Model model) {
+        UsuarioDto usuario = null;
+        List<com.technova.technov.domain.dto.ReclamoDto> reclamos = new java.util.ArrayList<>();
+        java.util.Map<Integer, String> nombresUsuarios = new java.util.HashMap<>();
+        String estadoModelo = estado != null ? estado : "todos";
+        
+        model.addAttribute("usuario", usuario);
+        model.addAttribute("reclamos", reclamos);
+        model.addAttribute("estado", estadoModelo);
+        model.addAttribute("busqueda", busqueda != null ? busqueda : "");
+        model.addAttribute("nombresUsuarios", nombresUsuarios);
+        
+        try {
+            usuario = securityUtil.getUsuarioAutenticado().orElse(null);
+            
+            if (usuario == null || !"empleado".equalsIgnoreCase(usuario.getRole())) {
+                return "redirect:/login";
+            }
+            
+            model.addAttribute("usuario", usuario);
+            
+            // Obtener todos los reclamos o filtrar por estado
+            try {
+                if (estado == null || estado.isEmpty() || "todos".equalsIgnoreCase(estado)) {
+                    reclamos = reclamoService.listarTodos();
+                } else {
+                    reclamos = reclamoService.listarPorEstado(estado);
+                }
+                
+                // Aplicar filtro de búsqueda
+                if (busqueda != null && !busqueda.isEmpty()) {
+                    final String busquedaLower = busqueda.toLowerCase();
+                    List<UsuarioDto> todosUsuarios = usuarioService.listarUsuarios();
+                    java.util.Map<Integer, String> nombresUsuariosTemp = new java.util.HashMap<>();
+                    for (UsuarioDto u : todosUsuarios) {
+                        if (u.getId() != null) {
+                            nombresUsuariosTemp.put(u.getId().intValue(), u.getName() != null ? u.getName() : "");
+                        }
+                    }
+                    
+                    reclamos = reclamos.stream()
+                            .filter(r -> {
+                                if ((r.getTitulo() != null && r.getTitulo().toLowerCase().contains(busquedaLower)) ||
+                                    (r.getDescripcion() != null && r.getDescripcion().toLowerCase().contains(busquedaLower))) {
+                                    return true;
+                                }
+                                if (r.getUsuarioId() != null && nombresUsuariosTemp.containsKey(r.getUsuarioId())) {
+                                    String nombreUsuario = nombresUsuariosTemp.get(r.getUsuarioId());
+                                    if (nombreUsuario != null && nombreUsuario.toLowerCase().contains(busquedaLower)) {
+                                        return true;
+                                    }
+                                }
+                                return false;
+                            })
+                            .collect(java.util.stream.Collectors.toList());
+                }
+                
+                model.addAttribute("reclamos", reclamos);
+            } catch (Exception e) {
+                System.err.println("Error al cargar reclamos: " + e.getMessage());
+                e.printStackTrace();
+                reclamos = new java.util.ArrayList<>();
+                model.addAttribute("reclamos", reclamos);
+            }
+            
+            // Obtener nombres de usuarios
+            try {
+                List<UsuarioDto> todosUsuarios = usuarioService.listarUsuarios();
+                nombresUsuarios = new java.util.HashMap<>();
+                for (UsuarioDto u : todosUsuarios) {
+                    if (u.getId() != null) {
+                        nombresUsuarios.put(u.getId().intValue(), u.getName() != null ? u.getName() : "Usuario sin nombre");
+                    }
+                }
+                model.addAttribute("nombresUsuarios", nombresUsuarios);
+            } catch (Exception e) {
+                System.err.println("Error al cargar nombres de usuarios: " + e.getMessage());
+                e.printStackTrace();
+                nombresUsuarios = new java.util.HashMap<>();
+                model.addAttribute("nombresUsuarios", nombresUsuarios);
+            }
+        } catch (Exception e) {
+            System.err.println("Error crítico en reclamosEmpleado: " + e.getMessage());
+            e.printStackTrace();
+            if (!model.containsAttribute("usuario")) {
+                model.addAttribute("usuario", null);
+            }
+            if (!model.containsAttribute("reclamos")) {
+                model.addAttribute("reclamos", new java.util.ArrayList<>());
+            }
+        }
+        
+        return "frontend/empleado/reclamos";
+    }
+
     @GetMapping("/empleado/perfil/edit")
     public String editarPerfilEmpleado(Model model) {
         UsuarioDto usuarioAutenticado = securityUtil.getUsuarioAutenticado().orElse(null);
@@ -1003,6 +1157,69 @@ public class PerfilController {
         }
         
         return getRedirectUrl(usuarioAutenticado.getRole());
+    }
+    
+    @GetMapping("/empleado/mensajes")
+    public String mensajesEmpleado(
+            @RequestParam(required = false) Long conversacionId,
+            Model model) {
+        UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
+        
+        if (usuario == null || !"empleado".equalsIgnoreCase(usuario.getRole())) {
+            return "redirect:/login";
+        }
+        
+        model.addAttribute("usuario", usuario);
+        
+        try {
+            List<com.technova.technov.domain.dto.MensajeEmpleadoDto> todosMensajes = mensajeEmpleadoService.listarPorEmpleado(usuario.getId());
+            model.addAttribute("todosMensajes", todosMensajes);
+            
+            // Agrupar mensajes por remitente (admin) para crear conversaciones
+            // Agrupar por remitenteId cuando el tipoRemitente es 'admin' (mensajes del admin)
+            // Para cada admin que ha enviado mensajes, crear una conversación
+            java.util.Map<Long, List<com.technova.technov.domain.dto.MensajeEmpleadoDto>> conversaciones = todosMensajes.stream()
+                    .filter(m -> m.getTipoRemitente() != null && "admin".equalsIgnoreCase(m.getTipoRemitente()) && m.getRemitenteId() != null)
+                    .collect(java.util.stream.Collectors.groupingBy(m -> m.getRemitenteId()));
+            model.addAttribute("conversaciones", conversaciones);
+            
+            // Si hay un ID de conversación (ID del admin), cargar todos los mensajes de esa conversación
+            if (conversacionId != null) {
+                List<com.technova.technov.domain.dto.MensajeEmpleadoDto> mensajesConversacion = todosMensajes.stream()
+                        .filter(m -> {
+                            // Incluir mensajes del admin a este empleado
+                            if (m.getTipoRemitente() != null && "admin".equalsIgnoreCase(m.getTipoRemitente()) && 
+                                m.getRemitenteId() != null && m.getRemitenteId().equals(conversacionId)) {
+                                return true;
+                            }
+                            // Incluir mensajes del empleado al admin (remitenteId es el ID del admin)
+                            if (m.getTipoRemitente() != null && "empleado".equalsIgnoreCase(m.getTipoRemitente()) && 
+                                m.getRemitenteId() != null && m.getRemitenteId().equals(conversacionId)) {
+                                return true;
+                            }
+                            return false;
+                        })
+                        .sorted((a, b) -> {
+                            if (a.getCreatedAt() != null && b.getCreatedAt() != null) {
+                                return a.getCreatedAt().compareTo(b.getCreatedAt());
+                            }
+                            return 0;
+                        })
+                        .collect(java.util.stream.Collectors.toList());
+                model.addAttribute("mensajesConversacion", mensajesConversacion);
+                model.addAttribute("conversacionId", conversacionId);
+            } else {
+                model.addAttribute("mensajesConversacion", new java.util.ArrayList<>());
+            }
+        } catch (Exception e) {
+            System.err.println("Error al cargar mensajes del empleado: " + e.getMessage());
+            e.printStackTrace();
+            model.addAttribute("todosMensajes", new java.util.ArrayList<>());
+            model.addAttribute("conversaciones", new java.util.HashMap<>());
+            model.addAttribute("mensajesConversacion", new java.util.ArrayList<>());
+        }
+        
+        return "frontend/empleado/mensajes";
     }
     
     private String getRedirectUrl(String role) {
