@@ -594,7 +594,6 @@ public class AdminInventarioController {
             
             // Actualizar el producto
             ProductoDto productoDto = new ProductoDto();
-            productoDto.setId(id);
             productoDto.setCodigo(codigo);
             productoDto.setNombre(nombre);
             productoDto.setStock(stockCalculado);
