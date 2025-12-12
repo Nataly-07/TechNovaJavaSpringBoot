@@ -6,10 +6,13 @@ import com.technova.technov.domain.entity.Usuario;
 import com.technova.technov.domain.repository.ReclamoRepository;
 import com.technova.technov.domain.repository.UsuarioRepository;
 import com.technova.technov.domain.service.ReclamoService;
+import com.technova.technov.domain.service.NotificacionService;
+import com.technova.technov.domain.dto.NotificacionDto;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -26,6 +29,9 @@ public class ReclamoServiceImpl implements ReclamoService {
 
     @Autowired
     private ModelMapper modelMapper;
+
+    @Autowired
+    private NotificacionService notificacionService;
 
     @Override
     @Transactional
@@ -59,11 +65,96 @@ public class ReclamoServiceImpl implements ReclamoService {
     @Override
     @Transactional
     public ReclamoDto responder(Integer id, String respuesta) {
-        Reclamo r = reclamoRepository.findById(id)
+        System.out.println("=== INICIANDO responder() RECLAMO ===");
+        System.out.println("  -> Reclamo ID: " + id);
+        
+        // Usar consulta con JOIN FETCH para cargar el usuario
+        Reclamo r = reclamoRepository.findByIdWithUsuario(id)
                 .orElseThrow(() -> new IllegalArgumentException("Reclamo no encontrado: " + id));
-        r.setRespuesta(respuesta);
-        r.setEstado("en_revision");
-        return convertToDto(reclamoRepository.save(r));
+        
+        System.out.println("  -> Reclamo encontrado: " + (r != null ? "Sí" : "No"));
+        
+        // Obtener usuarioId - ahora debería estar cargado
+        Long usuarioId = null;
+        String titulo = r.getTitulo();
+        
+        if (r.getUsuario() != null) {
+            usuarioId = r.getUsuario().getId();
+            System.out.println("  -> Usuario cargado: Sí");
+            System.out.println("  -> Usuario ID: " + usuarioId);
+            System.out.println("  -> Usuario Email: " + r.getUsuario().getEmail());
+        } else {
+            System.err.println("  -> ERROR: r.getUsuario() es null");
+        }
+        
+        // Si aún no tenemos el usuarioId, intentar obtenerlo del DTO después de guardar
+        if (usuarioId == null) {
+            r.setRespuesta(respuesta);
+            r.setEstado("en_revision");
+            Reclamo reclamoGuardado = reclamoRepository.save(r);
+            ReclamoDto reclamoRespondido = convertToDto(reclamoGuardado);
+            
+            if (reclamoRespondido != null && reclamoRespondido.getUsuarioId() != null) {
+                usuarioId = Long.valueOf(reclamoRespondido.getUsuarioId());
+                System.out.println("  -> Usuario ID obtenido del DTO: " + usuarioId);
+            }
+        } else {
+            r.setRespuesta(respuesta);
+            r.setEstado("en_revision");
+            reclamoRepository.save(r);
+        }
+        
+        ReclamoDto reclamoRespondido = convertToDto(r);
+        
+        // Crear notificación para el cliente
+        if (usuarioId != null) {
+            try {
+                System.out.println("=== CREAR NOTIFICACIÓN DE RESPUESTA A RECLAMO ===");
+                System.out.println("  -> Reclamo ID: " + id);
+                System.out.println("  -> Usuario ID: " + usuarioId);
+                System.out.println("  -> Título: " + titulo);
+                
+                String mensaje = String.format(
+                    "Hemos respondido a tu reclamo sobre '%s'. " +
+                    "Revisa la respuesta en tu panel de reclamos.",
+                    titulo != null && titulo.length() > 50 
+                        ? titulo.substring(0, 50) + "..." 
+                        : (titulo != null ? titulo : "tu reclamo")
+                );
+                
+                // Crear JSON con datos adicionales
+                ObjectMapper objectMapper = new ObjectMapper();
+                java.util.Map<String, Object> dataAdicional = new java.util.HashMap<>();
+                dataAdicional.put("reclamoId", id);
+                dataAdicional.put("titulo", titulo);
+                String dataAdicionalJson = objectMapper.writeValueAsString(dataAdicional);
+                
+                NotificacionDto notificacion = NotificacionDto.builder()
+                        .userId(usuarioId)
+                        .titulo("Respuesta a tu reclamo")
+                        .mensaje(mensaje)
+                        .tipo("reclamo")
+                        .icono("bx-error-circle")
+                        .leida(false)
+                        .dataAdicional(dataAdicionalJson)
+                        .build();
+                
+                NotificacionDto notificacionCreada = notificacionService.crear(notificacion);
+                System.out.println("=== NOTIFICACIÓN: Notificación de respuesta a reclamo creada exitosamente ===");
+                System.out.println("  -> Notificación ID: " + (notificacionCreada != null ? notificacionCreada.getId() : "null"));
+            } catch (Exception e) {
+                System.err.println("=== ERROR: No se pudo crear la notificación de respuesta a reclamo ===");
+                System.err.println("  -> Error: " + e.getMessage());
+                System.err.println("  -> Stack trace:");
+                e.printStackTrace();
+                // No lanzar excepción para no interrumpir el proceso
+            }
+        } else {
+            System.err.println("=== ADVERTENCIA: No se pudo crear notificación - Usuario ID es null ===");
+            System.err.println("  -> Reclamo ID: " + id);
+        }
+        
+        return reclamoRespondido;
     }
 
     @Override
@@ -169,8 +260,9 @@ public class ReclamoServiceImpl implements ReclamoService {
                 return new java.util.ArrayList<>();
             }
             return reclamos.stream()
-                    .filter(r -> r.getEnviadoAlAdmin() != null && r.getEnviadoAlAdmin())
+                    .filter(r -> r != null && r.getEnviadoAlAdmin() != null && r.getEnviadoAlAdmin())
                     .map(this::convertToDto)
+                    .filter(dto -> dto != null)
                     .collect(Collectors.toList());
         } catch (Exception e) {
             System.err.println("Error al listar quejas enviadas por empleados: " + e.getMessage());
@@ -199,18 +291,42 @@ public class ReclamoServiceImpl implements ReclamoService {
     }
 
     private ReclamoDto convertToDto(Reclamo reclamo) {
-        ReclamoDto dto = modelMapper.map(reclamo, ReclamoDto.class);
-        if (reclamo.getUsuario() != null) {
-            dto.setUsuarioId(reclamo.getUsuario().getId().intValue());
-            dto.setEmailUsuario(reclamo.getUsuario().getEmail());
+        if (reclamo == null) {
+            return null;
         }
-        if (reclamo.getEnviadoAlAdmin() != null) {
-            dto.setEnviadoAlAdmin(reclamo.getEnviadoAlAdmin());
-        } else {
-            dto.setEnviadoAlAdmin(false);
+        try {
+            ReclamoDto dto = modelMapper.map(reclamo, ReclamoDto.class);
+            if (reclamo.getUsuario() != null && reclamo.getUsuario().getId() != null) {
+                dto.setUsuarioId(reclamo.getUsuario().getId().intValue());
+                dto.setEmailUsuario(reclamo.getUsuario().getEmail());
+            }
+            if (reclamo.getEnviadoAlAdmin() != null) {
+                dto.setEnviadoAlAdmin(reclamo.getEnviadoAlAdmin());
+            } else {
+                dto.setEnviadoAlAdmin(false);
+            }
+            dto.setEvaluacionCliente(reclamo.getEvaluacionCliente());
+            return dto;
+        } catch (Exception e) {
+            System.err.println("Error al convertir Reclamo a DTO: " + e.getMessage());
+            e.printStackTrace();
+            // Retornar un DTO básico en caso de error
+            ReclamoDto dto = new ReclamoDto();
+            dto.setId(reclamo.getId());
+            dto.setTitulo(reclamo.getTitulo() != null ? reclamo.getTitulo() : "");
+            dto.setDescripcion(reclamo.getDescripcion() != null ? reclamo.getDescripcion() : "");
+            dto.setEstado(reclamo.getEstado() != null ? reclamo.getEstado() : "pendiente");
+            dto.setPrioridad(reclamo.getPrioridad() != null ? reclamo.getPrioridad() : "normal");
+            dto.setRespuesta(reclamo.getRespuesta());
+            dto.setEnviadoAlAdmin(reclamo.getEnviadoAlAdmin() != null ? reclamo.getEnviadoAlAdmin() : false);
+            dto.setEvaluacionCliente(reclamo.getEvaluacionCliente());
+            if (reclamo.getUsuario() != null && reclamo.getUsuario().getId() != null) {
+                dto.setUsuarioId(reclamo.getUsuario().getId().intValue());
+                dto.setEmailUsuario(reclamo.getUsuario().getEmail());
+            }
+            dto.setFechaReclamo(reclamo.getFechaReclamo());
+            return dto;
         }
-        dto.setEvaluacionCliente(reclamo.getEvaluacionCliente());
-        return dto;
     }
 }
 

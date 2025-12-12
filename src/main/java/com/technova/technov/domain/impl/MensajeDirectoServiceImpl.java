@@ -1,11 +1,16 @@
 package com.technova.technov.domain.impl;
 
 import com.technova.technov.domain.dto.MensajeDirectoDto;
+import com.technova.technov.domain.dto.NotificacionDto;
 import com.technova.technov.domain.entity.MensajeDirecto;
 import com.technova.technov.domain.repository.MensajeDirectoRepository;
+import com.technova.technov.domain.repository.UsuarioRepository;
 import com.technova.technov.domain.service.MensajeDirectoService;
+import com.technova.technov.domain.service.NotificacionService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.Instant;
 import java.util.List;
@@ -15,6 +20,12 @@ import java.util.stream.Collectors;
 public class MensajeDirectoServiceImpl implements MensajeDirectoService {
 
     private final MensajeDirectoRepository mensajeDirectoRepository;
+
+    @Autowired
+    private NotificacionService notificacionService;
+
+    @Autowired
+    private UsuarioRepository usuarioRepository;
 
     public MensajeDirectoServiceImpl(MensajeDirectoRepository mensajeDirectoRepository) {
         this.mensajeDirectoRepository = mensajeDirectoRepository;
@@ -123,6 +134,55 @@ public class MensajeDirectoServiceImpl implements MensajeDirectoService {
             parentMessage.setEstado("respondido");
             parentMessage.setUpdatedAt(Instant.now());
             mensajeDirectoRepository.save(parentMessage);
+            
+            // Crear notificación para el cliente cuando un empleado responde
+            Long usuarioId = parentMessage.getUserId();
+            if (usuarioId != null) {
+                try {
+                    System.out.println("=== CREAR NOTIFICACIÓN DE RESPUESTA A MENSAJE ===");
+                    System.out.println("  -> Mensaje ID: " + parentMessageId);
+                    System.out.println("  -> Usuario ID: " + usuarioId);
+                    
+                    String asunto = parentMessage.getAsunto();
+                    String mensajeNotificacion = String.format(
+                        "Hemos respondido a tu mensaje sobre '%s'. " +
+                        "Revisa la respuesta en tu panel de mensajes.",
+                        asunto != null && asunto.length() > 50 
+                            ? asunto.substring(0, 50) + "..." 
+                            : (asunto != null ? asunto : "tu mensaje")
+                    );
+                    
+                    // Crear JSON con datos adicionales
+                    ObjectMapper objectMapper = new ObjectMapper();
+                    java.util.Map<String, Object> dataAdicional = new java.util.HashMap<>();
+                    dataAdicional.put("mensajeId", parentMessageId);
+                    dataAdicional.put("asunto", asunto);
+                    String dataAdicionalJson = objectMapper.writeValueAsString(dataAdicional);
+                    
+                    NotificacionDto notificacion = NotificacionDto.builder()
+                            .userId(usuarioId)
+                            .titulo("Respuesta a tu mensaje")
+                            .mensaje(mensajeNotificacion)
+                            .tipo("mensaje")
+                            .icono("bx-message")
+                            .leida(false)
+                            .dataAdicional(dataAdicionalJson)
+                            .build();
+                    
+                    NotificacionDto notificacionCreada = notificacionService.crear(notificacion);
+                    System.out.println("=== NOTIFICACIÓN: Notificación de respuesta a mensaje creada exitosamente ===");
+                    System.out.println("  -> Notificación ID: " + (notificacionCreada != null ? notificacionCreada.getId() : "null"));
+                } catch (Exception e) {
+                    System.err.println("=== ERROR: No se pudo crear la notificación de respuesta a mensaje ===");
+                    System.err.println("  -> Error: " + e.getMessage());
+                    System.err.println("  -> Stack trace:");
+                    e.printStackTrace();
+                    // No lanzar excepción para no interrumpir el proceso
+                }
+            } else {
+                System.err.println("=== ADVERTENCIA: No se pudo crear notificación - Usuario ID es null ===");
+                System.err.println("  -> Mensaje ID: " + parentMessageId);
+            }
         }
         
         Long recipientId = "empleado".equalsIgnoreCase(senderType) ? parentMessage.getUserId() : null;

@@ -32,6 +32,12 @@ public class GlobalExceptionHandler {
         if (requestURI != null && requestURI.contains("/empleado/atencion-cliente")) {
             return new ModelAndView("redirect:/empleado/perfil");
         }
+        if (requestURI != null && requestURI.contains("/admin/mensajes")) {
+            return new ModelAndView("redirect:/admin/perfil");
+        }
+        if (requestURI != null && requestURI.contains("/empleado/mensajes")) {
+            return new ModelAndView("redirect:/empleado/perfil");
+        }
         
         return new ModelAndView("redirect:/login");
     }
@@ -49,6 +55,12 @@ public class GlobalExceptionHandler {
                 return new ModelAndView("redirect:/cliente/perfil");
             }
             if (requestURI != null && requestURI.contains("/empleado/atencion-cliente")) {
+                return new ModelAndView("redirect:/empleado/perfil");
+            }
+            if (requestURI != null && requestURI.contains("/admin/mensajes")) {
+                return new ModelAndView("redirect:/admin/perfil");
+            }
+            if (requestURI != null && requestURI.contains("/empleado/mensajes")) {
                 return new ModelAndView("redirect:/empleado/perfil");
             }
         }

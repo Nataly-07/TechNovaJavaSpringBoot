@@ -44,7 +44,16 @@
         <div class="notificaciones-container">
           <div class="notificacion-card" th:each="notificacion : ${notificaciones}" th:classappend="${notificacion.leida != null && notificacion.leida ? 'leida' : 'no-leida'}">
             <div class="notificacion-icon">
-              <i class='bx' th:classappend="${notificacion.tipo == 'pedido' ? 'bx-package' : (notificacion.tipo == 'pago' ? 'bx-credit-card' : (notificacion.tipo == 'envio' ? 'bx-truck' : 'bx-bell'))}"></i>
+              <i th:if="${notificacion.icono != null and notificacion.icono != ''}" 
+                 th:class="${notificacion.icono.startsWith('bx ') ? notificacion.icono : (notificacion.icono.startsWith('bx-') ? 'bx ' + notificacion.icono : 'bx ' + notificacion.icono)}"></i>
+              <i th:unless="${notificacion.icono != null and notificacion.icono != ''}" 
+                 th:class="${notificacion.tipo == 'compra' ? 'bx bx-package' : 
+                           (notificacion.tipo == 'atencion_cliente' ? 'bx bx-headphone' : 
+                           (notificacion.tipo == 'mensaje' ? 'bx bx-message' : 
+                           (notificacion.tipo == 'reclamo' ? 'bx bx-error-circle' : 
+                           (notificacion.tipo == 'pedido' ? 'bx bx-package' : 
+                           (notificacion.tipo == 'pago' ? 'bx bx-credit-card' : 
+                           (notificacion.tipo == 'envio' ? 'bx bx-truck' : 'bx bx-bell')))))}"></i>
             </div>
             <div class="notificacion-content">
               <h3 th:text="${notificacion.titulo != null ? notificacion.titulo : 'Notificación'}">Título</h3>

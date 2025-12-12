@@ -77,21 +77,40 @@ public class NotificacionServiceImpl implements NotificacionService {
     @Override
     @Transactional
     public NotificacionDto crear(NotificacionDto dto) {
+        if (dto == null) {
+            throw new IllegalArgumentException("NotificacionDto no puede ser null");
+        }
+        if (dto.getUserId() == null) {
+            throw new IllegalArgumentException("UserId no puede ser null");
+        }
+        
+        System.out.println("=== CREAR NOTIFICACIÓN ===");
+        System.out.println("  -> UserId: " + dto.getUserId());
+        System.out.println("  -> Título: " + dto.getTitulo());
+        System.out.println("  -> Tipo: " + dto.getTipo());
+        
         Usuario usuario = usuarioRepository.findById(dto.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + dto.getUserId()));
+        
+        System.out.println("  -> Usuario encontrado: " + usuario.getEmail());
+        
         Notificacion entity = Notificacion.builder()
                 .usuario(usuario)
-                .titulo(dto.getTitulo())
-                .mensaje(dto.getMensaje())
-                .tipo(dto.getTipo())
-                .icono(dto.getIcono())
+                .titulo(dto.getTitulo() != null ? dto.getTitulo() : "Notificación")
+                .mensaje(dto.getMensaje() != null ? dto.getMensaje() : "")
+                .tipo(dto.getTipo() != null ? dto.getTipo() : "general")
+                .icono(dto.getIcono() != null ? dto.getIcono() : "bx-bell")
                 .leida(false)
                 .dataAdicional(dto.getDataAdicional())
                 .fechaCreacion(Instant.now())
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .build();
-        return toDto(notificacionRepository.save(entity));
+        
+        Notificacion saved = notificacionRepository.save(entity);
+        System.out.println("  -> Notificación guardada con ID: " + saved.getId());
+        
+        return toDto(saved);
     }
 
     @Override
