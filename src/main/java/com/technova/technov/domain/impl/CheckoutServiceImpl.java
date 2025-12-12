@@ -17,9 +17,12 @@ import com.technova.technov.domain.repository.UsuarioRepository;
 import com.technova.technov.domain.repository.VentaRepository;
 import com.technova.technov.domain.service.CheckoutService;
 import com.technova.technov.domain.service.PagoService;
+import com.technova.technov.domain.service.NotificacionService;
+import com.technova.technov.domain.dto.NotificacionDto;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -49,6 +52,9 @@ public class CheckoutServiceImpl implements CheckoutService {
 
     @Autowired
     private PagoService pagoService;
+
+    @Autowired
+    private NotificacionService notificacionService;
 
     @Override
     @Transactional
@@ -140,6 +146,48 @@ public class CheckoutServiceImpl implements CheckoutService {
             e.printStackTrace();
             // No lanzar excepción para no interrumpir el proceso de checkout
             // El pago puede ser creado manualmente después si es necesario
+        }
+
+        // Crear notificación para el cliente sobre su compra
+        try {
+            String productosInfo = items.stream()
+                    .map(dc -> dc.getProducto().getNombre() + " (x" + dc.getCantidad() + ")")
+                    .collect(Collectors.joining(", "));
+            
+            String mensaje = String.format(
+                "¡Compra realizada exitosamente! Tu pedido #%d ha sido procesado. " +
+                "Productos: %s. Total: $%.2f. " +
+                "Recibirás más información sobre el envío próximamente.",
+                venta.getId(),
+                productosInfo.length() > 100 ? productosInfo.substring(0, 100) + "..." : productosInfo,
+                total.doubleValue()
+            );
+            
+            // Crear JSON con datos adicionales
+            ObjectMapper objectMapper = new ObjectMapper();
+            java.util.Map<String, Object> dataAdicional = new java.util.HashMap<>();
+            dataAdicional.put("ventaId", venta.getId());
+            dataAdicional.put("total", total.toString());
+            dataAdicional.put("cantidadItems", items.size());
+            String dataAdicionalJson = objectMapper.writeValueAsString(dataAdicional);
+            
+            NotificacionDto notificacion = NotificacionDto.builder()
+                    .userId(usuario.getId())
+                    .titulo("Compra realizada exitosamente")
+                    .mensaje(mensaje)
+                    .tipo("compra")
+                    .icono("bx-package")
+                    .leida(false)
+                    .dataAdicional(dataAdicionalJson)
+                    .build();
+            
+            notificacionService.crear(notificacion);
+            System.out.println("=== NOTIFICACIÓN: Notificación de compra creada para usuario " + usuario.getId() + " ===");
+        } catch (Exception e) {
+            System.err.println("=== ERROR: No se pudo crear la notificación de compra ===");
+            System.err.println("  -> Error: " + e.getMessage());
+            e.printStackTrace();
+            // No lanzar excepción para no interrumpir el proceso de checkout
         }
 
         List<CarritoItemDto> itemsDto = items.stream().map(dc -> CarritoItemDto.builder()

@@ -122,12 +122,21 @@ public class PerfilController {
             pedidosCount = 0;
         }
         
+        // Contar notificaciones no leídas
+        int notificacionesCount = 0;
+        try {
+            List<com.technova.technov.domain.dto.NotificacionDto> notificacionesNoLeidas = notificacionService.listarPorUsuarioYLeida(usuarioId, false);
+            notificacionesCount = notificacionesNoLeidas != null ? notificacionesNoLeidas.size() : 0;
+        } catch (Exception e) {
+            notificacionesCount = 0;
+        }
+        
         model.addAttribute("usuario", usuario);
         model.addAttribute("favoritosCount", favoritosCount);
         model.addAttribute("carritoCount", carritoCount);
         model.addAttribute("comprasCount", comprasCount);
         model.addAttribute("pedidosCount", pedidosCount);
-        model.addAttribute("notificacionesCount", 0);
+        model.addAttribute("notificacionesCount", notificacionesCount);
         model.addAttribute("mediosPagoCount", 0);
         
         return "frontend/cliente/perfil";
@@ -316,15 +325,26 @@ public class PerfilController {
         List<com.technova.technov.domain.dto.NotificacionDto> notificaciones = new java.util.ArrayList<>();
         
         try {
-            if (usuario.getId() != null) {
+            if (usuario != null && usuario.getId() != null) {
+                System.out.println("=== LISTAR NOTIFICACIONES ===");
+                System.out.println("  -> Usuario ID: " + usuario.getId());
                 notificaciones = notificacionService.listarPorUsuario(usuario.getId());
+                if (notificaciones == null) {
+                    notificaciones = new java.util.ArrayList<>();
+                }
+                System.out.println("  -> Notificaciones encontradas: " + notificaciones.size());
+            } else {
+                System.err.println("  -> ERROR: Usuario o Usuario ID es null");
             }
         } catch (Exception e) {
+            System.err.println("=== ERROR al listar notificaciones ===");
+            System.err.println("  -> Error: " + e.getMessage());
+            e.printStackTrace();
             notificaciones = new java.util.ArrayList<>();
         }
         
         model.addAttribute("usuario", usuario);
-        model.addAttribute("notificaciones", notificaciones);
+        model.addAttribute("notificaciones", notificaciones != null ? notificaciones : new java.util.ArrayList<>());
         return "frontend/cliente/notificaciones";
     }
 
@@ -1171,41 +1191,148 @@ public class PerfilController {
         
         model.addAttribute("usuario", usuario);
         
+        // Inicializar valores por defecto
+        model.addAttribute("todosMensajes", new java.util.ArrayList<>());
+        model.addAttribute("conversaciones", new java.util.HashMap<>());
+        model.addAttribute("noLeidosPorConversacion", new java.util.HashMap<>());
+        model.addAttribute("mensajesConversacion", new java.util.ArrayList<>());
+        
         try {
-            List<com.technova.technov.domain.dto.MensajeEmpleadoDto> todosMensajes = mensajeEmpleadoService.listarPorEmpleado(usuario.getId());
+            if (usuario.getId() == null) {
+                System.err.println("Error: El usuario no tiene ID");
+                return "frontend/empleado/mensajes";
+            }
+            
+            // Cargar mensajes del empleado
+            List<com.technova.technov.domain.dto.MensajeEmpleadoDto> todosMensajes = null;
+            try {
+                todosMensajes = mensajeEmpleadoService.listarPorEmpleado(usuario.getId());
+            } catch (Exception e) {
+                System.err.println("Error al listar mensajes del empleado: " + e.getMessage());
+                todosMensajes = new java.util.ArrayList<>();
+            }
+            if (todosMensajes == null) {
+                todosMensajes = new java.util.ArrayList<>();
+            }
             model.addAttribute("todosMensajes", todosMensajes);
             
             // Agrupar mensajes por remitente (admin) para crear conversaciones
-            // Agrupar por remitenteId cuando el tipoRemitente es 'admin' (mensajes del admin)
-            // Para cada admin que ha enviado mensajes, crear una conversación
-            java.util.Map<Long, List<com.technova.technov.domain.dto.MensajeEmpleadoDto>> conversaciones = todosMensajes.stream()
-                    .filter(m -> m.getTipoRemitente() != null && "admin".equalsIgnoreCase(m.getTipoRemitente()) && m.getRemitenteId() != null)
-                    .collect(java.util.stream.Collectors.groupingBy(m -> m.getRemitenteId()));
+            java.util.Map<Long, List<com.technova.technov.domain.dto.MensajeEmpleadoDto>> conversacionesTemp = new java.util.HashMap<>();
+            java.util.Map<Long, Integer> noLeidosPorConversacion = new java.util.HashMap<>();
+            java.util.Map<Long, List<com.technova.technov.domain.dto.MensajeEmpleadoDto>> conversaciones = new java.util.LinkedHashMap<>();
+            
+            try {
+                conversacionesTemp = todosMensajes.stream()
+                        .filter(m -> m != null && m.getTipoRemitente() != null && "admin".equalsIgnoreCase(m.getTipoRemitente()) && m.getRemitenteId() != null)
+                        .collect(java.util.stream.Collectors.groupingBy(m -> m.getRemitenteId()));
+                
+                // Calcular mensajes no leídos por conversación y ordenar mensajes dentro de cada conversación
+                for (java.util.Map.Entry<Long, List<com.technova.technov.domain.dto.MensajeEmpleadoDto>> entry : conversacionesTemp.entrySet()) {
+                    if (entry.getValue() != null) {
+                        // Ordenar mensajes dentro de cada conversación: más recientes primero
+                        entry.getValue().sort((a, b) -> {
+                            if (a.getCreatedAt() != null && b.getCreatedAt() != null) {
+                                return b.getCreatedAt().compareTo(a.getCreatedAt());
+                            }
+                            if (a.getCreatedAt() == null && b.getCreatedAt() != null) return 1;
+                            if (a.getCreatedAt() != null && b.getCreatedAt() == null) return -1;
+                            return 0;
+                        });
+                        
+                        long noLeidos = entry.getValue().stream()
+                                .filter(m -> m != null && !m.isLeido())
+                                .count();
+                        noLeidosPorConversacion.put(entry.getKey(), (int)noLeidos);
+                    }
+                }
+                
+                // Ordenar conversaciones por el mensaje más reciente (estilo WhatsApp)
+                java.util.List<java.util.Map.Entry<Long, List<com.technova.technov.domain.dto.MensajeEmpleadoDto>>> conversacionesOrdenadas = 
+                    new java.util.ArrayList<>(conversacionesTemp.entrySet());
+                
+                conversacionesOrdenadas.sort((entry1, entry2) -> {
+                    try {
+                        java.time.Instant fecha1 = null;
+                        java.time.Instant fecha2 = null;
+                        
+                        if (entry1.getValue() != null && !entry1.getValue().isEmpty()) {
+                            com.technova.technov.domain.dto.MensajeEmpleadoDto ultimoMensaje1 = entry1.getValue().get(0); // Ya está ordenado, el primero es el más reciente
+                            if (ultimoMensaje1 != null) {
+                                fecha1 = ultimoMensaje1.getCreatedAt();
+                            }
+                        }
+                        
+                        if (entry2.getValue() != null && !entry2.getValue().isEmpty()) {
+                            com.technova.technov.domain.dto.MensajeEmpleadoDto ultimoMensaje2 = entry2.getValue().get(0); // Ya está ordenado, el primero es el más reciente
+                            if (ultimoMensaje2 != null) {
+                                fecha2 = ultimoMensaje2.getCreatedAt();
+                            }
+                        }
+                        
+                        if (fecha1 == null && fecha2 == null) return 0;
+                        if (fecha1 == null) return 1; // Sin fecha va al final
+                        if (fecha2 == null) return -1; // Sin fecha va al final
+                        
+                        // Ordenar descendente: más reciente primero
+                        return fecha2.compareTo(fecha1);
+                    } catch (Exception e) {
+                        return 0;
+                    }
+                });
+                
+                // Crear LinkedHashMap ordenado para mantener el orden
+                conversaciones = new java.util.LinkedHashMap<>();
+                for (java.util.Map.Entry<Long, List<com.technova.technov.domain.dto.MensajeEmpleadoDto>> entry : conversacionesOrdenadas) {
+                    conversaciones.put(entry.getKey(), entry.getValue());
+                }
+                
+            } catch (Exception e) {
+                System.err.println("Error al agrupar conversaciones: " + e.getMessage());
+                e.printStackTrace();
+                conversacionesTemp = new java.util.HashMap<>();
+                noLeidosPorConversacion = new java.util.HashMap<>();
+                conversaciones = new java.util.LinkedHashMap<>();
+            }
             model.addAttribute("conversaciones", conversaciones);
+            model.addAttribute("noLeidosPorConversacion", noLeidosPorConversacion);
             
             // Si hay un ID de conversación (ID del admin), cargar todos los mensajes de esa conversación
             if (conversacionId != null) {
-                List<com.technova.technov.domain.dto.MensajeEmpleadoDto> mensajesConversacion = todosMensajes.stream()
-                        .filter(m -> {
-                            // Incluir mensajes del admin a este empleado
-                            if (m.getTipoRemitente() != null && "admin".equalsIgnoreCase(m.getTipoRemitente()) && 
-                                m.getRemitenteId() != null && m.getRemitenteId().equals(conversacionId)) {
-                                return true;
-                            }
-                            // Incluir mensajes del empleado al admin (remitenteId es el ID del admin)
-                            if (m.getTipoRemitente() != null && "empleado".equalsIgnoreCase(m.getTipoRemitente()) && 
-                                m.getRemitenteId() != null && m.getRemitenteId().equals(conversacionId)) {
-                                return true;
-                            }
-                            return false;
-                        })
-                        .sorted((a, b) -> {
-                            if (a.getCreatedAt() != null && b.getCreatedAt() != null) {
-                                return a.getCreatedAt().compareTo(b.getCreatedAt());
-                            }
-                            return 0;
-                        })
-                        .collect(java.util.stream.Collectors.toList());
+                List<com.technova.technov.domain.dto.MensajeEmpleadoDto> mensajesConversacion = new java.util.ArrayList<>();
+                try {
+                    mensajesConversacion = todosMensajes.stream()
+                            .filter(m -> {
+                                if (m == null) return false;
+                                // Incluir mensajes del admin a este empleado
+                                if (m.getTipoRemitente() != null && "admin".equalsIgnoreCase(m.getTipoRemitente()) && 
+                                    m.getRemitenteId() != null && m.getRemitenteId().equals(conversacionId)) {
+                                    return true;
+                                }
+                                // Incluir mensajes del empleado al admin (remitenteId es el ID del admin)
+                                if (m.getTipoRemitente() != null && "empleado".equalsIgnoreCase(m.getTipoRemitente()) && 
+                                    m.getRemitenteId() != null && m.getRemitenteId().equals(conversacionId)) {
+                                    return true;
+                                }
+                                return false;
+                            })
+                            .sorted((a, b) -> {
+                                try {
+                                    if (a.getCreatedAt() != null && b.getCreatedAt() != null) {
+                                        // Ordenar descendente: más recientes primero
+                                        return b.getCreatedAt().compareTo(a.getCreatedAt());
+                                    }
+                                    if (a.getCreatedAt() == null && b.getCreatedAt() != null) return 1;
+                                    if (a.getCreatedAt() != null && b.getCreatedAt() == null) return -1;
+                                    return 0;
+                                } catch (Exception e) {
+                                    return 0;
+                                }
+                            })
+                            .collect(java.util.stream.Collectors.toList());
+                } catch (Exception e) {
+                    System.err.println("Error al filtrar mensajes de conversación: " + e.getMessage());
+                    mensajesConversacion = new java.util.ArrayList<>();
+                }
                 model.addAttribute("mensajesConversacion", mensajesConversacion);
                 model.addAttribute("conversacionId", conversacionId);
             } else {
@@ -1216,6 +1343,7 @@ public class PerfilController {
             e.printStackTrace();
             model.addAttribute("todosMensajes", new java.util.ArrayList<>());
             model.addAttribute("conversaciones", new java.util.HashMap<>());
+            model.addAttribute("noLeidosPorConversacion", new java.util.HashMap<>());
             model.addAttribute("mensajesConversacion", new java.util.ArrayList<>());
         }
         

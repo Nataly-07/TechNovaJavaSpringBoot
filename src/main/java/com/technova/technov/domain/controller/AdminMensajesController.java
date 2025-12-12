@@ -61,21 +61,124 @@ public class AdminMensajesController {
 
         model.addAttribute("usuario", usuario);
         
+        // Inicializar valores por defecto
+        model.addAttribute("todosMensajes", new java.util.ArrayList<>());
+        model.addAttribute("conversaciones", new java.util.HashMap<>());
+        model.addAttribute("noLeidosPorConversacion", new java.util.HashMap<>());
+        model.addAttribute("empleados", new java.util.ArrayList<>());
+        model.addAttribute("nombresEmpleados", new java.util.HashMap<>());
+        model.addAttribute("mensajesConversacion", new java.util.ArrayList<>());
+        model.addAttribute("empleadoConversacion", null);
+        model.addAttribute("quejasEmpleados", new java.util.ArrayList<>());
+        
         // Cargar mensajes de empleado
         try {
-            List<com.technova.technov.domain.dto.MensajeEmpleadoDto> todosMensajes = mensajeEmpleadoService.listarTodos();
+            List<com.technova.technov.domain.dto.MensajeEmpleadoDto> todosMensajes = null;
+            try {
+                todosMensajes = mensajeEmpleadoService.listarTodos();
+            } catch (Exception e) {
+                System.err.println("Error al listar todos los mensajes: " + e.getMessage());
+                todosMensajes = new java.util.ArrayList<>();
+            }
+            if (todosMensajes == null) {
+                todosMensajes = new java.util.ArrayList<>();
+            }
             model.addAttribute("todosMensajes", todosMensajes);
             
             // Agrupar mensajes por empleado para crear conversaciones
-            java.util.Map<Long, List<com.technova.technov.domain.dto.MensajeEmpleadoDto>> conversaciones = todosMensajes.stream()
-                    .collect(java.util.stream.Collectors.groupingBy(m -> m.getEmpleadoId() != null ? m.getEmpleadoId() : 0L));
+            java.util.Map<Long, List<com.technova.technov.domain.dto.MensajeEmpleadoDto>> conversacionesTemp = new java.util.HashMap<>();
+            java.util.Map<Long, Integer> noLeidosPorConversacion = new java.util.HashMap<>();
+            java.util.Map<Long, List<com.technova.technov.domain.dto.MensajeEmpleadoDto>> conversaciones = new java.util.LinkedHashMap<>();
+            
+            try {
+                conversacionesTemp = todosMensajes.stream()
+                        .filter(m -> m != null && m.getEmpleadoId() != null)
+                        .collect(java.util.stream.Collectors.groupingBy(m -> m.getEmpleadoId()));
+                
+                // Calcular mensajes no leídos por conversación y ordenar mensajes dentro de cada conversación
+                for (java.util.Map.Entry<Long, List<com.technova.technov.domain.dto.MensajeEmpleadoDto>> entry : conversacionesTemp.entrySet()) {
+                    if (entry.getValue() != null) {
+                        // Ordenar mensajes dentro de cada conversación: más recientes primero
+                        entry.getValue().sort((a, b) -> {
+                            if (a.getCreatedAt() != null && b.getCreatedAt() != null) {
+                                return b.getCreatedAt().compareTo(a.getCreatedAt());
+                            }
+                            if (a.getCreatedAt() == null && b.getCreatedAt() != null) return 1;
+                            if (a.getCreatedAt() != null && b.getCreatedAt() == null) return -1;
+                            return 0;
+                        });
+                        
+                        long noLeidos = entry.getValue().stream()
+                                .filter(m -> m != null && !m.isLeido())
+                                .count();
+                        noLeidosPorConversacion.put(entry.getKey(), (int)noLeidos);
+                    }
+                }
+                
+                // Ordenar conversaciones por el mensaje más reciente (estilo WhatsApp)
+                java.util.List<java.util.Map.Entry<Long, List<com.technova.technov.domain.dto.MensajeEmpleadoDto>>> conversacionesOrdenadas = 
+                    new java.util.ArrayList<>(conversacionesTemp.entrySet());
+                
+                conversacionesOrdenadas.sort((entry1, entry2) -> {
+                    try {
+                        java.time.Instant fecha1 = null;
+                        java.time.Instant fecha2 = null;
+                        
+                        if (entry1.getValue() != null && !entry1.getValue().isEmpty()) {
+                            com.technova.technov.domain.dto.MensajeEmpleadoDto ultimoMensaje1 = entry1.getValue().get(0); // Ya está ordenado, el primero es el más reciente
+                            if (ultimoMensaje1 != null) {
+                                fecha1 = ultimoMensaje1.getCreatedAt();
+                            }
+                        }
+                        
+                        if (entry2.getValue() != null && !entry2.getValue().isEmpty()) {
+                            com.technova.technov.domain.dto.MensajeEmpleadoDto ultimoMensaje2 = entry2.getValue().get(0); // Ya está ordenado, el primero es el más reciente
+                            if (ultimoMensaje2 != null) {
+                                fecha2 = ultimoMensaje2.getCreatedAt();
+                            }
+                        }
+                        
+                        if (fecha1 == null && fecha2 == null) return 0;
+                        if (fecha1 == null) return 1; // Sin fecha va al final
+                        if (fecha2 == null) return -1; // Sin fecha va al final
+                        
+                        // Ordenar descendente: más reciente primero
+                        return fecha2.compareTo(fecha1);
+                    } catch (Exception e) {
+                        return 0;
+                    }
+                });
+                
+                // Crear LinkedHashMap ordenado para mantener el orden
+                conversaciones = new java.util.LinkedHashMap<>();
+                for (java.util.Map.Entry<Long, List<com.technova.technov.domain.dto.MensajeEmpleadoDto>> entry : conversacionesOrdenadas) {
+                    conversaciones.put(entry.getKey(), entry.getValue());
+                }
+                
+            } catch (Exception e) {
+                System.err.println("Error al agrupar conversaciones: " + e.getMessage());
+                e.printStackTrace();
+                conversacionesTemp = new java.util.HashMap<>();
+                noLeidosPorConversacion = new java.util.HashMap<>();
+                conversaciones = new java.util.LinkedHashMap<>();
+            }
+            
             model.addAttribute("conversaciones", conversaciones);
+            model.addAttribute("noLeidosPorConversacion", noLeidosPorConversacion);
             
             // Obtener lista de empleados para el selector
-            List<com.technova.technov.domain.dto.UsuarioDto> todosUsuarios = usuarioService.listarUsuarios();
-            List<com.technova.technov.domain.dto.UsuarioDto> empleados = todosUsuarios.stream()
-                    .filter(u -> "empleado".equalsIgnoreCase(u.getRole()))
-                    .collect(java.util.stream.Collectors.toList());
+            List<com.technova.technov.domain.dto.UsuarioDto> empleados = new java.util.ArrayList<>();
+            try {
+                List<com.technova.technov.domain.dto.UsuarioDto> todosUsuarios = usuarioService.listarUsuarios();
+                if (todosUsuarios != null) {
+                    empleados = todosUsuarios.stream()
+                            .filter(u -> u != null && "empleado".equalsIgnoreCase(u.getRole()))
+                            .collect(java.util.stream.Collectors.toList());
+                }
+            } catch (Exception e) {
+                System.err.println("Error al listar empleados: " + e.getMessage());
+                empleados = new java.util.ArrayList<>();
+            }
             model.addAttribute("empleados", empleados);
             
             // Crear mapa de nombres de empleados
@@ -105,8 +208,11 @@ public class AdminMensajesController {
                         })
                         .sorted((a, b) -> {
                             if (a.getCreatedAt() != null && b.getCreatedAt() != null) {
-                                return a.getCreatedAt().compareTo(b.getCreatedAt());
+                                // Ordenar descendente: más recientes primero
+                                return b.getCreatedAt().compareTo(a.getCreatedAt());
                             }
+                            if (a.getCreatedAt() == null && b.getCreatedAt() != null) return 1;
+                            if (a.getCreatedAt() != null && b.getCreatedAt() == null) return -1;
                             return 0;
                         })
                         .collect(java.util.stream.Collectors.toList());
@@ -127,18 +233,23 @@ public class AdminMensajesController {
             e.printStackTrace();
             model.addAttribute("todosMensajes", new java.util.ArrayList<>());
             model.addAttribute("conversaciones", new java.util.HashMap<>());
+            model.addAttribute("noLeidosPorConversacion", new java.util.HashMap<>());
             model.addAttribute("empleados", new java.util.ArrayList<>());
             model.addAttribute("mensajesConversacion", new java.util.ArrayList<>());
         }
         
-        // Cargar quejas enviadas por empleados
+        // Cargar reclamos enviados por empleados
         try {
-            List<ReclamoDto> quejasEmpleados = reclamoService.listarQuejasEnviadasPorEmpleados();
-            model.addAttribute("quejasEmpleados", quejasEmpleados);
+            List<ReclamoDto> reclamosEmpleados = reclamoService.listarQuejasEnviadasPorEmpleados();
+            if (reclamosEmpleados == null) {
+                reclamosEmpleados = new java.util.ArrayList<>();
+            }
+            model.addAttribute("reclamosEmpleados", reclamosEmpleados);
         } catch (Exception e) {
-            System.err.println("Error al cargar quejas de empleados: " + e.getMessage());
+            System.err.println("Error al cargar reclamos de empleados: " + e.getMessage());
             e.printStackTrace();
-            model.addAttribute("quejasEmpleados", new java.util.ArrayList<>());
+            // Asegurar que siempre haya un valor válido
+            model.addAttribute("reclamosEmpleados", new java.util.ArrayList<>());
         }
         
         return "frontend/admin/mensajes";

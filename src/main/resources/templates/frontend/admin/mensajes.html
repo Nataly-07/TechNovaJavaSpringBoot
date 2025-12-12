@@ -185,6 +185,8 @@
             padding: 20px;
             overflow-y: auto;
             background: #f8f9fa;
+            display: flex;
+            flex-direction: column-reverse;
         }
         .message {
             margin-bottom: 15px;
@@ -388,7 +390,7 @@
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
-        .queja-status {
+        .reclamo-status {
             padding: 4px 12px;
             border-radius: 12px;
             font-size: 0.75rem;
@@ -406,7 +408,7 @@
             background: #28a745;
             color: white;
         }
-        .queja-prioridad {
+        .reclamo-prioridad {
             padding: 4px 12px;
             border-radius: 12px;
             font-size: 0.75rem;
@@ -424,7 +426,7 @@
             background: #17a2b8;
             color: white;
         }
-        .queja-modal {
+        .reclamo-modal {
             display: none;
             position: fixed;
             top: 0;
@@ -439,7 +441,7 @@
         .queja-modal.active {
             display: flex;
         }
-        .queja-modal-content {
+        .reclamo-modal-content {
             background: white;
             border-radius: 16px;
             width: 90%;
@@ -448,7 +450,7 @@
             overflow-y: auto;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
-        .queja-modal-header {
+        .reclamo-modal-header {
             padding: 25px 30px;
             border-bottom: 1px solid #e2e8f0;
             display: flex;
@@ -462,10 +464,10 @@
             margin: 0;
             color: white;
         }
-        .queja-modal-body {
+        .reclamo-modal-body {
             padding: 25px 30px;
         }
-        .queja-detalle-item {
+        .reclamo-detalle-item {
             margin-bottom: 20px;
         }
         .queja-detalle-item label {
@@ -512,11 +514,11 @@
 
         <div class="tabs-container">
           <div class="tabs-header">
-            <button class="tab-button active" onclick="mostrarTab('mensajes', this)">
+            <button class="tab-button active" data-tab="mensajes">
               <i class='bx bx-message'></i> Mensajes
             </button>
-            <button class="tab-button" onclick="mostrarTab('quejas', this)">
-              <i class='bx bx-error-circle'></i> Quejas
+            <button class="tab-button" data-tab="reclamos">
+              <i class='bx bx-error-circle'></i> Reclamos
             </button>
           </div>
 
@@ -527,7 +529,7 @@
               <div class="conversaciones-list">
                 <div class="conversaciones-header">
                   <h3><i class='bx bx-message-rounded'></i> Conversaciones</h3>
-                  <button class="btn-nuevo-mensaje" onclick="abrirModalNuevoMensaje()">
+                  <button class="btn-nuevo-mensaje" id="btnNuevoMensaje">
                     <i class='bx bx-plus'></i> Nuevo
                   </button>
                 </div>
@@ -535,19 +537,21 @@
                   <div class="conversacion-item" 
                        th:each="entry : ${conversaciones}"
                        th:data-conversacion-id="${entry.key}"
+                       th:data-conversacion-key="${entry.key}"
                        th:classappend="${conversacionId != null && conversacionId == entry.key ? 'active' : ''}"
-                       th:onclick="'abrirConversacion(' + ${entry.key} + ')'">
-                    <div class="conversacion-avatar" th:text="${nombresEmpleados != null && nombresEmpleados.containsKey(entry.key) ? nombresEmpleados.get(entry.key).substring(0, 1).toUpperCase() : 'E'}">E</div>
+                       style="cursor: pointer;">
+                    <div class="conversacion-avatar" th:text="${nombresEmpleados != null && nombresEmpleados.containsKey(entry.key) && nombresEmpleados.get(entry.key) != null && nombresEmpleados.get(entry.key).length() > 0 ? nombresEmpleados.get(entry.key).substring(0, 1).toUpperCase() : 'E'}">E</div>
                     <div class="conversacion-info">
                       <div class="conversacion-nombre" th:text="${nombresEmpleados != null && nombresEmpleados.containsKey(entry.key) ? nombresEmpleados.get(entry.key) : 'Empleado #' + entry.key}">Empleado</div>
-                      <div class="conversacion-preview" th:text="${entry.value != null && !entry.value.isEmpty() ? entry.value[0].asunto : 'Sin mensajes'}">Último mensaje</div>
+                      <div class="conversacion-preview" th:text="${entry.value != null && !entry.value.isEmpty() && entry.value[0] != null && entry.value[0].asunto != null ? entry.value[0].asunto : 'Sin mensajes'}">Último mensaje</div>
                     </div>
                     <div class="conversacion-meta">
                       <div class="conversacion-fecha" 
-                           th:if="${entry.value != null && !entry.value.isEmpty() && entry.value[0].createdAt != null}"
-                           th:text="${#temporals.format(entry.value[0].createdAt, 'dd/MM HH:mm')}">Fecha</div>
-                      <div th:if="${entry.value != null && entry.value.stream().anyMatch(m -> !m.leido)}" class="no-leido-badge">
-                        <span th:text="${entry.value.stream().filter(m -> !m.leido).count()}">1</span>
+                           th:if="${entry.value != null && !entry.value.isEmpty() && entry.value[0] != null && entry.value[0].createdAt != null}">
+                        <span th:text="${#temporals.format(entry.value[0].createdAt, 'dd/MM HH:mm')}">Fecha</span>
+                      </div>
+                      <div th:if="${noLeidosPorConversacion != null && noLeidosPorConversacion.containsKey(entry.key) && noLeidosPorConversacion.get(entry.key) > 0}" class="no-leido-badge">
+                        <span th:text="${noLeidosPorConversacion.get(entry.key)}">0</span>
                       </div>
                     </div>
                   </div>
@@ -562,7 +566,7 @@
               <div class="chat-area">
                 <th:block th:if="${conversacionId != null && mensajesConversacion != null && !mensajesConversacion.isEmpty()}">
                   <div class="chat-header">
-                    <div class="chat-header-avatar" th:text="${empleadoConversacion != null && empleadoConversacion.name != null ? empleadoConversacion.name.substring(0, 1).toUpperCase() : 'E'}">E</div>
+                    <div class="chat-header-avatar" th:text="${empleadoConversacion != null && empleadoConversacion.name != null && empleadoConversacion.name.length() > 0 ? empleadoConversacion.name.substring(0, 1).toUpperCase() : 'E'}">E</div>
                     <div class="chat-header-info">
                       <h3 th:text="${empleadoConversacion != null && empleadoConversacion.name != null ? empleadoConversacion.name : 'Empleado #' + conversacionId}">Empleado</h3>
                     </div>
@@ -596,56 +600,57 @@
             </div>
           </div>
 
-          <!-- Tab Quejas -->
-          <div id="tabQuejas" class="tab-content">
+          <!-- Tab Reclamos -->
+          <div id="tabReclamos" class="tab-content">
             <div style="padding: 20px;">
               <h2 style="margin: 0 0 20px 0; color: #2c3e50; display: flex; align-items: center; gap: 10px;">
-                <i class='bx bx-error-circle'></i> Quejas Enviadas por Empleados
+                <i class='bx bx-error-circle'></i> Reclamos Enviados por Empleados
               </h2>
               
-              <div th:if="${quejasEmpleados != null && !quejasEmpleados.isEmpty()}" style="display: grid; gap: 15px;">
-                <div class="queja-card" 
-                     th:each="queja : ${quejasEmpleados}"
-                     th:data-queja-id="${queja.id}"
-                     onclick="mostrarDetalleQueja([[${queja.id}]])"
+              <div th:if="${reclamosEmpleados != null && !reclamosEmpleados.isEmpty()}" style="display: grid; gap: 15px;">
+                <div class="reclamo-card" 
+                     th:each="reclamo : ${reclamosEmpleados}"
+                     th:data-reclamo-id="${reclamo != null ? reclamo.id : null}"
+                     th:attr="data-reclamo-id-value=${reclamo != null ? reclamo.id : null}"
                      style="background: white; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); cursor: pointer; transition: all 0.3s ease;">
                   <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 10px;">
                     <div style="flex: 1;">
-                      <h3 style="margin: 0 0 8px 0; color: #2c3e50; font-size: 1.1rem;" th:text="${queja.titulo != null ? queja.titulo : 'Sin título'}">Título</h3>
+                      <h3 style="margin: 0 0 8px 0; color: #2c3e50; font-size: 1.1rem;" th:text="${reclamo.titulo != null ? reclamo.titulo : 'Sin título'}">Título</h3>
                       <p style="margin: 0; color: #718096; font-size: 0.9rem; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;" 
-                         th:text="${queja.descripcion != null ? queja.descripcion : 'Sin descripción'}">Descripción</p>
+                         th:text="${reclamo.descripcion != null ? reclamo.descripcion : 'Sin descripción'}">Descripción</p>
                     </div>
                     <div style="display: flex; flex-direction: column; align-items: flex-end; gap: 8px;">
-                      <span th:classappend="'queja-status status-' + (${queja.estado != null ? #strings.toLowerCase(queja.estado) : 'pendiente'})"
-                            class="queja-status"
-                            th:text="${queja.estado != null ? #strings.capitalize(queja.estado) : 'Pendiente'}">Estado</span>
-                      <span th:classappend="'queja-prioridad priority-' + (${queja.prioridad != null ? #strings.toLowerCase(queja.prioridad) : 'normal'})"
-                            class="queja-prioridad"
-                            th:text="${queja.prioridad != null ? #strings.capitalize(queja.prioridad) : 'Normal'}">Prioridad</span>
+                      <span th:classappend="'reclamo-status status-' + (${reclamo.estado != null ? #strings.toLowerCase(reclamo.estado) : 'pendiente'})"
+                            class="reclamo-status"
+                            th:text="${reclamo.estado != null ? #strings.capitalize(reclamo.estado) : 'Pendiente'}">Estado</span>
+                      <span th:classappend="'reclamo-prioridad priority-' + (${reclamo.prioridad != null ? #strings.toLowerCase(reclamo.prioridad) : 'normal'})"
+                            class="reclamo-prioridad"
+                            th:text="${reclamo.prioridad != null ? #strings.capitalize(reclamo.prioridad) : 'Normal'}">Prioridad</span>
                     </div>
                   </div>
                   <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 12px; padding-top: 12px; border-top: 1px solid #e2e8f0;">
                     <div style="display: flex; align-items: center; gap: 8px; color: #94a3b8; font-size: 0.85rem;">
                       <i class='bx bx-calendar'></i>
-                      <span th:if="${queja.fechaReclamo != null}" 
-                            th:text="${#temporals.format(queja.fechaReclamo, 'dd/MM/yyyy HH:mm')}">Fecha</span>
+                      <span th:if="${reclamo != null && reclamo.fechaReclamo != null}">
+                        <span th:text="${#temporals.format(reclamo.fechaReclamo, 'dd/MM/yyyy HH:mm')}">Fecha</span>
+                      </span>
                     </div>
-                    <div th:if="${queja.evaluacionCliente != null && !#strings.isEmpty(queja.evaluacionCliente)}" 
+                    <div th:if="${reclamo.evaluacionCliente != null && !#strings.isEmpty(reclamo.evaluacionCliente)}" 
                          style="display: flex; align-items: center; gap: 6px; font-size: 0.85rem;">
-                      <i th:class="'bx ' + (${queja.evaluacionCliente == 'resuelta'} ? 'bx-check-circle' : 'bx-x-circle')"
-                         th:style="'color: ' + (${queja.evaluacionCliente == 'resuelta'} ? '#28a745' : '#dc3545')"></i>
-                      <span th:text="${queja.evaluacionCliente == 'resuelta'} ? 'Cliente indica que fue resuelta' : 'Cliente indica que no fue resuelta'"
-                            th:style="'color: ' + (${queja.evaluacionCliente == 'resuelta'} ? '#28a745' : '#dc3545')">Evaluación</span>
+                      <i th:class="'bx ' + (${reclamo.evaluacionCliente == 'resuelta'} ? 'bx-check-circle' : 'bx-x-circle')"
+                         th:style="'color: ' + (${reclamo.evaluacionCliente == 'resuelta'} ? '#28a745' : '#dc3545')"></i>
+                      <span th:text="${reclamo.evaluacionCliente == 'resuelta'} ? 'Cliente indica que fue resuelto' : 'Cliente indica que no fue resuelto'"
+                            th:style="'color: ' + (${reclamo.evaluacionCliente == 'resuelta'} ? '#28a745' : '#dc3545')">Evaluación</span>
                     </div>
                   </div>
                 </div>
               </div>
               
-              <div th:if="${quejasEmpleados == null || quejasEmpleados.isEmpty()}" 
+              <div th:if="${reclamosEmpleados == null || reclamosEmpleados.isEmpty()}" 
                    style="padding: 60px 20px; text-align: center; color: #7f8c8d; background: white; border-radius: 12px;">
                 <i class='bx bx-inbox' style="font-size: 4rem; margin-bottom: 20px; opacity: 0.5; display: block;"></i>
-                <h3>No hay quejas</h3>
-                <p>No hay quejas enviadas por empleados en este momento.</p>
+                <h3>No hay reclamos</h3>
+                <p>No hay reclamos enviados por empleados en este momento.</p>
               </div>
             </div>
           </div>
@@ -699,16 +704,16 @@
     </div>
   </div>
 
-  <!-- Modal Detalle Queja -->
-  <div id="modalQueja" class="queja-modal">
-    <div class="queja-modal-content">
-      <div class="queja-modal-header">
-        <h3><i class='bx bx-error-circle'></i> Detalle de Queja</h3>
-        <button onclick="cerrarModalQueja()" style="background: none; border: none; color: white; font-size: 28px; cursor: pointer; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+  <!-- Modal Detalle Reclamo -->
+  <div id="modalReclamo" class="reclamo-modal">
+    <div class="reclamo-modal-content">
+      <div class="reclamo-modal-header">
+        <h3><i class='bx bx-error-circle'></i> Detalle de Reclamo</h3>
+        <button onclick="cerrarModalReclamo()" style="background: none; border: none; color: white; font-size: 28px; cursor: pointer; padding: 0; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
           <i class='bx bx-x'></i>
         </button>
       </div>
-      <div class="queja-modal-body" id="quejaModalBody">
+      <div class="reclamo-modal-body" id="reclamoModalBody">
         <!-- Contenido dinámico -->
       </div>
     </div>
@@ -729,7 +734,13 @@
         btn.classList.remove('active');
       });
       
-      var tabId = 'tab' + tab.charAt(0).toUpperCase() + tab.slice(1);
+      // Mapear 'reclamos' a 'Reclamos' para el ID del tab
+      var tabIdMap = {
+        'mensajes': 'Mensajes',
+        'reclamos': 'Reclamos',
+        'quejas': 'Reclamos' // Mantener compatibilidad con el nombre anterior
+      };
+      var tabId = 'tab' + (tabIdMap[tab] || tab.charAt(0).toUpperCase() + tab.slice(1));
       var tabElement = document.getElementById(tabId);
       if (tabElement) {
         tabElement.classList.add('active');
@@ -854,7 +865,7 @@
     document.addEventListener('DOMContentLoaded', function() {
       var chatMessages = document.getElementById('chatMessages');
       if (chatMessages) {
-        chatMessages.scrollTop = chatMessages.scrollHeight;
+        chatMessages.scrollTop = 0;
       }
 
       var modalNuevoMensaje = document.getElementById('modalNuevoMensaje');
@@ -866,53 +877,92 @@
         });
       }
 
-      var modalQueja = document.getElementById('modalQueja');
-      if (modalQueja) {
-        modalQueja.addEventListener('click', function(e) {
+      var modalReclamo = document.getElementById('modalReclamo');
+      if (modalReclamo) {
+        modalReclamo.addEventListener('click', function(e) {
           if (e.target === this) {
-            cerrarModalQueja();
+            cerrarModalReclamo();
           }
         });
       }
+
+      // Configurar event listeners para las conversaciones
+      var conversacionItems = document.querySelectorAll('.conversacion-item[data-conversacion-key]');
+      conversacionItems.forEach(function(item) {
+        item.addEventListener('click', function() {
+          var conversacionId = this.getAttribute('data-conversacion-key');
+          if (conversacionId) {
+            abrirConversacion(conversacionId);
+          }
+        });
+      });
+
+      // Configurar event listeners para los tabs
+      var tabButtons = document.querySelectorAll('.tab-button[data-tab]');
+      tabButtons.forEach(function(button) {
+        button.addEventListener('click', function() {
+          var tab = this.getAttribute('data-tab');
+          mostrarTab(tab, this);
+        });
+      });
+      
+      // Configurar event listener para el botón nuevo mensaje
+      var btnNuevoMensaje = document.getElementById('btnNuevoMensaje');
+      if (btnNuevoMensaje) {
+        btnNuevoMensaje.addEventListener('click', function() {
+          abrirModalNuevoMensaje();
+        });
+      }
+
+      // Configurar event listeners para las tarjetas de reclamos
+      var reclamoCards = document.querySelectorAll('.reclamo-card[data-reclamo-id-value]');
+      reclamoCards.forEach(function(card) {
+        card.addEventListener('click', function() {
+          var reclamoId = this.getAttribute('data-reclamo-id-value');
+          if (reclamoId) {
+            mostrarDetalleReclamo(parseInt(reclamoId));
+          }
+        });
+      });
     });
 
-    function mostrarDetalleQueja(quejaId) {
-      if (!quejaId) {
-        alert('Error: No se pudo obtener el ID de la queja');
+    function mostrarDetalleReclamo(reclamoId) {
+      if (!reclamoId) {
+        alert('Error: No se pudo obtener el ID del reclamo');
         return;
       }
 
-      fetch('/api/reclamos/' + quejaId)
+      fetch('/api/reclamos/' + reclamoId)
         .then(response => {
           if (!response.ok) {
-            throw new Error('Error al cargar la queja: ' + response.status);
+            throw new Error('Error al cargar el reclamo: ' + response.status);
           }
           return response.json();
         })
-        .then(queja => {
-          var html = '<div class="queja-detalle-item">' +
+        .then(reclamo => {
+          var html = '<div class="reclamo-detalle-item">' +
                     '<label><i class="bx bx-text"></i> Título</label>' +
-                    '<div class="value">' + (queja.titulo || 'Sin título') + '</div>' +
+                    '<div class="value">' + (reclamo.titulo || 'Sin título') + '</div>' +
                     '</div>' +
-                    '<div class="queja-detalle-item">' +
+                    '<div class="reclamo-detalle-item">' +
                     '<label><i class="bx bx-detail"></i> Descripción</label>' +
-                    '<div class="value">' + (queja.descripcion || 'Sin descripción') + '</div>' +
+                    '<div class="value">' + (reclamo.descripcion || 'Sin descripción') + '</div>' +
                     '</div>' +
-                    '<div class="queja-detalle-item">' +
+                    '<div class="reclamo-detalle-item">' +
                     '<label><i class="bx bx-info-circle"></i> Estado</label>' +
-                    '<div class="value"><span class="queja-status status-' + (queja.estado || 'pendiente').toLowerCase() + '">' + 
-                    (queja.estado ? queja.estado.charAt(0).toUpperCase() + queja.estado.slice(1) : 'Pendiente') + 
+                    '<div class="value"><span class="reclamo-status status-' + (reclamo.estado || 'pendiente').toLowerCase() + '">' + 
+                    (reclamo.estado ? reclamo.estado.charAt(0).toUpperCase() + reclamo.estado.slice(1) : 'Pendiente') + 
                     '</span></div>' +
                     '</div>' +
-                    '<div class="queja-detalle-item">' +
+                    '<div class="reclamo-detalle-item">' +
                     '<label><i class="bx bx-flag"></i> Prioridad</label>' +
-                    '<div class="value"><span class="queja-prioridad priority-' + (queja.prioridad || 'normal').toLowerCase() + '">' + 
-                    (queja.prioridad ? queja.prioridad.charAt(0).toUpperCase() + queja.prioridad.slice(1) : 'Normal') + 
+                    '<div class="value"><span class="reclamo-prioridad priority-' + (reclamo.prioridad || 'normal').toLowerCase() + '">' + 
+                    (reclamo.prioridad ? reclamo.prioridad.charAt(0).toUpperCase() + reclamo.prioridad.slice(1) : 'Normal') + 
                     '</span></div>' +
                     '</div>';
 
-          if (queja.fechaReclamo) {
-            var fecha = new Date(queja.fechaReclamo);
+          if (reclamo.fechaReclamo) {
+            var fecha = new Date(reclamo.fechaReclamo);
             var fechaFormateada = fecha.toLocaleDateString('es-ES', { 
               year: 'numeric', 
               month: '2-digit', 
@@ -920,27 +970,27 @@
               hour: '2-digit',
               minute: '2-digit'
             });
-            html += '<div class="queja-detalle-item">' +
+            html += '<div class="reclamo-detalle-item">' +
                    '<label><i class="bx bx-calendar"></i> Fecha del Reclamo</label>' +
                    '<div class="value">' + fechaFormateada + '</div>' +
                    '</div>';
           }
 
-          if (queja.respuesta) {
-            html += '<div class="queja-detalle-item">' +
+          if (reclamo.respuesta) {
+            html += '<div class="reclamo-detalle-item">' +
                    '<label><i class="bx bx-message"></i> Respuesta</label>' +
-                   '<div class="value" style="background: #e8f5e9; border-left: 4px solid #28a745; padding: 15px;">' + queja.respuesta + '</div>' +
+                   '<div class="value" style="background: #e8f5e9; border-left: 4px solid #28a745; padding: 15px;">' + reclamo.respuesta + '</div>' +
                    '</div>';
           }
 
-          if (queja.evaluacionCliente) {
-            var evaluacionTexto = queja.evaluacionCliente === 'resuelta' ? 
-              'El cliente indica que la queja fue resuelta' : 
-              'El cliente indica que la queja no fue resuelta';
-            var evaluacionColor = queja.evaluacionCliente === 'resuelta' ? '#28a745' : '#dc3545';
-            var evaluacionIcono = queja.evaluacionCliente === 'resuelta' ? 'bx-check-circle' : 'bx-x-circle';
+          if (reclamo.evaluacionCliente) {
+            var evaluacionTexto = reclamo.evaluacionCliente === 'resuelta' ? 
+              'El cliente indica que el reclamo fue resuelto' : 
+              'El cliente indica que el reclamo no fue resuelto';
+            var evaluacionColor = reclamo.evaluacionCliente === 'resuelta' ? '#28a745' : '#dc3545';
+            var evaluacionIcono = reclamo.evaluacionCliente === 'resuelta' ? 'bx-check-circle' : 'bx-x-circle';
             
-            html += '<div class="queja-detalle-item">' +
+            html += '<div class="reclamo-detalle-item">' +
                    '<label><i class="bx bx-user-check"></i> Evaluación del Cliente</label>' +
                    '<div class="value" style="display: flex; align-items: center; gap: 8px; color: ' + evaluacionColor + ';">' +
                    '<i class="bx ' + evaluacionIcono + '" style="font-size: 1.2rem;"></i>' +
@@ -949,17 +999,17 @@
                    '</div>';
           }
 
-          document.getElementById('quejaModalBody').innerHTML = html;
-          document.getElementById('modalQueja').classList.add('active');
+          document.getElementById('reclamoModalBody').innerHTML = html;
+          document.getElementById('modalReclamo').classList.add('active');
         })
         .catch(error => {
           console.error('Error:', error);
-          alert('Error al cargar el detalle de la queja: ' + error.message);
+          alert('Error al cargar el detalle del reclamo: ' + error.message);
         });
     }
 
-    function cerrarModalQueja() {
-      document.getElementById('modalQueja').classList.remove('active');
+    function cerrarModalReclamo() {
+      document.getElementById('modalReclamo').classList.remove('active');
     }
   </script>
 </body>

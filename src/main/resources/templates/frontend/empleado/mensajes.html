@@ -167,6 +167,8 @@
             padding: 20px;
             overflow-y: auto;
             background: #f8f9fa;
+            display: flex;
+            flex-direction: column-reverse;
         }
         .message {
             margin-bottom: 15px;
@@ -321,10 +323,10 @@
 
         <div class="tabs-container">
           <div class="tabs-header">
-            <button class="tab-button active" onclick="mostrarTab('mensajes')">
+            <button class="tab-button active" data-tab="mensajes">
               <i class='bx bx-message'></i> Mensajes
             </button>
-            <button class="tab-button" onclick="mostrarTab('quejas')">
+            <button class="tab-button" data-tab="quejas">
               <i class='bx bx-error-circle'></i> Quejas
             </button>
           </div>
@@ -341,19 +343,21 @@
                   <div class="conversacion-item" 
                        th:each="entry : ${conversaciones}"
                        th:data-conversacion-id="${entry.key}"
+                       th:data-conversacion-key="${entry.key}"
                        th:classappend="${conversacionId != null && conversacionId == entry.key ? 'active' : ''}"
-                       th:onclick="'abrirConversacion(' + ${entry.key} + ')'">
+                       style="cursor: pointer;">
                     <div class="conversacion-avatar">A</div>
                     <div class="conversacion-info">
                       <div class="conversacion-nombre">Administrador</div>
-                      <div class="conversacion-preview" th:text="${entry.value != null && !entry.value.isEmpty() ? entry.value[0].asunto : 'Sin mensajes'}">Último mensaje</div>
+                      <div class="conversacion-preview" th:text="${entry.value != null && !entry.value.isEmpty() && entry.value[0] != null && entry.value[0].asunto != null ? entry.value[0].asunto : 'Sin mensajes'}">Último mensaje</div>
                     </div>
                     <div class="conversacion-meta">
                       <div class="conversacion-fecha" 
-                           th:if="${entry.value != null && !entry.value.isEmpty() && entry.value[0].createdAt != null}"
-                           th:text="${#temporals.format(entry.value[0].createdAt, 'dd/MM HH:mm')}">Fecha</div>
-                      <div th:if="${entry.value != null && entry.value.stream().anyMatch(m -> !m.leido)}" class="no-leido-badge">
-                        <span th:text="${entry.value.stream().filter(m -> !m.leido).count()}">1</span>
+                           th:if="${entry.value != null && !entry.value.isEmpty() && entry.value[0] != null && entry.value[0].createdAt != null}">
+                        <span th:text="${#temporals.format(entry.value[0].createdAt, 'dd/MM HH:mm')}">Fecha</span>
+                      </div>
+                      <div th:if="${noLeidosPorConversacion != null && noLeidosPorConversacion.containsKey(entry.key) && noLeidosPorConversacion.get(entry.key) > 0}" class="no-leido-badge">
+                        <span th:text="${noLeidosPorConversacion.get(entry.key)}">0</span>
                       </div>
                     </div>
                   </div>
@@ -385,7 +389,7 @@
                     </div>
                   </div>
                   <div class="chat-input-area">
-                    <form class="chat-input-form" onsubmit="enviarMensaje(event)">
+                    <form class="chat-input-form" id="formEnviarMensaje">
                       <input type="text" class="chat-input" id="mensajeInput" placeholder="Escribe un mensaje..." required>
                       <button type="submit" class="btn-send">
                         <i class='bx bx-send'></i> Enviar
@@ -422,7 +426,7 @@
     };
   </script>
   <script>
-    function mostrarTab(tab) {
+    function mostrarTab(tab, eventElement) {
       document.querySelectorAll('.tab-content').forEach(content => {
         content.classList.remove('active');
       });
@@ -430,8 +434,17 @@
         btn.classList.remove('active');
       });
       
-      document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
-      event.target.closest('.tab-button').classList.add('active');
+      var tabId = 'tab' + tab.charAt(0).toUpperCase() + tab.slice(1);
+      var tabElement = document.getElementById(tabId);
+      if (tabElement) {
+        tabElement.classList.add('active');
+      }
+      
+      if (eventElement) {
+        eventElement.classList.add('active');
+      } else if (event && event.target) {
+        event.target.closest('.tab-button').classList.add('active');
+      }
     }
 
     function abrirConversacion(conversacionId) {
@@ -488,11 +501,42 @@
       });
     }
 
-    // Auto-scroll al final del chat
+    // Auto-scroll al inicio del chat (mensajes más recientes arriba)
     var chatMessages = document.getElementById('chatMessages');
     if (chatMessages) {
-      chatMessages.scrollTop = chatMessages.scrollHeight;
+      chatMessages.scrollTop = 0;
     }
+
+    // Configurar event listeners
+    document.addEventListener('DOMContentLoaded', function() {
+      // Event listeners para los tabs
+      var tabButtons = document.querySelectorAll('.tab-button[data-tab]');
+      tabButtons.forEach(function(button) {
+        button.addEventListener('click', function() {
+          var tab = this.getAttribute('data-tab');
+          mostrarTab(tab, this);
+        });
+      });
+      
+      // Event listeners para las conversaciones
+      var conversacionItems = document.querySelectorAll('.conversacion-item[data-conversacion-key]');
+      conversacionItems.forEach(function(item) {
+        item.addEventListener('click', function() {
+          var conversacionId = this.getAttribute('data-conversacion-key');
+          if (conversacionId) {
+            abrirConversacion(conversacionId);
+          }
+        });
+      });
+      
+      // Event listener para el formulario de envío de mensajes
+      var formEnviarMensaje = document.getElementById('formEnviarMensaje');
+      if (formEnviarMensaje) {
+        formEnviarMensaje.addEventListener('submit', function(event) {
+          enviarMensaje(event);
+        });
+      }
+    });
   </script>
 </body>
 </html>

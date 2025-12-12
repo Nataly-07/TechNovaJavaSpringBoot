@@ -88,19 +88,34 @@ public class AtencionClienteController {
     public ResponseEntity<?> responderTicket(
             @PathVariable Integer id,
             @RequestBody java.util.Map<String, String> request) {
+        System.out.println("=== CONTROLADOR: responderTicket() llamado ===");
+        System.out.println("  -> Ticket ID: " + id);
+        System.out.println("  -> Request: " + request);
+        
         try {
             String respuesta = request.get("respuesta");
             if (respuesta == null || respuesta.trim().isEmpty()) {
+                System.err.println("  -> ERROR: Respuesta vacía");
                 return ResponseEntity.badRequest().body("La respuesta no puede estar vacía");
             }
+            
+            System.out.println("  -> Llamando a atencionClienteService.responder()");
             AtencionClienteDto ticketRespondido = atencionClienteService.responder(id, respuesta);
+            
             if (ticketRespondido == null) {
+                System.err.println("  -> ERROR: ticketRespondido es null");
                 return ResponseEntity.notFound().build();
             }
+            
+            System.out.println("  -> Ticket respondido exitosamente");
             return ResponseEntity.ok(ticketRespondido);
         } catch (IllegalArgumentException e) {
+            System.err.println("  -> ERROR IllegalArgumentException: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.badRequest().body("Error: " + e.getMessage());
         } catch (Exception e) {
+            System.err.println("  -> ERROR Exception: " + e.getMessage());
+            e.printStackTrace();
             return ResponseEntity.status(500).body("Error interno del servidor: " + e.getMessage());
         }
     }

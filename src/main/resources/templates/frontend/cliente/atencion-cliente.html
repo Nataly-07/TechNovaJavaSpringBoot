@@ -1012,44 +1012,42 @@
           </form>
         </div>
 
-          <div th:if="${tickets != null && !tickets.isEmpty()}" class="consultas-list">
-            <div class="ticket-card" th:each="ticket : ${tickets}" th:data-ticket-id="${ticket.id}">
-              <div class="ticket-header">
-        <h3 th:text="${ticket.tema != null ? ticket.tema : 'Sin tema'}">Tema</h3>
-                <span th:classappend="'status-' + (${ticket.respuesta != null && !ticket.respuesta.isEmpty()} ? 'resuelto' : 'en_proceso')" class="status-badge">
-                  <th:block th:if="${ticket.respuesta != null && !ticket.respuesta.isEmpty()}">
-                    <i class='bx bx-check-circle'></i> Resuelto
-                  </th:block>
-                  <th:block th:if="${ticket.respuesta == null || ticket.respuesta.isEmpty()}">
-                    <i class='bx bx-loader'></i> En Proceso
-                  </th:block>
-                </span>
-              </div>
-              <div class="ticket-body">
-        <p th:text="${ticket.descripcion != null ? ticket.descripcion : 'Sin descripción'}">Descripción</p>
-                <div class="ticket-meta">
-            <span><i class='bx bx-calendar'></i> 
-                <span th:text="${ticket.fechaConsulta != null ? #temporals.format(ticket.fechaConsulta, 'dd/MM/yyyy HH:mm') : 'N/A'}">Fecha</span>
-            </span>
-                </div>
-        <th:block th:if="${ticket.respuesta != null && !ticket.respuesta.isEmpty()}">
-            <div class="respuesta-section">
-                <h4>
-                    <i class='bx bx-message-check'></i> Respuesta del Administrador:
-                </h4>
-                <p th:text="${ticket.respuesta}">Respuesta</p>
-            </div>
-        </th:block>
-    </div>
-              </div>
-            </div>
-          </div>
-          </div>
-          <div th:if="${tickets == null || tickets.isEmpty()}" class="empty-state">
-                      <i class='bx bx-clipboard'></i>
-                          <h3>No tienes consultas</h3>
-                          <p>Crea tu primera consulta para recibir soporte especializado</p>
+              <div th:if="${tickets != null && !tickets.isEmpty()}" class="consultas-list">
+                <div class="ticket-card" th:each="ticket : ${tickets}" th:data-ticket-id="${ticket.id}">
+                  <div class="ticket-header">
+                    <h3 th:text="${ticket.tema != null ? ticket.tema : 'Sin tema'}">Tema</h3>
+                    <span th:classappend="'status-' + (${ticket.respuesta != null && !ticket.respuesta.isEmpty()} ? 'resuelto' : 'en_proceso')" class="status-badge">
+                      <th:block th:if="${ticket.respuesta != null && !ticket.respuesta.isEmpty()}">
+                        <i class='bx bx-check-circle'></i> Resuelto
+                      </th:block>
+                      <th:block th:if="${ticket.respuesta == null || ticket.respuesta.isEmpty()}">
+                        <i class='bx bx-loader'></i> En Proceso
+                      </th:block>
+                    </span>
+                  </div>
+                  <div class="ticket-body">
+                    <p th:text="${ticket.descripcion != null ? ticket.descripcion : 'Sin descripción'}">Descripción</p>
+                    <div class="ticket-meta">
+                      <span><i class='bx bx-calendar'></i> 
+                        <span th:text="${ticket.fechaConsulta != null ? #temporals.format(ticket.fechaConsulta, 'dd/MM/yyyy HH:mm') : 'N/A'}">Fecha</span>
+                      </span>
                     </div>
+                    <th:block th:if="${ticket.respuesta != null && !ticket.respuesta.isEmpty()}">
+                      <div class="respuesta-section">
+                        <h4>
+                          <i class='bx bx-message-check'></i> Respuesta del Administrador:
+                        </h4>
+                        <p th:text="${ticket.respuesta}">Respuesta</p>
+                      </div>
+                    </th:block>
+                  </div>
+                </div>
+              </div>
+              <div th:if="${tickets == null || tickets.isEmpty()}" class="empty-state">
+                <i class='bx bx-clipboard'></i>
+                <h3>No tienes consultas</h3>
+                <p>Crea tu primera consulta para recibir soporte especializado</p>
+              </div>
             </div>
           </div>
 
@@ -1133,8 +1131,8 @@
                           </button>
                       </form>
                   </div>
+              </div>
           </div>
-        </div>
       </div>
     </main>
   </div>
