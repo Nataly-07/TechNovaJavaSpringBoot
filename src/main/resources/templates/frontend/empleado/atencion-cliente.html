@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="_csrf" th:content="${_csrf != null ? _csrf.token : ''}"/>
+    <meta name="_csrf_header" th:content="${_csrf != null ? _csrf.headerName : ''}"/>
     <title>Atención al Cliente - Technova</title>
     <link rel="icon" type="image/png" th:href="@{/frontend/imagenes/logo technova.png}">
 
@@ -801,6 +803,14 @@
           </div>
         </div>
 
+        <!-- Botón para ir a Reclamos -->
+        <div style="text-align: center; margin-bottom: 25px;">
+          <a th:href="@{/empleado/reclamos}" style="display: inline-flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #dc3545 0%, #c82333 100%); color: white; padding: 15px 30px; border-radius: 10px; text-decoration: none; font-weight: 600; font-size: 1rem; transition: all 0.3s ease; box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3);">
+            <i class='bx bx-error-circle' style="font-size: 1.5rem;"></i>
+            <span>Gestionar Reclamos</span>
+          </a>
+        </div>
+
         <!-- Search Bar -->
         <div class="search-container">
           <div class="search-box">
@@ -837,11 +847,15 @@
               <div class="ticket-card" th:each="ticket : ${tickets}" th:attr="data-ticket-id=${ticket.id}">
                 <div class="ticket-header">
                   <h3 th:text="${ticket.tema != null ? ticket.tema : 'Sin tema'}">Tema</h3>
-                  <span th:classappend="'ticket-status ' + (ticket.estado != null ? ticket.estado : 'abierto')" class="ticket-status">
-                    <i th:if="${ticket.estado == 'abierto'}" class='bx bx-time-five'></i>
-                    <i th:if="${ticket.estado == 'en_proceso'}" class='bx bx-loader'></i>
-                    <i th:if="${ticket.estado == 'resuelto' || ticket.estado == 'cerrado'}" class='bx bx-check-circle'></i>
-                    <span th:text="${ticket.estado != null ? ticket.estado : 'Abierto'}">Estado</span>
+                  <span th:classappend="'ticket-status ' + (${ticket.respuesta != null && !#strings.isEmpty(ticket.respuesta)} ? 'resuelto' : 'en_proceso')" class="ticket-status">
+                    <th:block th:if="${ticket.respuesta != null && !#strings.isEmpty(ticket.respuesta)}">
+                      <i class='bx bx-check-circle'></i>
+                      <span>Resuelto</span>
+                    </th:block>
+                    <th:block th:if="${ticket.respuesta == null || #strings.isEmpty(ticket.respuesta)}">
+                      <i class='bx bx-loader'></i>
+                      <span>En Proceso</span>
+                    </th:block>
                   </span>
                 </div>
                 <div class="ticket-body">
@@ -1418,8 +1432,9 @@
             
             var nombreCliente = obtenerNombreUsuario(ticket.usuarioId);
             var fecha = formatearFecha(ticket.fechaConsulta);
-            var estadoClass = ticket.estado || 'abierto';
-            var estadoTexto = formatearEstado(ticket.estado);
+            var tieneRespuesta = ticket.respuesta != null && ticket.respuesta.trim() !== '';
+            var estadoClass = tieneRespuesta ? 'resuelto' : 'en_proceso';
+            var estadoTexto = tieneRespuesta ? 'Resuelto' : 'En Proceso';
             var descripcion = ticket.descripcion || 'Sin descripción';
             
             var htmlRespuesta = '';
@@ -1454,7 +1469,7 @@
                     '<i class="bx bx-user"></i> ' + escapeHtml(nombreCliente) +
                   '</span>' +
                   '<span class="ticket-status ' + estadoClass + '" style="font-size: 0.8rem;">' +
-                    estadoTexto +
+                    '<i class="bx ' + (tieneRespuesta ? 'bx-check-circle' : 'bx-loader') + '"></i> ' + estadoTexto +
                   '</span>' +
                 '</div>' +
                 '<div style="margin-bottom: 20px;">' +
@@ -1481,19 +1496,31 @@
           return;
         }
         
-        var formData = new URLSearchParams();
-        formData.append('respuesta', respuesta.trim());
+        // Obtener token CSRF
+        var csrfToken = document.querySelector('meta[name="_csrf"]') ? document.querySelector('meta[name="_csrf"]').content : '';
+        var csrfHeaderName = document.querySelector('meta[name="_csrf_header"]') ? document.querySelector('meta[name="_csrf_header"]').content : '';
+        
+        // Preparar headers
+        var headers = {
+          'Content-Type': 'application/json',
+          'X-Requested-With': 'XMLHttpRequest'
+        };
+        
+        // Agregar token CSRF al header si está disponible
+        if (csrfToken && csrfHeaderName) {
+          headers[csrfHeaderName] = csrfToken;
+        }
         
         fetch('/api/atencion-cliente/' + ticketId + '/responder', {
           method: 'PUT',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          body: formData.toString()
+          headers: headers,
+          body: JSON.stringify({ respuesta: respuesta.trim() })
         })
         .then(function(response) {
           if (!response.ok) {
-            throw new Error('Error al responder el ticket');
+            return response.text().then(function(errorText) {
+              throw new Error(errorText || 'Error al responder el ticket');
+            });
           }
           return response.json();
         })
