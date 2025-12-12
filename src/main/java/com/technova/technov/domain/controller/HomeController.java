@@ -1312,10 +1312,34 @@ public class HomeController {
 
     @GetMapping("/cliente/mis-compras/{id}")
     public String detalleCompra(@PathVariable Integer id, Model model) {
-        CompraDto compra = comprasService.detalle(id);
+        UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
         
-        if (compra != null) {
-            model.addAttribute("compra", compra);
+        if (usuario == null || !"cliente".equalsIgnoreCase(usuario.getRole())) {
+            return "redirect:/login";
+        }
+        
+        // Obtener la venta (pedido) por ID
+        VentaDto venta = null;
+        try {
+            venta = ventaService.detalle(id);
+            
+            // Verificar que la venta pertenece al usuario autenticado
+            if (venta != null && usuario.getId() != null && 
+                venta.getUsuarioId() != null && 
+                !venta.getUsuarioId().equals(usuario.getId().intValue())) {
+                // Si la venta no pertenece al usuario, redirigir
+                return "redirect:/cliente/mis-compras";
+            }
+        } catch (Exception e) {
+            System.err.println("Error al obtener detalle de venta: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        if (venta != null) {
+            model.addAttribute("venta", venta);
+            model.addAttribute("usuario", usuario);
+        } else {
+            return "redirect:/cliente/mis-compras";
         }
         
         return "frontend/cliente/detalle-compra";
@@ -1323,21 +1347,37 @@ public class HomeController {
 
     @GetMapping("/cliente/mis-compras/{id}/factura")
     public String verFactura(@PathVariable Integer id, Model model) {
-        CompraDto compra = comprasService.detalle(id);
-        
-        if (compra == null) {
-            return "redirect:/cliente/mis-compras";
-        }
-        
         UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
-        if (usuario == null) {
+        
+        if (usuario == null || !"cliente".equalsIgnoreCase(usuario.getRole())) {
             return "redirect:/login";
         }
         
-        model.addAttribute("compra", compra);
+        // Obtener la venta (pedido) por ID
+        VentaDto venta = null;
+        try {
+            venta = ventaService.detalle(id);
+            
+            // Verificar que la venta pertenece al usuario autenticado
+            if (venta != null && usuario.getId() != null && 
+                venta.getUsuarioId() != null && 
+                !venta.getUsuarioId().equals(usuario.getId().intValue())) {
+                // Si la venta no pertenece al usuario, redirigir
+                return "redirect:/cliente/mis-compras";
+            }
+        } catch (Exception e) {
+            System.err.println("Error al obtener detalle de venta para factura: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        if (venta == null) {
+            return "redirect:/cliente/mis-compras";
+        }
+        
+        model.addAttribute("venta", venta);
         model.addAttribute("usuario", usuario);
         
-        return "frontend/cliente/factura-compra";
+        return "frontend/cliente/factura-venta";
     }
 
     @GetMapping("/cliente/mis-compras/{id}/factura/pdf")
