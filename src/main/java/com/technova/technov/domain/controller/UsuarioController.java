@@ -1,6 +1,7 @@
 package com.technova.technov.domain.controller;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -239,6 +240,23 @@ public class UsuarioController {
             return ResponseEntity.notFound().build();
         }
         return ResponseEntity.ok(usuario);
+    }
+
+    @GetMapping("/verificar-estado")
+    public ResponseEntity<?> verificarEstado(@RequestParam String email) {
+        java.util.Map<String, Object> response = new java.util.HashMap<>();
+        Optional<UsuarioDto> usuarioOpt = usuarioService.usuarioPorEmail(email);
+        
+        if (usuarioOpt.isPresent()) {
+            UsuarioDto usuario = usuarioOpt.get();
+            response.put("exists", true);
+            response.put("active", usuario.getEstado() != null && usuario.getEstado());
+        } else {
+            response.put("exists", false);
+            response.put("active", false);
+        }
+        
+        return ResponseEntity.ok(response);
     }
 
 }
