@@ -61,8 +61,22 @@
                 </p>
               </div>
               <div class="compra-status">
-                <span class="status-badge status-entregado">
-                  <i class='bx bx-check-circle'></i> Confirmado
+                <span th:with="diasDesdeVenta=${compra.fechaVenta != null ? T(java.time.temporal.ChronoUnit).DAYS.between(compra.fechaVenta, T(java.time.LocalDate).now()) : 999}"
+                      th:attr="data-fecha-venta=${compra.fechaVenta != null ? compra.fechaVenta.toString() : ''}, data-venta-id=${compra.ventaId}"
+                      th:classappend="${diasDesdeVenta < 2 ? 'status-procesado' : (diasDesdeVenta < 7 ? 'status-enviado' : 'status-entregado')}" 
+                      class="status-badge status-badge-dynamic">
+                  <th:block th:if="${diasDesdeVenta < 2}">
+                    <i class='bx bx-time-five'></i> Procesando
+                  </th:block>
+                  <th:block th:if="${diasDesdeVenta >= 2 && diasDesdeVenta < 7}">
+                    <i class='bx bx-truck'></i> Enviado
+                  </th:block>
+                  <th:block th:if="${diasDesdeVenta >= 7}">
+                    <i class='bx bx-check-circle'></i> Entregado
+                  </th:block>
+                  <th:block th:if="${compra.fechaVenta == null}">
+                    <i class='bx bx-check-circle'></i> Confirmado
+                  </th:block>
                 </span>
               </div>
             </div>
@@ -95,8 +109,8 @@
             </div>
 
             <div class="compra-actions">
-              <a th:href="@{/cliente/pedidos}" class="btn btn-primary">
-                <i class='bx bx-show'></i> Ver en Pedidos
+              <a th:href="@{/cliente/mis-compras/{id}(id=${compra.ventaId})}" class="btn btn-primary" th:if="${compra.ventaId != null}">
+                <i class='bx bx-show'></i> Ver Detalles
               </a>
             </div>
           </div>
@@ -374,6 +388,78 @@
       border: 1px solid #f5c6cb;
     }
   </style>
+
+  <script>
+    // Función para calcular días entre dos fechas
+    function calcularDiasEntreFechas(fecha1, fecha2) {
+      const unDia = 24 * 60 * 60 * 1000; // milisegundos en un día
+      const diferencia = Math.abs(fecha2 - fecha1);
+      return Math.floor(diferencia / unDia);
+    }
+
+    // Función para actualizar el estado de un badge
+    function actualizarEstadoBadge(badge) {
+      const fechaVentaStr = badge.getAttribute('data-fecha-venta');
+      if (!fechaVentaStr || fechaVentaStr === '') {
+        return; // No hay fecha, mantener estado actual
+      }
+
+      // Parsear fecha (formato: YYYY-MM-DD)
+      const [año, mes, dia] = fechaVentaStr.split('-').map(Number);
+      const fechaVenta = new Date(año, mes - 1, dia);
+      const fechaActual = new Date();
+      
+      // Resetear a inicio del día para comparación precisa
+      fechaVenta.setHours(0, 0, 0, 0);
+      fechaActual.setHours(0, 0, 0, 0);
+
+      const diasDesdeVenta = calcularDiasEntreFechas(fechaVenta, fechaActual);
+
+      // Determinar nuevo estado
+      let nuevoEstado, nuevoIcono, nuevoTexto, nuevaClase;
+
+      if (diasDesdeVenta < 2) {
+        nuevoEstado = 'procesando';
+        nuevoIcono = 'bx-time-five';
+        nuevoTexto = 'Procesando';
+        nuevaClase = 'status-procesado';
+      } else if (diasDesdeVenta < 7) {
+        nuevoEstado = 'enviado';
+        nuevoIcono = 'bx-truck';
+        nuevoTexto = 'Enviado';
+        nuevaClase = 'status-enviado';
+      } else {
+        nuevoEstado = 'entregado';
+        nuevoIcono = 'bx-check-circle';
+        nuevoTexto = 'Entregado';
+        nuevaClase = 'status-entregado';
+      }
+
+      // Remover clases de estado anteriores
+      badge.classList.remove('status-procesado', 'status-enviado', 'status-entregado');
+      // Agregar nueva clase
+      badge.classList.add(nuevaClase);
+
+      // Actualizar contenido HTML
+      badge.innerHTML = `<i class='bx ${nuevoIcono}'></i> ${nuevoTexto}`;
+    }
+
+    // Función para actualizar todos los estados
+    function actualizarEstados() {
+      const badges = document.querySelectorAll('.status-badge-dynamic');
+      badges.forEach(actualizarEstadoBadge);
+    }
+
+    // Actualizar estados al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+      actualizarEstados();
+      
+      // Actualizar estados cada minuto (60000 ms)
+      setInterval(actualizarEstados, 60000);
+      
+      console.log('🔄 Actualización automática de estados activada (cada 1 minuto)');
+    });
+  </script>
 </body>
 </html>
 

@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title th:text="'Detalle de Compra #' + ${compra.compraId} + ' - Technova'">Detalle de Compra - Technova</title>
+    <title th:text="'Detalle de Pedido #' + ${venta.ventaId} + ' - Technova'">Detalle de Pedido - Technova</title>
 
     <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
     <link rel="stylesheet" th:href="@{/frontend/css/color-palette.css}">
@@ -27,18 +27,18 @@
   <div class="dashboard-wrapper">
     <div th:replace="~{frontend/layouts/sidebar-cliente :: sidebar}"></div>
 
-    <main class="main-content" th:if="${compra != null}">
+    <main class="main-content" th:if="${venta != null}">
       <div class="welcome-section">
         <div class="header-actions" style="display: flex; gap: 10px; margin-bottom: 20px;">
           <a th:href="@{/cliente/mis-compras}" class="btn btn-secondary">
             <i class='bx bx-arrow-back'></i> Volver a Mis Compras
           </a>
-          <a th:href="@{/cliente/mis-compras/{id}/factura(id=${compra.compraId})}" class="btn btn-primary" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+          <a th:href="@{/cliente/mis-compras/{id}/factura(id=${venta.ventaId})}" class="btn btn-primary" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
             <i class='bx bx-receipt'></i> Ver Factura
           </a>
         </div>
-        <h1 th:text="'Detalle de Compra #' + ${compra.compraId}">Detalle de Compra</h1>
-        <p>Información completa de tu compra</p>
+        <h1 th:text="'Detalle de Pedido #' + ${venta.ventaId}">Detalle de Pedido</h1>
+        <p>Información completa de tu pedido</p>
       </div>
 
       <div th:if="${session.success != null}" class="alert alert-success">
@@ -54,34 +54,34 @@
       <div class="detalle-grid">
         <div class="info-section">
           <div class="section-header">
-            <h2><i class='bx bx-info-circle'></i> Información de la Compra</h2>
+            <h2><i class='bx bx-info-circle'></i> Información del Pedido</h2>
           </div>
           <div class="info-card">
             <div class="info-row">
-              <span class="label"><i class='bx bx-receipt'></i> Número de Compra:</span>
-              <span class="value">#<span th:text="${compra.compraId}">0</span></span>
+              <span class="label"><i class='bx bx-receipt'></i> Número de Pedido:</span>
+              <span class="value">#<span th:text="${venta.ventaId}">0</span></span>
             </div>
             <div class="info-row">
-              <span class="label"><i class='bx bx-calendar'></i> Fecha de Compra:</span>
-              <span class="value" th:text="${compra.fechaCompra != null ? #temporals.format(compra.fechaCompra, 'dd/MM/yyyy HH:mm') : 'Fecha no disponible'}">Fecha</span>
+              <span class="label"><i class='bx bx-calendar'></i> Fecha de Pedido:</span>
+              <span class="value" th:text="${venta.fechaVenta != null ? #temporals.format(venta.fechaVenta, 'dd/MM/yyyy') : 'Fecha no disponible'}">Fecha</span>
             </div>
             <div class="info-row">
               <span class="label"><i class='bx bx-check-circle'></i> Estado:</span>
-              <span th:classappend="'status-' + ${#strings.toLowerCase(compra.estado)}" class="status-badge">
-                <th:block th:if="${compra.estado == 'procesado'}">
+              <span th:with="diasDesdeVenta=${venta.fechaVenta != null ? T(java.time.temporal.ChronoUnit).DAYS.between(venta.fechaVenta, T(java.time.LocalDate).now()) : 999}"
+                    th:attr="data-fecha-venta=${venta.fechaVenta != null ? venta.fechaVenta.toString() : ''}"
+                    th:classappend="${diasDesdeVenta < 2 ? 'status-procesado' : (diasDesdeVenta < 7 ? 'status-enviado' : 'status-entregado')}" 
+                    class="status-badge status-badge-dynamic">
+                <th:block th:if="${diasDesdeVenta < 2}">
                   <i class='bx bx-time-five'></i> Procesando
                 </th:block>
-                <th:block th:if="${compra.estado == 'enviado'}">
+                <th:block th:if="${diasDesdeVenta >= 2 && diasDesdeVenta < 7}">
                   <i class='bx bx-truck'></i> Enviado
                 </th:block>
-                <th:block th:if="${compra.estado == 'entregado'}">
+                <th:block th:if="${diasDesdeVenta >= 7}">
                   <i class='bx bx-check-circle'></i> Entregado
                 </th:block>
-                <th:block th:if="${compra.estado != null && compra.estado != 'procesado' && compra.estado != 'enviado' && compra.estado != 'entregado'}">
-                  <i class='bx bx-x-circle'></i> <span th:text="${compra.estado}">Estado</span>
-                </th:block>
-                <th:block th:if="${compra.estado == null}">
-                  <i class='bx bx-time-five'></i> Pendiente
+                <th:block th:if="${venta.fechaVenta == null}">
+                  <i class='bx bx-check-circle'></i> Confirmado
                 </th:block>
               </span>
             </div>
@@ -92,8 +92,8 @@
           <div class="section-header">
             <h2><i class='bx bx-package'></i> Productos Comprados</h2>
           </div>
-          <div class="productos-list" th:if="${compra.items != null && !compra.items.isEmpty()}">
-            <div class="producto-item" th:each="detalle : ${compra.items}">
+          <div class="productos-list" th:if="${venta.items != null && !venta.items.isEmpty()}">
+            <div class="producto-item" th:each="detalle : ${venta.items}">
               <div class="producto-info">
                 <h3 th:text="${detalle.nombreProducto != null ? detalle.nombreProducto : 'Producto no disponible'}">Producto</h3>
               </div>
@@ -102,23 +102,23 @@
                   <span><i class='bx bx-hash'></i> Cantidad:</span>
                   <span class="quantity" th:text="${detalle.cantidad != null ? detalle.cantidad : 1}">1</span>
                 </div>
-                <div class="detail-row">
+                <div class="detail-row" th:with="precioUnitario=${detalle.precioLinea != null && detalle.cantidad != null && detalle.cantidad > 0 ? (detalle.precioLinea.doubleValue() / detalle.cantidad) : 0}">
                   <span><i class='bx bx-money'></i> Precio Unitario:</span>
                   <div class="price-container">
                     <span class="price" style="color: #27ae60; font-weight: bold;">
-                      $<span th:text="${detalle.precio != null ? #numbers.formatDecimal(detalle.precio, 0, 0) : '0'}">0</span>
+                      $<span th:text="${#numbers.formatDecimal(precioUnitario, 0, 0)}">0</span>
                     </span>
                   </div>
                 </div>
                 <div class="detail-row total">
                   <span><i class='bx bx-calculator'></i> Subtotal:</span>
-                  <span class="subtotal">$<span th:text="${detalle.precio != null && detalle.cantidad != null ? #numbers.formatDecimal(detalle.precio * detalle.cantidad, 0, 0) : '0'}">0</span></span>
+                  <span class="subtotal">$<span th:text="${detalle.precioLinea != null ? #numbers.formatDecimal(detalle.precioLinea, 0, 0) : '0'}">0</span></span>
                 </div>
               </div>
             </div>
           </div>
-          <div th:if="${compra.items == null || compra.items.isEmpty()}" class="no-items" style="padding: 20px; text-align: center; color: #999;">
-            <p>No hay productos en esta compra</p>
+          <div th:if="${venta.items == null || venta.items.isEmpty()}" class="no-items" style="padding: 20px; text-align: center; color: #999;">
+            <p>No hay productos en este pedido</p>
           </div>
         </div>
 
@@ -129,7 +129,7 @@
           <div class="pago-resumen">
             <div class="resumen-row">
               <span><i class='bx bx-money'></i> Subtotal:</span>
-              <span>$<span th:text="${compra.total != null ? #numbers.formatDecimal(compra.total, 0, 0) : '0'}">0</span></span>
+              <span>$<span th:text="${venta.total != null ? #numbers.formatDecimal(venta.total, 0, 0) : '0'}">0</span></span>
             </div>
             <div class="resumen-row">
               <span><i class='bx bx-truck'></i> Envío:</span>
@@ -141,7 +141,7 @@
             </div>
             <div class="resumen-row total">
               <span><i class='bx bx-wallet'></i> Total Pagado:</span>
-              <span class="total-amount">$<span th:text="${compra.total != null ? #numbers.formatDecimal(compra.total, 0, 0) : '0'}">0</span></span>
+              <span class="total-amount">$<span th:text="${venta.total != null ? #numbers.formatDecimal(venta.total, 0, 0) : '0'}">0</span></span>
             </div>
           </div>
 
@@ -156,75 +156,36 @@
               <div class="timeline-item completed">
                 <div class="timeline-marker"></div>
                 <div class="timeline-content">
-                  <h4><i class='bx bx-check-circle'></i> Compra Realizada</h4>
-                  <p th:text="${compra.fechaCompra != null ? #temporals.format(compra.fechaCompra, 'dd/MM/yyyy HH:mm') : 'Fecha no disponible'}">Fecha</p>
+                  <h4><i class='bx bx-check-circle'></i> Pedido Realizado</h4>
+                  <p th:text="${venta.fechaVenta != null ? #temporals.format(venta.fechaVenta, 'dd/MM/yyyy') : 'Fecha no disponible'}">Fecha</p>
                 </div>
               </div>
               
-              <th:block th:if="${compra.estado == 'procesado'}">
-                <div class="timeline-item active">
+              <th:block th:with="diasDesdeVenta=${venta.fechaVenta != null ? T(java.time.temporal.ChronoUnit).DAYS.between(venta.fechaVenta, T(java.time.LocalDate).now()) : 999}"
+                        th:attr="data-fecha-venta=${venta.fechaVenta != null ? venta.fechaVenta.toString() : ''}"
+                        class="timeline-container-dynamic">
+                <div th:classappend="${diasDesdeVenta < 2 ? 'active' : 'completed'}" 
+                     class="timeline-item timeline-item-dynamic" data-timeline-step="procesando">
                   <div class="timeline-marker"></div>
                   <div class="timeline-content">
                     <h4><i class='bx bx-time-five'></i> Procesando</h4>
                     <p>Preparando tu pedido</p>
                   </div>
                 </div>
-                <div class="timeline-item">
+                
+                <div th:classappend="${diasDesdeVenta >= 2 && diasDesdeVenta < 7 ? 'active' : (diasDesdeVenta >= 2 ? 'completed' : '')}" 
+                     th:style="${diasDesdeVenta < 2 ? 'display: none;' : ''}"
+                     class="timeline-item timeline-item-dynamic" data-timeline-step="enviado">
                   <div class="timeline-marker"></div>
                   <div class="timeline-content">
                     <h4><i class='bx bx-truck'></i> Enviado</h4>
                     <p>Tu pedido está en camino</p>
                   </div>
                 </div>
-                <div class="timeline-item">
-                  <div class="timeline-marker"></div>
-                  <div class="timeline-content">
-                    <h4><i class='bx bx-home'></i> Entregado</h4>
-                    <p>Pedido entregado</p>
-                  </div>
-                </div>
-              </th:block>
-              
-              <th:block th:if="${compra.estado == 'enviado'}">
-                <div class="timeline-item completed">
-                  <div class="timeline-marker"></div>
-                  <div class="timeline-content">
-                    <h4><i class='bx bx-time-five'></i> Procesando</h4>
-                    <p>Pedido procesado</p>
-                  </div>
-                </div>
-                <div class="timeline-item active">
-                  <div class="timeline-marker"></div>
-                  <div class="timeline-content">
-                    <h4><i class='bx bx-truck'></i> Enviado</h4>
-                    <p>Tu pedido está en camino</p>
-                  </div>
-                </div>
-                <div class="timeline-item">
-                  <div class="timeline-marker"></div>
-                  <div class="timeline-content">
-                    <h4><i class='bx bx-home'></i> Entregado</h4>
-                    <p>Pedido entregado</p>
-                  </div>
-                </div>
-              </th:block>
-              
-              <th:block th:if="${compra.estado == 'entregado'}">
-                <div class="timeline-item completed">
-                  <div class="timeline-marker"></div>
-                  <div class="timeline-content">
-                    <h4><i class='bx bx-time-five'></i> Procesando</h4>
-                    <p>Pedido procesado</p>
-                  </div>
-                </div>
-                <div class="timeline-item completed">
-                  <div class="timeline-marker"></div>
-                  <div class="timeline-content">
-                    <h4><i class='bx bx-truck'></i> Enviado</h4>
-                    <p>Pedido enviado</p>
-                  </div>
-                </div>
-                <div class="timeline-item completed">
+                
+                <div th:classappend="${diasDesdeVenta >= 7 ? 'completed' : ''}" 
+                     th:style="${diasDesdeVenta < 7 ? 'display: none;' : ''}"
+                     class="timeline-item timeline-item-dynamic" data-timeline-step="entregado">
                   <div class="timeline-marker"></div>
                   <div class="timeline-content">
                     <h4><i class='bx bx-home'></i> Entregado</h4>
@@ -233,15 +194,6 @@
                 </div>
               </th:block>
               
-              <th:block th:if="${compra.estado == null || (compra.estado != 'procesado' && compra.estado != 'enviado' && compra.estado != 'entregado')}">
-                <div class="timeline-item active">
-                  <div class="timeline-marker"></div>
-                  <div class="timeline-content">
-                    <h4><i class='bx bx-time-five'></i> Pendiente</h4>
-                    <p>Esperando procesamiento</p>
-                  </div>
-                </div>
-              </th:block>
             </div>
           </div>
         </div>
@@ -314,6 +266,137 @@
     .alert-error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
     @media (max-width: 768px) { .detalle-grid { grid-template-columns: 1fr; gap: 20px; } .producto-item { flex-direction: column; gap: 15px; } .producto-details { text-align: left; } .info-row { flex-direction: column; align-items: flex-start; gap: 5px; } .resumen-row { flex-direction: column; gap: 5px; } }
   </style>
+
+  <script>
+    // Función para calcular días entre dos fechas
+    function calcularDiasEntreFechas(fecha1, fecha2) {
+      const unDia = 24 * 60 * 60 * 1000; // milisegundos en un día
+      const diferencia = Math.abs(fecha2 - fecha1);
+      return Math.floor(diferencia / unDia);
+    }
+
+    // Función para actualizar el estado del badge
+    function actualizarEstadoBadge(badge) {
+      const fechaVentaStr = badge.getAttribute('data-fecha-venta');
+      if (!fechaVentaStr || fechaVentaStr === '') {
+        return; // No hay fecha, mantener estado actual
+      }
+
+      // Parsear fecha (formato: YYYY-MM-DD)
+      const [año, mes, dia] = fechaVentaStr.split('-').map(Number);
+      const fechaVenta = new Date(año, mes - 1, dia);
+      const fechaActual = new Date();
+      
+      // Resetear a inicio del día para comparación precisa
+      fechaVenta.setHours(0, 0, 0, 0);
+      fechaActual.setHours(0, 0, 0, 0);
+
+      const diasDesdeVenta = calcularDiasEntreFechas(fechaVenta, fechaActual);
+
+      // Determinar nuevo estado
+      let nuevoEstado, nuevoIcono, nuevoTexto, nuevaClase;
+
+      if (diasDesdeVenta < 2) {
+        nuevoEstado = 'procesando';
+        nuevoIcono = 'bx-time-five';
+        nuevoTexto = 'Procesando';
+        nuevaClase = 'status-procesado';
+      } else if (diasDesdeVenta < 7) {
+        nuevoEstado = 'enviado';
+        nuevoIcono = 'bx-truck';
+        nuevoTexto = 'Enviado';
+        nuevaClase = 'status-enviado';
+      } else {
+        nuevoEstado = 'entregado';
+        nuevoIcono = 'bx-check-circle';
+        nuevoTexto = 'Entregado';
+        nuevaClase = 'status-entregado';
+      }
+
+      // Remover clases de estado anteriores
+      badge.classList.remove('status-procesado', 'status-enviado', 'status-entregado');
+      // Agregar nueva clase
+      badge.classList.add(nuevaClase);
+
+      // Actualizar contenido HTML
+      badge.innerHTML = `<i class='bx ${nuevoIcono}'></i> ${nuevoTexto}`;
+    }
+
+    // Función para actualizar el timeline
+    function actualizarTimeline(timelineContainer) {
+      const fechaVentaStr = timelineContainer.getAttribute('data-fecha-venta');
+      if (!fechaVentaStr || fechaVentaStr === '') {
+        return; // No hay fecha, mantener estado actual
+      }
+
+      // Parsear fecha (formato: YYYY-MM-DD)
+      const [año, mes, dia] = fechaVentaStr.split('-').map(Number);
+      const fechaVenta = new Date(año, mes - 1, dia);
+      const fechaActual = new Date();
+      
+      // Resetear a inicio del día para comparación precisa
+      fechaVenta.setHours(0, 0, 0, 0);
+      fechaActual.setHours(0, 0, 0, 0);
+
+      const diasDesdeVenta = calcularDiasEntreFechas(fechaVenta, fechaActual);
+
+      // Obtener todos los items del timeline
+      const items = timelineContainer.querySelectorAll('.timeline-item-dynamic');
+      
+      items.forEach(item => {
+        const step = item.getAttribute('data-timeline-step');
+        item.classList.remove('active', 'completed');
+        
+        if (step === 'procesando') {
+          if (diasDesdeVenta < 2) {
+            item.classList.add('active');
+          } else {
+            item.classList.add('completed');
+          }
+        } else if (step === 'enviado') {
+          if (diasDesdeVenta >= 2 && diasDesdeVenta < 7) {
+            item.classList.add('active');
+            item.style.display = 'block';
+          } else if (diasDesdeVenta >= 2) {
+            item.classList.add('completed');
+            item.style.display = 'block';
+          } else {
+            item.style.display = 'none';
+          }
+        } else if (step === 'entregado') {
+          if (diasDesdeVenta >= 7) {
+            item.classList.add('completed');
+            item.style.display = 'block';
+          } else {
+            item.style.display = 'none';
+          }
+        }
+      });
+    }
+
+    // Función para actualizar todos los estados
+    function actualizarEstados() {
+      // Actualizar badges de estado
+      const badges = document.querySelectorAll('.status-badge-dynamic');
+      badges.forEach(actualizarEstadoBadge);
+      
+      // Actualizar timeline
+      const timelineContainers = document.querySelectorAll('.timeline-container-dynamic');
+      timelineContainers.forEach(container => {
+        actualizarTimeline(container);
+      });
+    }
+
+    // Actualizar estados al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+      actualizarEstados();
+      
+      // Actualizar estados cada minuto (60000 ms)
+      setInterval(actualizarEstados, 60000);
+      
+      console.log('🔄 Actualización automática de estados activada (cada 1 minuto)');
+    });
+  </script>
 </body>
 </html>
 
