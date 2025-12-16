@@ -35,50 +35,83 @@ public class ReporteService {
         
         PDPageContentStream contentStream = new PDPageContentStream(document, page);
         
-        // Título
+        // Encabezado con fondo Technova
+        float headerColorR = 102.0f / 255.0f;
+        float headerColorG = 126.0f / 255.0f;
+        float headerColorB = 234.0f / 255.0f;
+        
+        contentStream.setNonStrokingColor(headerColorR, headerColorG, headerColorB);
+        contentStream.addRect(0, 750, 595, 60);
+        contentStream.fill();
+        
+        // Título en blanco
+        contentStream.setNonStrokingColor(1.0f, 1.0f, 1.0f);
         contentStream.beginText();
-        contentStream.setFont(fontBold, 16);
-        contentStream.newLineAtOffset(50, 750);
+        contentStream.setFont(fontBold, 20);
+        contentStream.newLineAtOffset(50, 775);
         contentStream.showText("REPORTE DE PRODUCTOS");
         contentStream.endText();
 
         // Fecha
         String fecha = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
         contentStream.beginText();
-        contentStream.setFont(font, 10);
-        contentStream.newLineAtOffset(50, 730);
-        contentStream.showText("Fecha: " + fecha);
+        contentStream.setFont(font, 11);
+        contentStream.newLineAtOffset(50, 755);
+        contentStream.showText("Fecha de generación: " + fecha);
+        contentStream.endText();
+        
+        // Total de productos
+        contentStream.beginText();
+        contentStream.setFont(font, 11);
+        contentStream.newLineAtOffset(50, 740);
+        contentStream.showText("Total de productos: " + productos.size());
         contentStream.endText();
 
-        // Encabezados de tabla
+        // Encabezados de tabla con fondo
+        float yHeader = 700;
+        contentStream.setNonStrokingColor(headerColorR, headerColorG, headerColorB);
+        contentStream.addRect(50, yHeader - 15, 500, 20);
+        contentStream.fill();
+        
+        contentStream.setNonStrokingColor(1.0f, 1.0f, 1.0f);
         contentStream.beginText();
         contentStream.setFont(fontBold, 10);
-        contentStream.newLineAtOffset(50, 700);
+        contentStream.newLineAtOffset(55, yHeader - 5);
         contentStream.showText("ID");
         contentStream.endText();
         
         contentStream.beginText();
-        contentStream.newLineAtOffset(80, 700);
+        contentStream.newLineAtOffset(90, yHeader - 5);
         contentStream.showText("Nombre");
         contentStream.endText();
         
         contentStream.beginText();
-        contentStream.newLineAtOffset(250, 700);
+        contentStream.newLineAtOffset(250, yHeader - 5);
         contentStream.showText("Categoría");
         contentStream.endText();
         
         contentStream.beginText();
-        contentStream.newLineAtOffset(350, 700);
+        contentStream.newLineAtOffset(350, yHeader - 5);
         contentStream.showText("Marca");
         contentStream.endText();
         
         contentStream.beginText();
-        contentStream.newLineAtOffset(450, 700);
+        contentStream.newLineAtOffset(450, yHeader - 5);
         contentStream.showText("Precio");
         contentStream.endText();
 
-        // Datos
-        int y = 680;
+        // Línea separadora
+        contentStream.setStrokingColor(headerColorR, headerColorG, headerColorB);
+        contentStream.setLineWidth(1);
+        contentStream.moveTo(50, yHeader - 15);
+        contentStream.lineTo(550, yHeader - 15);
+        contentStream.stroke();
+
+        // Datos con filas alternadas
+        float y = 680;
+        boolean alternate = false;
+        float lightGray = 248.0f / 255.0f;
+        
         for (ProductoDto producto : productos) {
             if (y < 50) {
                 contentStream.close();
@@ -86,39 +119,80 @@ public class ReporteService {
                 document.addPage(page);
                 contentStream = new PDPageContentStream(document, page);
                 y = 750;
+                alternate = false;
             }
 
+            // Fondo alternado
+            if (alternate) {
+                contentStream.setNonStrokingColor(lightGray, lightGray, lightGray);
+                contentStream.addRect(50, y - 12, 500, 15);
+                contentStream.fill();
+            }
+            alternate = !alternate;
+
+            // Borde de fila
+            contentStream.setStrokingColor(0.8f, 0.8f, 0.8f);
+            contentStream.setLineWidth(0.5f);
+            contentStream.addRect(50, y - 12, 500, 15);
+            contentStream.stroke();
+
+            contentStream.setNonStrokingColor(0.0f, 0.0f, 0.0f);
             contentStream.beginText();
             contentStream.setFont(font, 9);
-            contentStream.newLineAtOffset(50, y);
+            contentStream.newLineAtOffset(55, y - 5);
             contentStream.showText(String.valueOf(producto.getId()));
             contentStream.endText();
 
+            String nombre = producto.getNombre() != null ? producto.getNombre() : "N/A";
+            if (nombre.length() > 25) nombre = nombre.substring(0, 22) + "...";
             contentStream.beginText();
-            contentStream.newLineAtOffset(80, y);
-            contentStream.showText(producto.getNombre() != null ? producto.getNombre() : "N/A");
+            contentStream.newLineAtOffset(90, y - 5);
+            contentStream.showText(nombre);
             contentStream.endText();
 
+            String categoria = producto.getCaracteristica() != null && producto.getCaracteristica().getCategoria() != null 
+                    ? producto.getCaracteristica().getCategoria() : "N/A";
+            if (categoria.length() > 15) categoria = categoria.substring(0, 12) + "...";
             contentStream.beginText();
-            contentStream.newLineAtOffset(250, y);
-            contentStream.showText(producto.getCaracteristica() != null && producto.getCaracteristica().getCategoria() != null 
-                    ? producto.getCaracteristica().getCategoria() : "N/A");
+            contentStream.newLineAtOffset(250, y - 5);
+            contentStream.showText(categoria);
             contentStream.endText();
 
+            String marca = producto.getCaracteristica() != null && producto.getCaracteristica().getMarca() != null 
+                    ? producto.getCaracteristica().getMarca() : "N/A";
+            if (marca.length() > 15) marca = marca.substring(0, 12) + "...";
             contentStream.beginText();
-            contentStream.newLineAtOffset(350, y);
-            contentStream.showText(producto.getCaracteristica() != null && producto.getCaracteristica().getMarca() != null 
-                    ? producto.getCaracteristica().getMarca() : "N/A");
+            contentStream.newLineAtOffset(350, y - 5);
+            contentStream.showText(marca);
             contentStream.endText();
 
+            String precio = producto.getCaracteristica() != null && producto.getCaracteristica().getPrecioVenta() != null 
+                    ? "$" + String.format("%.0f", producto.getCaracteristica().getPrecioVenta().doubleValue()) : "N/A";
+            contentStream.setNonStrokingColor(39.0f / 255.0f, 174.0f / 255.0f, 96.0f / 255.0f);
             contentStream.beginText();
-            contentStream.newLineAtOffset(450, y);
-            contentStream.showText(producto.getCaracteristica() != null && producto.getCaracteristica().getPrecioVenta() != null 
-                    ? producto.getCaracteristica().getPrecioVenta().toString() : "N/A");
+            contentStream.setFont(fontBold, 9);
+            contentStream.newLineAtOffset(450, y - 5);
+            contentStream.showText(precio);
             contentStream.endText();
 
-            y -= 20;
+            y -= 15;
         }
+
+        // Pie de página
+        y -= 20;
+        contentStream.setStrokingColor(0.7f, 0.7f, 0.7f);
+        contentStream.setLineWidth(1);
+        contentStream.moveTo(50, y);
+        contentStream.lineTo(550, y);
+        contentStream.stroke();
+        
+        y -= 15;
+        contentStream.setNonStrokingColor(0.5f, 0.5f, 0.5f);
+        contentStream.beginText();
+        contentStream.setFont(font, 8);
+        contentStream.newLineAtOffset(50, y);
+        contentStream.showText("Reporte generado por Technova - Sistema de Gestión");
+        contentStream.endText();
 
         contentStream.close();
 
@@ -133,17 +207,58 @@ public class ReporteService {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Productos");
 
-        // Estilo para encabezados
+        // Estilo para encabezados con colores Technova
         CellStyle headerStyle = workbook.createCellStyle();
         Font headerFont = workbook.createFont();
         headerFont.setBold(true);
         headerFont.setFontHeightInPoints((short) 12);
+        headerFont.setColor(IndexedColors.WHITE.getIndex());
         headerStyle.setFont(headerFont);
-        headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        headerStyle.setFillForegroundColor(IndexedColors.DARK_BLUE.getIndex());
         headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        headerStyle.setAlignment(HorizontalAlignment.CENTER);
+        headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        headerStyle.setBorderTop(BorderStyle.THIN);
+        headerStyle.setBorderBottom(BorderStyle.THIN);
+        headerStyle.setBorderLeft(BorderStyle.THIN);
+        headerStyle.setBorderRight(BorderStyle.THIN);
+        headerStyle.setTopBorderColor(IndexedColors.BLACK.getIndex());
+        headerStyle.setBottomBorderColor(IndexedColors.BLACK.getIndex());
+        headerStyle.setLeftBorderColor(IndexedColors.BLACK.getIndex());
+        headerStyle.setRightBorderColor(IndexedColors.BLACK.getIndex());
+
+        // Estilo para datos
+        CellStyle dataStyle = workbook.createCellStyle();
+        dataStyle.setBorderTop(BorderStyle.THIN);
+        dataStyle.setBorderBottom(BorderStyle.THIN);
+        dataStyle.setBorderLeft(BorderStyle.THIN);
+        dataStyle.setBorderRight(BorderStyle.THIN);
+        dataStyle.setTopBorderColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        dataStyle.setBottomBorderColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        dataStyle.setLeftBorderColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        dataStyle.setRightBorderColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        dataStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
+        // Estilo para filas alternadas
+        CellStyle alternateStyle = workbook.createCellStyle();
+        alternateStyle.cloneStyleFrom(dataStyle);
+        alternateStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        alternateStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+        // Estilo para precio (moneda)
+        CellStyle priceStyle = workbook.createCellStyle();
+        priceStyle.cloneStyleFrom(dataStyle);
+        DataFormat format = workbook.createDataFormat();
+        priceStyle.setDataFormat(format.getFormat("$#,##0"));
+        priceStyle.setAlignment(HorizontalAlignment.RIGHT);
+        Font priceFont = workbook.createFont();
+        priceFont.setBold(true);
+        priceFont.setColor(IndexedColors.DARK_GREEN.getIndex());
+        priceStyle.setFont(priceFont);
 
         // Crear encabezados
         Row headerRow = sheet.createRow(0);
+        headerRow.setHeightInPoints(20);
         String[] headers = {"ID", "Nombre", "Categoría", "Marca", "Precio Venta", "Stock"};
         for (int i = 0; i < headers.length; i++) {
             Cell cell = headerRow.createCell(i);
@@ -155,20 +270,52 @@ public class ReporteService {
         int rowNum = 1;
         for (ProductoDto producto : productos) {
             Row row = sheet.createRow(rowNum++);
-            row.createCell(0).setCellValue(producto.getId());
-            row.createCell(1).setCellValue(producto.getNombre() != null ? producto.getNombre() : "N/A");
-            row.createCell(2).setCellValue(producto.getCaracteristica() != null && producto.getCaracteristica().getCategoria() != null 
+            row.setHeightInPoints(18);
+            
+            boolean isAlternate = (rowNum % 2 == 0);
+            CellStyle currentStyle = isAlternate ? alternateStyle : dataStyle;
+            
+            Cell cell0 = row.createCell(0);
+            cell0.setCellValue(producto.getId());
+            cell0.setCellStyle(currentStyle);
+            
+            Cell cell1 = row.createCell(1);
+            cell1.setCellValue(producto.getNombre() != null ? producto.getNombre() : "N/A");
+            cell1.setCellStyle(currentStyle);
+            
+            Cell cell2 = row.createCell(2);
+            cell2.setCellValue(producto.getCaracteristica() != null && producto.getCaracteristica().getCategoria() != null 
                     ? producto.getCaracteristica().getCategoria() : "N/A");
-            row.createCell(3).setCellValue(producto.getCaracteristica() != null && producto.getCaracteristica().getMarca() != null 
+            cell2.setCellStyle(currentStyle);
+            
+            Cell cell3 = row.createCell(3);
+            cell3.setCellValue(producto.getCaracteristica() != null && producto.getCaracteristica().getMarca() != null 
                     ? producto.getCaracteristica().getMarca() : "N/A");
-            row.createCell(4).setCellValue(producto.getCaracteristica() != null && producto.getCaracteristica().getPrecioVenta() != null 
-                    ? producto.getCaracteristica().getPrecioVenta().doubleValue() : 0);
-            row.createCell(5).setCellValue(producto.getStock() != null ? producto.getStock() : 0);
+            cell3.setCellStyle(currentStyle);
+            
+            Cell cell4 = row.createCell(4);
+            double precio = producto.getCaracteristica() != null && producto.getCaracteristica().getPrecioVenta() != null 
+                    ? producto.getCaracteristica().getPrecioVenta().doubleValue() : 0;
+            cell4.setCellValue(precio);
+            CellStyle priceCellStyle = workbook.createCellStyle();
+            priceCellStyle.cloneStyleFrom(isAlternate ? alternateStyle : dataStyle);
+            priceCellStyle.setDataFormat(format.getFormat("$#,##0"));
+            priceCellStyle.setAlignment(HorizontalAlignment.RIGHT);
+            Font priceFontCell = workbook.createFont();
+            priceFontCell.setBold(true);
+            priceFontCell.setColor(IndexedColors.DARK_GREEN.getIndex());
+            priceCellStyle.setFont(priceFontCell);
+            cell4.setCellStyle(priceCellStyle);
+            
+            Cell cell5 = row.createCell(5);
+            cell5.setCellValue(producto.getStock() != null ? producto.getStock() : 0);
+            cell5.setCellStyle(currentStyle);
         }
 
         // Autoajustar columnas
         for (int i = 0; i < headers.length; i++) {
             sheet.autoSizeColumn(i);
+            sheet.setColumnWidth(i, sheet.getColumnWidth(i) + 1000);
         }
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -182,15 +329,71 @@ public class ReporteService {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Usuarios");
 
+        // Estilo para encabezados
         CellStyle headerStyle = workbook.createCellStyle();
         Font headerFont = workbook.createFont();
         headerFont.setBold(true);
         headerFont.setFontHeightInPoints((short) 12);
+        headerFont.setColor(IndexedColors.WHITE.getIndex());
         headerStyle.setFont(headerFont);
-        headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        headerStyle.setFillForegroundColor(IndexedColors.DARK_BLUE.getIndex());
         headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        headerStyle.setAlignment(HorizontalAlignment.CENTER);
+        headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        headerStyle.setBorderTop(BorderStyle.THIN);
+        headerStyle.setBorderBottom(BorderStyle.THIN);
+        headerStyle.setBorderLeft(BorderStyle.THIN);
+        headerStyle.setBorderRight(BorderStyle.THIN);
+        headerStyle.setTopBorderColor(IndexedColors.BLACK.getIndex());
+        headerStyle.setBottomBorderColor(IndexedColors.BLACK.getIndex());
+        headerStyle.setLeftBorderColor(IndexedColors.BLACK.getIndex());
+        headerStyle.setRightBorderColor(IndexedColors.BLACK.getIndex());
+
+        // Estilo para datos
+        CellStyle dataStyle = workbook.createCellStyle();
+        dataStyle.setBorderTop(BorderStyle.THIN);
+        dataStyle.setBorderBottom(BorderStyle.THIN);
+        dataStyle.setBorderLeft(BorderStyle.THIN);
+        dataStyle.setBorderRight(BorderStyle.THIN);
+        dataStyle.setTopBorderColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        dataStyle.setBottomBorderColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        dataStyle.setLeftBorderColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        dataStyle.setRightBorderColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        dataStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
+        // Estilo para filas alternadas
+        CellStyle alternateStyle = workbook.createCellStyle();
+        alternateStyle.cloneStyleFrom(dataStyle);
+        alternateStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        alternateStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+        // Estilo para rol (con colores)
+        CellStyle rolAdminStyle = workbook.createCellStyle();
+        rolAdminStyle.cloneStyleFrom(dataStyle);
+        Font rolAdminFont = workbook.createFont();
+        rolAdminFont.setBold(true);
+        rolAdminFont.setColor(IndexedColors.RED.getIndex());
+        rolAdminStyle.setFont(rolAdminFont);
+        rolAdminStyle.setAlignment(HorizontalAlignment.CENTER);
+
+        CellStyle rolEmpleadoStyle = workbook.createCellStyle();
+        rolEmpleadoStyle.cloneStyleFrom(dataStyle);
+        Font rolEmpleadoFont = workbook.createFont();
+        rolEmpleadoFont.setBold(true);
+        rolEmpleadoFont.setColor(IndexedColors.BLUE.getIndex());
+        rolEmpleadoStyle.setFont(rolEmpleadoFont);
+        rolEmpleadoStyle.setAlignment(HorizontalAlignment.CENTER);
+
+        CellStyle rolClienteStyle = workbook.createCellStyle();
+        rolClienteStyle.cloneStyleFrom(dataStyle);
+        Font rolClienteFont = workbook.createFont();
+        rolClienteFont.setBold(true);
+        rolClienteFont.setColor(IndexedColors.DARK_GREEN.getIndex());
+        rolClienteStyle.setFont(rolClienteFont);
+        rolClienteStyle.setAlignment(HorizontalAlignment.CENTER);
 
         Row headerRow = sheet.createRow(0);
+        headerRow.setHeightInPoints(20);
         String[] headers = {"ID", "Nombre", "Email", "Rol", "Tipo Documento", "Número Documento"};
         for (int i = 0; i < headers.length; i++) {
             Cell cell = headerRow.createCell(i);
@@ -201,16 +404,59 @@ public class ReporteService {
         int rowNum = 1;
         for (UsuarioDto usuario : usuarios) {
             Row row = sheet.createRow(rowNum++);
-            row.createCell(0).setCellValue(usuario.getId());
-            row.createCell(1).setCellValue(usuario.getName() != null ? usuario.getName() : "N/A");
-            row.createCell(2).setCellValue(usuario.getEmail() != null ? usuario.getEmail() : "N/A");
-            row.createCell(3).setCellValue(usuario.getRole() != null ? usuario.getRole() : "N/A");
-            row.createCell(4).setCellValue(usuario.getDocumentType() != null ? usuario.getDocumentType() : "N/A");
-            row.createCell(5).setCellValue(usuario.getDocumentNumber() != null ? usuario.getDocumentNumber() : "N/A");
+            row.setHeightInPoints(18);
+            
+            boolean isAlternate = (rowNum % 2 == 0);
+            CellStyle currentStyle = isAlternate ? alternateStyle : dataStyle;
+            
+            Cell cell0 = row.createCell(0);
+            cell0.setCellValue(usuario.getId());
+            cell0.setCellStyle(currentStyle);
+            
+            Cell cell1 = row.createCell(1);
+            cell1.setCellValue(usuario.getName() != null ? usuario.getName() : "N/A");
+            cell1.setCellStyle(currentStyle);
+            
+            Cell cell2 = row.createCell(2);
+            cell2.setCellValue(usuario.getEmail() != null ? usuario.getEmail() : "N/A");
+            cell2.setCellStyle(currentStyle);
+            
+            Cell cell3 = row.createCell(3);
+            String rol = usuario.getRole() != null ? usuario.getRole() : "N/A";
+            cell3.setCellValue(rol.toUpperCase());
+            // Aplicar estilo según rol
+            if ("admin".equalsIgnoreCase(rol)) {
+                CellStyle rolStyle = workbook.createCellStyle();
+                rolStyle.cloneStyleFrom(isAlternate ? alternateStyle : dataStyle);
+                rolStyle.setFont(rolAdminFont);
+                rolStyle.setAlignment(HorizontalAlignment.CENTER);
+                cell3.setCellStyle(rolStyle);
+            } else if ("empleado".equalsIgnoreCase(rol)) {
+                CellStyle rolStyle = workbook.createCellStyle();
+                rolStyle.cloneStyleFrom(isAlternate ? alternateStyle : dataStyle);
+                rolStyle.setFont(rolEmpleadoFont);
+                rolStyle.setAlignment(HorizontalAlignment.CENTER);
+                cell3.setCellStyle(rolStyle);
+            } else {
+                CellStyle rolStyle = workbook.createCellStyle();
+                rolStyle.cloneStyleFrom(isAlternate ? alternateStyle : dataStyle);
+                rolStyle.setFont(rolClienteFont);
+                rolStyle.setAlignment(HorizontalAlignment.CENTER);
+                cell3.setCellStyle(rolStyle);
+            }
+            
+            Cell cell4 = row.createCell(4);
+            cell4.setCellValue(usuario.getDocumentType() != null ? usuario.getDocumentType() : "N/A");
+            cell4.setCellStyle(currentStyle);
+            
+            Cell cell5 = row.createCell(5);
+            cell5.setCellValue(usuario.getDocumentNumber() != null ? usuario.getDocumentNumber() : "N/A");
+            cell5.setCellStyle(currentStyle);
         }
 
         for (int i = 0; i < headers.length; i++) {
             sheet.autoSizeColumn(i);
+            sheet.setColumnWidth(i, sheet.getColumnWidth(i) + 1000);
         }
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -224,16 +470,63 @@ public class ReporteService {
         Workbook workbook = new XSSFWorkbook();
         Sheet sheet = workbook.createSheet("Ventas");
 
+        // Estilo para encabezados
         CellStyle headerStyle = workbook.createCellStyle();
         Font headerFont = workbook.createFont();
         headerFont.setBold(true);
         headerFont.setFontHeightInPoints((short) 12);
+        headerFont.setColor(IndexedColors.WHITE.getIndex());
         headerStyle.setFont(headerFont);
-        headerStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        headerStyle.setFillForegroundColor(IndexedColors.DARK_GREEN.getIndex());
         headerStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        headerStyle.setAlignment(HorizontalAlignment.CENTER);
+        headerStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+        headerStyle.setBorderTop(BorderStyle.THIN);
+        headerStyle.setBorderBottom(BorderStyle.THIN);
+        headerStyle.setBorderLeft(BorderStyle.THIN);
+        headerStyle.setBorderRight(BorderStyle.THIN);
+        headerStyle.setTopBorderColor(IndexedColors.BLACK.getIndex());
+        headerStyle.setBottomBorderColor(IndexedColors.BLACK.getIndex());
+        headerStyle.setLeftBorderColor(IndexedColors.BLACK.getIndex());
+        headerStyle.setRightBorderColor(IndexedColors.BLACK.getIndex());
+
+        // Estilo para datos
+        CellStyle dataStyle = workbook.createCellStyle();
+        dataStyle.setBorderTop(BorderStyle.THIN);
+        dataStyle.setBorderBottom(BorderStyle.THIN);
+        dataStyle.setBorderLeft(BorderStyle.THIN);
+        dataStyle.setBorderRight(BorderStyle.THIN);
+        dataStyle.setTopBorderColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        dataStyle.setBottomBorderColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        dataStyle.setLeftBorderColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        dataStyle.setRightBorderColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        dataStyle.setVerticalAlignment(VerticalAlignment.CENTER);
+
+        // Estilo para filas alternadas
+        CellStyle alternateStyle = workbook.createCellStyle();
+        alternateStyle.cloneStyleFrom(dataStyle);
+        alternateStyle.setFillForegroundColor(IndexedColors.GREY_25_PERCENT.getIndex());
+        alternateStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+
+        // Estilo para total (moneda)
+        DataFormat format = workbook.createDataFormat();
+        CellStyle totalStyle = workbook.createCellStyle();
+        totalStyle.cloneStyleFrom(dataStyle);
+        totalStyle.setDataFormat(format.getFormat("$#,##0"));
+        totalStyle.setAlignment(HorizontalAlignment.RIGHT);
+        Font totalFont = workbook.createFont();
+        totalFont.setBold(true);
+        totalFont.setColor(IndexedColors.DARK_GREEN.getIndex());
+        totalStyle.setFont(totalFont);
+
+        // Estilo para fecha
+        CellStyle dateStyle = workbook.createCellStyle();
+        dateStyle.cloneStyleFrom(dataStyle);
+        dateStyle.setDataFormat(format.getFormat("dd/mm/yyyy"));
 
         Row headerRow = sheet.createRow(0);
-        String[] headers = {"ID", "Usuario ID", "Fecha", "Total", "Items"};
+        headerRow.setHeightInPoints(20);
+        String[] headers = {"ID", "Usuario ID", "Fecha", "Items", "Total"};
         for (int i = 0; i < headers.length; i++) {
             Cell cell = headerRow.createCell(i);
             cell.setCellValue(headers[i]);
@@ -243,15 +536,87 @@ public class ReporteService {
         int rowNum = 1;
         for (VentaDto venta : ventas) {
             Row row = sheet.createRow(rowNum++);
-            row.createCell(0).setCellValue(venta.getVentaId() != null ? venta.getVentaId() : 0);
-            row.createCell(1).setCellValue(venta.getUsuarioId() != null ? venta.getUsuarioId() : 0);
-            row.createCell(2).setCellValue(venta.getFechaVenta() != null ? venta.getFechaVenta().toString() : "N/A");
-            row.createCell(3).setCellValue(venta.getTotal() != null ? venta.getTotal().doubleValue() : 0);
-            row.createCell(4).setCellValue(venta.getItems() != null ? venta.getItems().size() : 0);
+            row.setHeightInPoints(18);
+            
+            boolean isAlternate = (rowNum % 2 == 0);
+            CellStyle currentStyle = isAlternate ? alternateStyle : dataStyle;
+            
+            Cell cell0 = row.createCell(0);
+            cell0.setCellValue(venta.getVentaId() != null ? venta.getVentaId() : 0);
+            cell0.setCellStyle(currentStyle);
+            
+            Cell cell1 = row.createCell(1);
+            cell1.setCellValue(venta.getUsuarioId() != null ? venta.getUsuarioId() : 0);
+            cell1.setCellStyle(currentStyle);
+            
+            Cell cell2 = row.createCell(2);
+            if (venta.getFechaVenta() != null) {
+                cell2.setCellValue(venta.getFechaVenta().toString());
+            } else {
+                cell2.setCellValue("N/A");
+            }
+            CellStyle dateCellStyle = workbook.createCellStyle();
+            dateCellStyle.cloneStyleFrom(isAlternate ? alternateStyle : dataStyle);
+            dateCellStyle.setDataFormat(format.getFormat("dd/mm/yyyy"));
+            cell2.setCellStyle(dateCellStyle);
+            
+            Cell cell3 = row.createCell(3);
+            cell3.setCellValue(venta.getItems() != null ? venta.getItems().size() : 0);
+            cell3.setCellStyle(currentStyle);
+            
+            Cell cell4 = row.createCell(4);
+            double total = venta.getTotal() != null ? venta.getTotal().doubleValue() : 0;
+            cell4.setCellValue(total);
+            CellStyle totalCellStyle = workbook.createCellStyle();
+            totalCellStyle.cloneStyleFrom(isAlternate ? alternateStyle : dataStyle);
+            totalCellStyle.setDataFormat(format.getFormat("$#,##0"));
+            totalCellStyle.setAlignment(HorizontalAlignment.RIGHT);
+            Font totalFontCell = workbook.createFont();
+            totalFontCell.setBold(true);
+            totalFontCell.setColor(IndexedColors.DARK_GREEN.getIndex());
+            totalCellStyle.setFont(totalFontCell);
+            cell4.setCellStyle(totalCellStyle);
         }
+
+        // Agregar fila de totales
+        Row totalRow = sheet.createRow(rowNum);
+        totalRow.setHeightInPoints(22);
+        
+        Cell totalLabelCell = totalRow.createCell(3);
+        totalLabelCell.setCellValue("TOTAL:");
+        CellStyle totalLabelStyle = workbook.createCellStyle();
+        totalLabelStyle.setFont(headerFont);
+        totalLabelStyle.setFillForegroundColor(IndexedColors.GREY_40_PERCENT.getIndex());
+        totalLabelStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        totalLabelStyle.setAlignment(HorizontalAlignment.RIGHT);
+        totalLabelStyle.setBorderTop(BorderStyle.MEDIUM);
+        totalLabelStyle.setBorderBottom(BorderStyle.MEDIUM);
+        totalLabelStyle.setBorderLeft(BorderStyle.MEDIUM);
+        totalLabelStyle.setBorderRight(BorderStyle.MEDIUM);
+        totalLabelCell.setCellStyle(totalLabelStyle);
+        
+        BigDecimal totalGeneral = ventas.stream()
+                .filter(v -> v.getTotal() != null)
+                .map(VentaDto::getTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        Cell totalValueCell = totalRow.createCell(4);
+        totalValueCell.setCellValue(totalGeneral.doubleValue());
+        CellStyle totalValueStyle = workbook.createCellStyle();
+        totalValueStyle.setFont(headerFont);
+        totalValueStyle.setFillForegroundColor(IndexedColors.GREY_40_PERCENT.getIndex());
+        totalValueStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+        totalValueStyle.setDataFormat(format.getFormat("$#,##0"));
+        totalValueStyle.setAlignment(HorizontalAlignment.RIGHT);
+        totalValueStyle.setBorderTop(BorderStyle.MEDIUM);
+        totalValueStyle.setBorderBottom(BorderStyle.MEDIUM);
+        totalValueStyle.setBorderLeft(BorderStyle.MEDIUM);
+        totalValueStyle.setBorderRight(BorderStyle.MEDIUM);
+        totalValueCell.setCellStyle(totalValueStyle);
 
         for (int i = 0; i < headers.length; i++) {
             sheet.autoSizeColumn(i);
+            sheet.setColumnWidth(i, sheet.getColumnWidth(i) + 1000);
         }
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -271,45 +636,78 @@ public class ReporteService {
         
         PDPageContentStream contentStream = new PDPageContentStream(document, page);
         
-        // Título
+        // Encabezado con fondo Technova
+        float headerColorR = 118.0f / 255.0f;
+        float headerColorG = 75.0f / 255.0f;
+        float headerColorB = 162.0f / 255.0f;
+        
+        contentStream.setNonStrokingColor(headerColorR, headerColorG, headerColorB);
+        contentStream.addRect(0, 750, 595, 60);
+        contentStream.fill();
+        
+        // Título en blanco
+        contentStream.setNonStrokingColor(1.0f, 1.0f, 1.0f);
         contentStream.beginText();
-        contentStream.setFont(fontBold, 16);
-        contentStream.newLineAtOffset(50, 750);
+        contentStream.setFont(fontBold, 20);
+        contentStream.newLineAtOffset(50, 775);
         contentStream.showText("REPORTE DE USUARIOS");
         contentStream.endText();
 
         // Fecha
         String fecha = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
         contentStream.beginText();
-        contentStream.setFont(font, 10);
-        contentStream.newLineAtOffset(50, 730);
-        contentStream.showText("Fecha: " + fecha);
+        contentStream.setFont(font, 11);
+        contentStream.newLineAtOffset(50, 755);
+        contentStream.showText("Fecha de generación: " + fecha);
+        contentStream.endText();
+        
+        // Total de usuarios
+        contentStream.beginText();
+        contentStream.setFont(font, 11);
+        contentStream.newLineAtOffset(50, 740);
+        contentStream.showText("Total de usuarios: " + usuarios.size());
         contentStream.endText();
 
-        // Encabezados
+        // Encabezados de tabla con fondo
+        float yHeader = 700;
+        contentStream.setNonStrokingColor(headerColorR, headerColorG, headerColorB);
+        contentStream.addRect(50, yHeader - 15, 500, 20);
+        contentStream.fill();
+        
+        contentStream.setNonStrokingColor(1.0f, 1.0f, 1.0f);
         contentStream.beginText();
         contentStream.setFont(fontBold, 10);
-        contentStream.newLineAtOffset(50, 700);
+        contentStream.newLineAtOffset(55, yHeader - 5);
         contentStream.showText("ID");
         contentStream.endText();
         
         contentStream.beginText();
-        contentStream.newLineAtOffset(80, 700);
+        contentStream.newLineAtOffset(90, yHeader - 5);
         contentStream.showText("Nombre");
         contentStream.endText();
         
         contentStream.beginText();
-        contentStream.newLineAtOffset(250, 700);
+        contentStream.newLineAtOffset(250, yHeader - 5);
         contentStream.showText("Email");
         contentStream.endText();
         
         contentStream.beginText();
-        contentStream.newLineAtOffset(400, 700);
+        contentStream.newLineAtOffset(400, yHeader - 5);
         contentStream.showText("Rol");
         contentStream.endText();
 
-        // Datos
-        int y = 680;
+        // Línea separadora
+        contentStream.setStrokingColor(headerColorR, headerColorG, headerColorB);
+        contentStream.setLineWidth(1);
+        contentStream.moveTo(50, yHeader - 15);
+        contentStream.lineTo(550, yHeader - 15);
+        contentStream.stroke();
+
+        // Datos con filas alternadas
+        float y = 680;
+        boolean alternate = false;
+        float lightGray = 248.0f / 255.0f;
+        
         for (UsuarioDto usuario : usuarios) {
             if (y < 50) {
                 contentStream.close();
@@ -317,33 +715,77 @@ public class ReporteService {
                 document.addPage(page);
                 contentStream = new PDPageContentStream(document, page);
                 y = 750;
+                alternate = false;
             }
 
+            // Fondo alternado
+            if (alternate) {
+                contentStream.setNonStrokingColor(lightGray, lightGray, lightGray);
+                contentStream.addRect(50, y - 12, 500, 15);
+                contentStream.fill();
+            }
+            alternate = !alternate;
+
+            // Borde de fila
+            contentStream.setStrokingColor(0.8f, 0.8f, 0.8f);
+            contentStream.setLineWidth(0.5f);
+            contentStream.addRect(50, y - 12, 500, 15);
+            contentStream.stroke();
+
+            contentStream.setNonStrokingColor(0.0f, 0.0f, 0.0f);
             contentStream.beginText();
             contentStream.setFont(font, 9);
-            contentStream.newLineAtOffset(50, y);
+            contentStream.newLineAtOffset(55, y - 5);
             contentStream.showText(String.valueOf(usuario.getId()));
             contentStream.endText();
 
-            contentStream.beginText();
-            contentStream.newLineAtOffset(80, y);
             String nombre = usuario.getName() != null ? usuario.getName() : "N/A";
-            contentStream.showText(nombre.length() > 20 ? nombre.substring(0, 20) : nombre);
+            if (nombre.length() > 25) nombre = nombre.substring(0, 22) + "...";
+            contentStream.beginText();
+            contentStream.newLineAtOffset(90, y - 5);
+            contentStream.showText(nombre);
             contentStream.endText();
 
-            contentStream.beginText();
-            contentStream.newLineAtOffset(250, y);
             String email = usuario.getEmail() != null ? usuario.getEmail() : "N/A";
-            contentStream.showText(email.length() > 25 ? email.substring(0, 25) : email);
-            contentStream.endText();
-
+            if (email.length() > 30) email = email.substring(0, 27) + "...";
             contentStream.beginText();
-            contentStream.newLineAtOffset(400, y);
-            contentStream.showText(usuario.getRole() != null ? usuario.getRole() : "N/A");
+            contentStream.newLineAtOffset(250, y - 5);
+            contentStream.showText(email);
             contentStream.endText();
 
-            y -= 20;
+            String rol = usuario.getRole() != null ? usuario.getRole() : "N/A";
+            // Color según rol
+            if ("admin".equalsIgnoreCase(rol)) {
+                contentStream.setNonStrokingColor(231.0f / 255.0f, 76.0f / 255.0f, 60.0f / 255.0f);
+            } else if ("empleado".equalsIgnoreCase(rol)) {
+                contentStream.setNonStrokingColor(52.0f / 255.0f, 152.0f / 255.0f, 219.0f / 255.0f);
+            } else {
+                contentStream.setNonStrokingColor(39.0f / 255.0f, 174.0f / 255.0f, 96.0f / 255.0f);
+            }
+            contentStream.beginText();
+            contentStream.setFont(fontBold, 9);
+            contentStream.newLineAtOffset(400, y - 5);
+            contentStream.showText(rol.toUpperCase());
+            contentStream.endText();
+
+            y -= 15;
         }
+
+        // Pie de página
+        y -= 20;
+        contentStream.setStrokingColor(0.7f, 0.7f, 0.7f);
+        contentStream.setLineWidth(1);
+        contentStream.moveTo(50, y);
+        contentStream.lineTo(550, y);
+        contentStream.stroke();
+        
+        y -= 15;
+        contentStream.setNonStrokingColor(0.5f, 0.5f, 0.5f);
+        contentStream.beginText();
+        contentStream.setFont(font, 8);
+        contentStream.newLineAtOffset(50, y);
+        contentStream.showText("Reporte generado por Technova - Sistema de Gestión");
+        contentStream.endText();
 
         contentStream.close();
 
@@ -364,45 +806,89 @@ public class ReporteService {
         
         PDPageContentStream contentStream = new PDPageContentStream(document, page);
         
-        // Título
+        // Encabezado con fondo Technova
+        float headerColorR = 39.0f / 255.0f;
+        float headerColorG = 174.0f / 255.0f;
+        float headerColorB = 96.0f / 255.0f;
+        
+        contentStream.setNonStrokingColor(headerColorR, headerColorG, headerColorB);
+        contentStream.addRect(0, 750, 595, 60);
+        contentStream.fill();
+        
+        // Título en blanco
+        contentStream.setNonStrokingColor(1.0f, 1.0f, 1.0f);
         contentStream.beginText();
-        contentStream.setFont(fontBold, 16);
-        contentStream.newLineAtOffset(50, 750);
+        contentStream.setFont(fontBold, 20);
+        contentStream.newLineAtOffset(50, 775);
         contentStream.showText("REPORTE DE VENTAS");
         contentStream.endText();
 
         // Fecha
         String fecha = LocalDateTime.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm"));
         contentStream.beginText();
-        contentStream.setFont(font, 10);
-        contentStream.newLineAtOffset(50, 730);
-        contentStream.showText("Fecha: " + fecha);
+        contentStream.setFont(font, 11);
+        contentStream.newLineAtOffset(50, 755);
+        contentStream.showText("Fecha de generación: " + fecha);
+        contentStream.endText();
+        
+        // Total de ventas y monto total
+        BigDecimal totalVentas = ventas.stream()
+                .filter(v -> v.getTotal() != null)
+                .map(VentaDto::getTotal)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        
+        contentStream.beginText();
+        contentStream.setFont(font, 11);
+        contentStream.newLineAtOffset(50, 740);
+        contentStream.showText("Total de ventas: " + ventas.size() + " | Monto total: $" + 
+                String.format("%.0f", totalVentas.doubleValue()));
         contentStream.endText();
 
-        // Encabezados
+        // Encabezados de tabla con fondo
+        float yHeader = 700;
+        contentStream.setNonStrokingColor(headerColorR, headerColorG, headerColorB);
+        contentStream.addRect(50, yHeader - 15, 500, 20);
+        contentStream.fill();
+        
+        contentStream.setNonStrokingColor(1.0f, 1.0f, 1.0f);
         contentStream.beginText();
         contentStream.setFont(fontBold, 10);
-        contentStream.newLineAtOffset(50, 700);
+        contentStream.newLineAtOffset(55, yHeader - 5);
         contentStream.showText("ID");
         contentStream.endText();
         
         contentStream.beginText();
-        contentStream.newLineAtOffset(80, 700);
+        contentStream.newLineAtOffset(90, yHeader - 5);
         contentStream.showText("Usuario ID");
         contentStream.endText();
         
         contentStream.beginText();
-        contentStream.newLineAtOffset(170, 700);
+        contentStream.newLineAtOffset(180, yHeader - 5);
         contentStream.showText("Fecha");
         contentStream.endText();
         
         contentStream.beginText();
-        contentStream.newLineAtOffset(300, 700);
+        contentStream.newLineAtOffset(300, yHeader - 5);
+        contentStream.showText("Items");
+        contentStream.endText();
+        
+        contentStream.beginText();
+        contentStream.newLineAtOffset(380, yHeader - 5);
         contentStream.showText("Total");
         contentStream.endText();
 
-        // Datos
-        int y = 680;
+        // Línea separadora
+        contentStream.setStrokingColor(headerColorR, headerColorG, headerColorB);
+        contentStream.setLineWidth(1);
+        contentStream.moveTo(50, yHeader - 15);
+        contentStream.lineTo(550, yHeader - 15);
+        contentStream.stroke();
+
+        // Datos con filas alternadas
+        float y = 680;
+        boolean alternate = false;
+        float lightGray = 248.0f / 255.0f;
+        
         for (VentaDto venta : ventas) {
             if (y < 50) {
                 contentStream.close();
@@ -410,31 +896,73 @@ public class ReporteService {
                 document.addPage(page);
                 contentStream = new PDPageContentStream(document, page);
                 y = 750;
+                alternate = false;
             }
 
+            // Fondo alternado
+            if (alternate) {
+                contentStream.setNonStrokingColor(lightGray, lightGray, lightGray);
+                contentStream.addRect(50, y - 12, 500, 15);
+                contentStream.fill();
+            }
+            alternate = !alternate;
+
+            // Borde de fila
+            contentStream.setStrokingColor(0.8f, 0.8f, 0.8f);
+            contentStream.setLineWidth(0.5f);
+            contentStream.addRect(50, y - 12, 500, 15);
+            contentStream.stroke();
+
+            contentStream.setNonStrokingColor(0.0f, 0.0f, 0.0f);
             contentStream.beginText();
             contentStream.setFont(font, 9);
-            contentStream.newLineAtOffset(50, y);
+            contentStream.newLineAtOffset(55, y - 5);
             contentStream.showText(String.valueOf(venta.getVentaId() != null ? venta.getVentaId() : "N/A"));
             contentStream.endText();
 
             contentStream.beginText();
-            contentStream.newLineAtOffset(80, y);
+            contentStream.newLineAtOffset(90, y - 5);
             contentStream.showText(String.valueOf(venta.getUsuarioId() != null ? venta.getUsuarioId() : "N/A"));
             contentStream.endText();
 
+            String fechaVenta = venta.getFechaVenta() != null ? venta.getFechaVenta().toString() : "N/A";
             contentStream.beginText();
-            contentStream.newLineAtOffset(170, y);
-            contentStream.showText(venta.getFechaVenta() != null ? venta.getFechaVenta().toString() : "N/A");
+            contentStream.newLineAtOffset(180, y - 5);
+            contentStream.showText(fechaVenta);
             contentStream.endText();
 
+            int items = venta.getItems() != null ? venta.getItems().size() : 0;
             contentStream.beginText();
-            contentStream.newLineAtOffset(300, y);
-            contentStream.showText(venta.getTotal() != null ? venta.getTotal().toString() : "N/A");
+            contentStream.newLineAtOffset(300, y - 5);
+            contentStream.showText(String.valueOf(items));
             contentStream.endText();
 
-            y -= 20;
+            String total = venta.getTotal() != null ? "$" + String.format("%.0f", venta.getTotal().doubleValue()) : "N/A";
+            contentStream.setNonStrokingColor(39.0f / 255.0f, 174.0f / 255.0f, 96.0f / 255.0f);
+            contentStream.beginText();
+            contentStream.setFont(fontBold, 9);
+            contentStream.newLineAtOffset(380, y - 5);
+            contentStream.showText(total);
+            contentStream.endText();
+
+            y -= 15;
         }
+
+        // Pie de página
+        y -= 20;
+        contentStream.setStrokingColor(0.7f, 0.7f, 0.7f);
+        contentStream.setLineWidth(1);
+        contentStream.moveTo(50, y);
+        contentStream.lineTo(550, y);
+        contentStream.stroke();
+        
+        y -= 15;
+        contentStream.setNonStrokingColor(0.5f, 0.5f, 0.5f);
+        contentStream.beginText();
+        contentStream.setFont(font, 8);
+        contentStream.newLineAtOffset(50, y);
+        contentStream.showText("Reporte generado por Technova - Sistema de Gestión");
+        contentStream.endText();
 
         contentStream.close();
 
