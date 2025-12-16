@@ -11,12 +11,17 @@ import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.font.Standard14Fonts;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.util.IOUtils;
+import org.apache.poi.xssf.usermodel.*;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -24,6 +29,63 @@ import java.util.List;
 
 @Service
 public class ReporteService {
+
+    /**
+     * Carga el logo de Technova desde los recursos para PDF
+     */
+    private PDImageXObject cargarLogo(PDDocument document) throws IOException {
+        try {
+            ClassPathResource resource = new ClassPathResource("static/frontend/imagenes/logo technova.png");
+            InputStream inputStream = resource.getInputStream();
+            return PDImageXObject.createFromByteArray(document, inputStream.readAllBytes(), "logo-technova");
+        } catch (Exception e) {
+            System.err.println("Error al cargar el logo: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Carga el logo de Technova como bytes para Excel
+     */
+    private byte[] cargarLogoBytes() throws IOException {
+        try {
+            ClassPathResource resource = new ClassPathResource("static/frontend/imagenes/logo technova.png");
+            InputStream inputStream = resource.getInputStream();
+            return IOUtils.toByteArray(inputStream);
+        } catch (Exception e) {
+            System.err.println("Error al cargar el logo para Excel: " + e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Agrega el logo a una hoja de Excel
+     */
+    private void agregarLogoAExcel(XSSFWorkbook workbook, XSSFSheet sheet, int rowIndex, int colIndex) {
+        try {
+            byte[] logoBytes = cargarLogoBytes();
+            if (logoBytes == null) return;
+
+            int pictureIdx = workbook.addPicture(logoBytes, Workbook.PICTURE_TYPE_PNG);
+            
+            XSSFDrawing drawing = sheet.createDrawingPatriarch();
+            XSSFClientAnchor anchor = new XSSFClientAnchor();
+            
+            // Posicionar el logo en la celda especificada
+            anchor.setCol1(colIndex);
+            anchor.setRow1(rowIndex);
+            anchor.setCol2(colIndex + 2); // Ancho de 2 columnas
+            anchor.setRow2(rowIndex + 2); // Alto de 2 filas
+            
+            XSSFPicture picture = drawing.createPicture(anchor, pictureIdx);
+            
+            // Ajustar el tamaño del logo (opcional, para que no sea muy grande)
+            picture.resize(0.5); // Reducir al 50% del tamaño original
+            
+        } catch (Exception e) {
+            System.err.println("Error al agregar logo a Excel: " + e.getMessage());
+        }
+    }
 
     public byte[] generarPdfProductos(List<ProductoDto> productos) throws IOException {
         PDDocument document = new PDDocument();
@@ -35,6 +97,9 @@ public class ReporteService {
         
         PDPageContentStream contentStream = new PDPageContentStream(document, page);
         
+        // Cargar logo
+        PDImageXObject logo = cargarLogo(document);
+        
         // Encabezado con fondo Technova
         float headerColorR = 102.0f / 255.0f;
         float headerColorG = 126.0f / 255.0f;
@@ -44,11 +109,20 @@ public class ReporteService {
         contentStream.addRect(0, 750, 595, 60);
         contentStream.fill();
         
+        // Dibujar logo si está disponible
+        if (logo != null) {
+            float logoWidth = 50;
+            float logoHeight = 50;
+            float logoX = 50;
+            float logoY = 760;
+            contentStream.drawImage(logo, logoX, logoY, logoWidth, logoHeight);
+        }
+        
         // Título en blanco
         contentStream.setNonStrokingColor(1.0f, 1.0f, 1.0f);
         contentStream.beginText();
         contentStream.setFont(fontBold, 20);
-        contentStream.newLineAtOffset(50, 775);
+        contentStream.newLineAtOffset(logo != null ? 110 : 50, 775);
         contentStream.showText("REPORTE DE PRODUCTOS");
         contentStream.endText();
 
@@ -204,8 +278,27 @@ public class ReporteService {
     }
 
     public byte[] generarExcelProductos(List<ProductoDto> productos) throws IOException {
-        Workbook workbook = new XSSFWorkbook();
-        Sheet sheet = workbook.createSheet("Productos");
+        XSSFWorkbook workbook = new XSSFWorkbook();
+        XSSFSheet sheet = workbook.createSheet("Productos");
+
+        // Agregar logo en la primera fila
+        Row logoRow = sheet.createRow(0);
+        logoRow.setHeightInPoints(60);
+        agregarLogoAExcel(workbook, sheet, 0, 0);
+        
+        // Crear fila de título
+        Row titleRow = sheet.createRow(1);
+        titleRow.setHeightInPoints(25);
+        Cell titleCell = titleRow.createCell(0);
+        titleCell.setCellValue("REPORTE DE PRODUCTOS");
+        CellStyle titleStyle = workbook.createCellStyle();
+        Font titleFont = workbook.createFont();
+        titleFont.setBold(true);
+        titleFont.setFontHeightInPoints((short) 16);
+        titleFont.setColor(IndexedColors.DARK_BLUE.getIndex());
+        titleStyle.setFont(titleFont);
+        titleCell.setCellStyle(titleStyle);
+        sheet.addMergedRegion(new CellRangeAddress(1, 1, 0, 5));
 
         // Estilo para encabezados con colores Technova
         CellStyle headerStyle = workbook.createCellStyle();
@@ -256,8 +349,8 @@ public class ReporteService {
         priceFont.setColor(IndexedColors.DARK_GREEN.getIndex());
         priceStyle.setFont(priceFont);
 
-        // Crear encabezados
-        Row headerRow = sheet.createRow(0);
+        // Crear encabezados (ahora en la fila 2)
+        Row headerRow = sheet.createRow(2);
         headerRow.setHeightInPoints(20);
         String[] headers = {"ID", "Nombre", "Categoría", "Marca", "Precio Venta", "Stock"};
         for (int i = 0; i < headers.length; i++) {
@@ -266,8 +359,8 @@ public class ReporteService {
             cell.setCellStyle(headerStyle);
         }
 
-        // Llenar datos
-        int rowNum = 1;
+        // Llenar datos (empezando en la fila 3)
+        int rowNum = 3;
         for (ProductoDto producto : productos) {
             Row row = sheet.createRow(rowNum++);
             row.setHeightInPoints(18);
@@ -326,8 +419,27 @@ public class ReporteService {
     }
 
     public byte[] generarExcelUsuarios(List<UsuarioDto> usuarios) throws IOException {
-        Workbook workbook = new XSSFWorkbook();
-        Sheet sheet = workbook.createSheet("Usuarios");
+        XSSFWorkbook workbook = new XSSFWorkbook();
+        XSSFSheet sheet = workbook.createSheet("Usuarios");
+
+        // Agregar logo en la primera fila
+        Row logoRow = sheet.createRow(0);
+        logoRow.setHeightInPoints(60);
+        agregarLogoAExcel(workbook, sheet, 0, 0);
+        
+        // Crear fila de título
+        Row titleRow = sheet.createRow(1);
+        titleRow.setHeightInPoints(25);
+        Cell titleCell = titleRow.createCell(0);
+        titleCell.setCellValue("REPORTE DE USUARIOS");
+        CellStyle titleStyle = workbook.createCellStyle();
+        Font titleFont = workbook.createFont();
+        titleFont.setBold(true);
+        titleFont.setFontHeightInPoints((short) 16);
+        titleFont.setColor(IndexedColors.DARK_BLUE.getIndex());
+        titleStyle.setFont(titleFont);
+        titleCell.setCellStyle(titleStyle);
+        sheet.addMergedRegion(new CellRangeAddress(1, 1, 0, 5));
 
         // Estilo para encabezados
         CellStyle headerStyle = workbook.createCellStyle();
@@ -392,7 +504,7 @@ public class ReporteService {
         rolClienteStyle.setFont(rolClienteFont);
         rolClienteStyle.setAlignment(HorizontalAlignment.CENTER);
 
-        Row headerRow = sheet.createRow(0);
+        Row headerRow = sheet.createRow(2);
         headerRow.setHeightInPoints(20);
         String[] headers = {"ID", "Nombre", "Email", "Rol", "Tipo Documento", "Número Documento"};
         for (int i = 0; i < headers.length; i++) {
@@ -401,7 +513,7 @@ public class ReporteService {
             cell.setCellStyle(headerStyle);
         }
 
-        int rowNum = 1;
+        int rowNum = 3;
         for (UsuarioDto usuario : usuarios) {
             Row row = sheet.createRow(rowNum++);
             row.setHeightInPoints(18);
@@ -467,8 +579,27 @@ public class ReporteService {
     }
 
     public byte[] generarExcelVentas(List<VentaDto> ventas) throws IOException {
-        Workbook workbook = new XSSFWorkbook();
-        Sheet sheet = workbook.createSheet("Ventas");
+        XSSFWorkbook workbook = new XSSFWorkbook();
+        XSSFSheet sheet = workbook.createSheet("Ventas");
+
+        // Agregar logo en la primera fila
+        Row logoRow = sheet.createRow(0);
+        logoRow.setHeightInPoints(60);
+        agregarLogoAExcel(workbook, sheet, 0, 0);
+        
+        // Crear fila de título
+        Row titleRow = sheet.createRow(1);
+        titleRow.setHeightInPoints(25);
+        Cell titleCell = titleRow.createCell(0);
+        titleCell.setCellValue("REPORTE DE VENTAS");
+        CellStyle titleStyle = workbook.createCellStyle();
+        Font titleFont = workbook.createFont();
+        titleFont.setBold(true);
+        titleFont.setFontHeightInPoints((short) 16);
+        titleFont.setColor(IndexedColors.DARK_GREEN.getIndex());
+        titleStyle.setFont(titleFont);
+        titleCell.setCellStyle(titleStyle);
+        sheet.addMergedRegion(new CellRangeAddress(1, 1, 0, 4));
 
         // Estilo para encabezados
         CellStyle headerStyle = workbook.createCellStyle();
@@ -524,7 +655,7 @@ public class ReporteService {
         dateStyle.cloneStyleFrom(dataStyle);
         dateStyle.setDataFormat(format.getFormat("dd/mm/yyyy"));
 
-        Row headerRow = sheet.createRow(0);
+        Row headerRow = sheet.createRow(2);
         headerRow.setHeightInPoints(20);
         String[] headers = {"ID", "Usuario ID", "Fecha", "Items", "Total"};
         for (int i = 0; i < headers.length; i++) {
@@ -533,7 +664,7 @@ public class ReporteService {
             cell.setCellStyle(headerStyle);
         }
 
-        int rowNum = 1;
+        int rowNum = 3;
         for (VentaDto venta : ventas) {
             Row row = sheet.createRow(rowNum++);
             row.setHeightInPoints(18);
@@ -636,6 +767,9 @@ public class ReporteService {
         
         PDPageContentStream contentStream = new PDPageContentStream(document, page);
         
+        // Cargar logo
+        PDImageXObject logo = cargarLogo(document);
+        
         // Encabezado con fondo Technova
         float headerColorR = 118.0f / 255.0f;
         float headerColorG = 75.0f / 255.0f;
@@ -645,11 +779,20 @@ public class ReporteService {
         contentStream.addRect(0, 750, 595, 60);
         contentStream.fill();
         
+        // Dibujar logo si está disponible
+        if (logo != null) {
+            float logoWidth = 50;
+            float logoHeight = 50;
+            float logoX = 50;
+            float logoY = 760;
+            contentStream.drawImage(logo, logoX, logoY, logoWidth, logoHeight);
+        }
+        
         // Título en blanco
         contentStream.setNonStrokingColor(1.0f, 1.0f, 1.0f);
         contentStream.beginText();
         contentStream.setFont(fontBold, 20);
-        contentStream.newLineAtOffset(50, 775);
+        contentStream.newLineAtOffset(logo != null ? 110 : 50, 775);
         contentStream.showText("REPORTE DE USUARIOS");
         contentStream.endText();
 
@@ -806,6 +949,9 @@ public class ReporteService {
         
         PDPageContentStream contentStream = new PDPageContentStream(document, page);
         
+        // Cargar logo
+        PDImageXObject logo = cargarLogo(document);
+        
         // Encabezado con fondo Technova
         float headerColorR = 39.0f / 255.0f;
         float headerColorG = 174.0f / 255.0f;
@@ -815,11 +961,20 @@ public class ReporteService {
         contentStream.addRect(0, 750, 595, 60);
         contentStream.fill();
         
+        // Dibujar logo si está disponible
+        if (logo != null) {
+            float logoWidth = 50;
+            float logoHeight = 50;
+            float logoX = 50;
+            float logoY = 760;
+            contentStream.drawImage(logo, logoX, logoY, logoWidth, logoHeight);
+        }
+        
         // Título en blanco
         contentStream.setNonStrokingColor(1.0f, 1.0f, 1.0f);
         contentStream.beginText();
         contentStream.setFont(fontBold, 20);
-        contentStream.newLineAtOffset(50, 775);
+        contentStream.newLineAtOffset(logo != null ? 110 : 50, 775);
         contentStream.showText("REPORTE DE VENTAS");
         contentStream.endText();
 
@@ -983,30 +1138,42 @@ public class ReporteService {
         
         PDPageContentStream contentStream = new PDPageContentStream(document, page);
         
+        // Cargar logo
+        PDImageXObject logo = cargarLogo(document);
+        
         // Encabezado con gradiente Technova (color púrpura)
         // Fondo del encabezado
         contentStream.setNonStrokingColor(102.0f / 255.0f, 126.0f / 255.0f, 234.0f / 255.0f); // #667eea
         contentStream.addRect(0, 700, 595, 100);
         contentStream.fill();
         
+        // Dibujar logo si está disponible
+        if (logo != null) {
+            float logoWidth = 60;
+            float logoHeight = 60;
+            float logoX = 50;
+            float logoY = 740;
+            contentStream.drawImage(logo, logoX, logoY, logoWidth, logoHeight);
+        }
+        
         // Título de la factura en blanco
         contentStream.setNonStrokingColor(1.0f, 1.0f, 1.0f); // Blanco
         contentStream.beginText();
         contentStream.setFont(fontBold, 24);
-        contentStream.newLineAtOffset(50, 750);
+        contentStream.newLineAtOffset(logo != null ? 120 : 50, 750);
         contentStream.showText("FACTURA DE COMPRA");
         contentStream.endText();
 
         // Información de la empresa
         contentStream.beginText();
         contentStream.setFont(fontBold, 14);
-        contentStream.newLineAtOffset(50, 720);
+        contentStream.newLineAtOffset(logo != null ? 120 : 50, 720);
         contentStream.showText("TECHNOVA");
         contentStream.endText();
 
         contentStream.beginText();
         contentStream.setFont(font, 11);
-        contentStream.newLineAtOffset(50, 705);
+        contentStream.newLineAtOffset(logo != null ? 120 : 50, 705);
         contentStream.showText("Sistema de Gestión de Inventario");
         contentStream.endText();
         
