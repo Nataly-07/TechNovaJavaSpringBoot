@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Nueva Orden de Compra - Technova</title>
+    <meta name="_csrf" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:content="${_csrf.headerName}"/>
+
+    <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" th:href="@{/frontend/css/estilodas.css}">
+    <link rel="stylesheet" th:href="@{/frontend/css/stilotech.css}">
+    <link rel="stylesheet" th:href="@{/frontend/css/color-palette.css}">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        .form-container {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .form-header {
+            margin-bottom: 30px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .form-header h2 {
+            margin: 0;
+            color: #2c3e50;
+        }
+        
+        .back-link {
+            color: #667eea;
+            font-size: 1.5rem;
+            transition: transform 0.2s;
+        }
+        
+        .back-link:hover {
+            transform: translateX(-3px);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            box-sizing: border-box;
+        }
+
+        .productos-section {
+            margin-top: 30px;
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 12px;
+        }
+        
+        .productos-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .btn-add-product {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .btn-add-product:hover {
+            background: #5a6268;
+        }
+
+        .detalle-row {
+            display: grid;
+            grid-template-columns: 3fr 1fr 1fr auto;
+            gap: 15px;
+            margin-bottom: 15px;
+            align-items: end;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .btn-remove {
+            background: #dc3545;
+            color: white;
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-remove:hover {
+            background: #c82333;
+        }
+
+        .form-actions {
+            margin-top: 30px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+
+        .btn-submit {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+  <header class="header">
+    <div class="logo">
+      <img th:src="@{/frontend/imagenes/logo technova.png}" alt="Logo">
+      <span>TECHNOVA</span>
+    </div>
+  </header>
+
+  <div class="dashboard-wrapper">
+    <div th:replace="~{frontend/layouts/sidebar-admin :: sidebar}"></div>
+
+    <main class="main-content">
+      <div class="form-container">
+        <div class="form-header">
+            <a th:href="@{/admin/ordenes}" class="back-link"><i class='bx bx-arrow-back'></i></a>
+            <h2>Nueva Orden de Compra</h2>
+        </div>
+
+        <div th:if="${error}" class="alert-error" th:text="${error}"></div>
+
+        <form th:action="@{/admin/ordenes/guardar}" method="post" th:object="${orden}" id="ordenForm">
+            <div class="form-group">
+                <label for="proveedor">Proveedor *</label>
+                <select id="proveedor" th:field="*{proveedorId}" class="form-control" required>
+                    <option value="">-- Seleccionar Proveedor --</option>
+                    <option th:each="prov : ${proveedores}" 
+                            th:value="${prov.id}" 
+                            th:text="${prov.nombre + ' (' + (prov.empresa ?: 'Particular') + ')'}">
+                    </option>
+                </select>
+            </div>
+
+            <div class="productos-section">
+                <div class="productos-header">
+                    <h3 style="margin:0; font-size: 1.1rem; color: #495057;">Detalles de la Orden</h3>
+                    <button type="button" class="btn-add-product" onclick="agregarProducto()">
+                        <i class='bx bx-plus'></i> Agregar Producto
+                    </button>
+                </div>
+
+                <div id="detalles-container">
+                    <!-- Las filas se agregarán aquí dinámicamente -->
+                </div>
+                
+                <div id="empty-msg" style="text-align: center; color: #888; padding: 20px;">
+                    Ningún producto agregado.
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <a th:href="@{/admin/ordenes}" class="btn-modal-secondary" style="text-decoration: none; padding: 12px 24px; border-radius: 10px; display: inline-flex; align-items: center; color: #333; background: #e0e0e0;">Cancelar</a>
+                <button type="submit" class="btn-submit">
+                    <i class='bx bx-save'></i> Registrar Orden
+                </button>
+            </div>
+        </form>
+      </div>
+    </main>
+  </div>
+
+  <!-- Template oculto para copiar filas -->
+  <template id="producto-row-template">
+      <div class="detalle-row">
+          <div class="form-group" style="margin-bottom: 0;">
+              <label>Producto</label>
+              <select name="detalles[INDEX].productoId" class="form-control producto-select" required onchange="actualizarPrecio(this)">
+                  <option value="">-- Seleccionar --</option>
+                  <!-- Opciones se llenarán con JS -->
+              </select>
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+              <label>Cantidad</label>
+              <input type="number" name="detalles[INDEX].cantidad" class="form-control" min="1" value="1" required>
+          </div>
+          <div class="form-group" style="margin-bottom: 0;">
+              <label>Costo Unit.</label>
+              <input type="number" name="detalles[INDEX].precioUnitario" class="form-control precio-input" step="0.01" min="0" placeholder="Auto">
+          </div>
+          <button type="button" class="btn-remove" onclick="eliminarFila(this)">
+              <i class='bx bx-trash'></i>
+          </button>
+      </div>
+  </template>
+
+  <!-- Datos de productos para JS -->
+  <script th:inline="javascript">
+      /*<![CDATA[*/
+      const productosDisponibles = /*[[${productos}]]*/ [];
+      /*]]>*/
+  </script>
+
+  <script>
+      let contadorFilas = 0;
+
+      function agregarProducto() {
+          const container = document.getElementById('detalles-container');
+          const template = document.getElementById('producto-row-template');
+          const emptyMsg = document.getElementById('empty-msg');
+          
+          emptyMsg.style.display = 'none';
+
+          const clone = template.content.cloneNode(true);
+          const row = clone.querySelector('.detalle-row');
+          
+          // Reemplazar INDEX
+          row.innerHTML = row.innerHTML.replace(/INDEX/g, contadorFilas);
+          
+          // Llenar select de productos
+          const select = row.querySelector('.producto-select');
+          productosDisponibles.forEach(prod => {
+              const option = document.createElement('option');
+              option.value = prod.id;
+              
+              // Intentar obtener precio de compra de la característica
+              let precioCompra = 0;
+              if(prod.caracteristica && prod.caracteristica.precioCompra) {
+                  precioCompra = prod.caracteristica.precioCompra;
+              }
+              
+              option.setAttribute('data-precio', precioCompra);
+              option.text = prod.nombre + ' (Stock: ' + prod.stock + ')';
+              select.appendChild(option);
+          });
+
+          container.appendChild(row);
+          contadorFilas++;
+      }
+
+      function eliminarFila(btn) {
+          const row = btn.closest('.detalle-row');
+          row.remove();
+          
+          const container = document.getElementById('detalles-container');
+          if (container.children.length === 0) {
+              document.getElementById('empty-msg').style.display = 'block';
+          }
+      }
+
+      function actualizarPrecio(select) {
+          const precio = select.options[select.selectedIndex].getAttribute('data-precio');
+          const row = select.closest('.detalle-row');
+          const inputPrecio = row.querySelector('.precio-input');
+          
+          if(precio && precio !== '0') {
+              inputPrecio.value = precio;
+          }
+      }
+
+      // Agregar una fila inicial
+      document.addEventListener('DOMContentLoaded', () => {
+          agregarProducto();
+      });
+
+      document.getElementById('ordenForm').addEventListener('submit', function(e) {
+          const container = document.getElementById('detalles-container');
+          if (container.children.length === 0) {
+              e.preventDefault();
+              Swal.fire('Error', 'Debes agregar al menos un producto a la orden', 'error');
+          }
+      });
+  </script>
+</body>
+</html>
