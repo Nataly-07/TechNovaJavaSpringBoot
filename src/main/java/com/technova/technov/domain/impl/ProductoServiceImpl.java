@@ -30,6 +30,7 @@ import com.technova.technov.domain.repository.CompraRepository;
 import com.technova.technov.domain.repository.VentaRepository;
 import com.technova.technov.domain.repository.DetalleCompraRepository;
 import com.technova.technov.domain.repository.DetalleVentaRepository;
+import com.technova.technov.domain.service.NotificacionService;
 import com.technova.technov.domain.service.ProductoService;
 
 @Service
@@ -55,6 +56,9 @@ public class ProductoServiceImpl implements ProductoService {
 
     @Autowired
     private ModelMapper modelMapper;
+
+    @Autowired
+    private NotificacionService notificacionService;
 
     @Override
     @Transactional(readOnly = true)
@@ -112,23 +116,25 @@ public class ProductoServiceImpl implements ProductoService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProductoDto> buscarAvanzado(String termino, String marca, String categoria, BigDecimal precioMin, BigDecimal precioMax, String disponibilidad) {
+    public List<ProductoDto> buscarAvanzado(String termino, String marca, String categoria, BigDecimal precioMin,
+            BigDecimal precioMax, String disponibilidad) {
         List<Producto> productos = productoRepository.findByEstadoTrue();
-        
+
         return productos.stream()
                 .filter(p -> {
                     // Filtro por término de búsqueda (nombre o descripción)
                     if (termino != null && !termino.trim().isEmpty()) {
                         String terminoLower = termino.toLowerCase().trim();
-                        boolean matchNombre = p.getNombre() != null && p.getNombre().toLowerCase().contains(terminoLower);
-                        boolean matchDescripcion = p.getCaracteristica() != null && 
+                        boolean matchNombre = p.getNombre() != null
+                                && p.getNombre().toLowerCase().contains(terminoLower);
+                        boolean matchDescripcion = p.getCaracteristica() != null &&
                                 p.getCaracteristica().getDescripcion() != null &&
                                 p.getCaracteristica().getDescripcion().toLowerCase().contains(terminoLower);
                         if (!matchNombre && !matchDescripcion) {
                             return false;
                         }
                     }
-                    
+
                     // Filtro por marca
                     if (marca != null && !marca.trim().isEmpty()) {
                         if (p.getCaracteristica() == null || p.getCaracteristica().getMarca() == null ||
@@ -136,7 +142,7 @@ public class ProductoServiceImpl implements ProductoService {
                             return false;
                         }
                     }
-                    
+
                     // Filtro por categoría
                     if (categoria != null && !categoria.trim().isEmpty()) {
                         if (p.getCaracteristica() == null || p.getCaracteristica().getCategoria() == null ||
@@ -144,7 +150,7 @@ public class ProductoServiceImpl implements ProductoService {
                             return false;
                         }
                     }
-                    
+
                     // Filtro por rango de precio
                     if (precioMin != null || precioMax != null) {
                         if (p.getCaracteristica() == null || p.getCaracteristica().getPrecioVenta() == null) {
@@ -158,7 +164,7 @@ public class ProductoServiceImpl implements ProductoService {
                             return false;
                         }
                     }
-                    
+
                     // Filtro por disponibilidad
                     if (disponibilidad != null && !disponibilidad.trim().isEmpty()) {
                         int stock = p.getStock() != null ? p.getStock() : 0;
@@ -172,7 +178,7 @@ public class ProductoServiceImpl implements ProductoService {
                             }
                         }
                     }
-                    
+
                     return true;
                 })
                 .map(producto -> {
@@ -191,44 +197,83 @@ public class ProductoServiceImpl implements ProductoService {
         Producto producto = modelMapper.map(productoDto, Producto.class);
         producto.setId(null);
         producto.setEstado(true); // true = activo
-        
+
         if (productoDto.getCaracteristicasId() != null) {
-            Caracteristica caracteristica = caracteristicaRepository.findByIdAndEstadoTrue(productoDto.getCaracteristicasId())
-                    .orElseThrow(() -> new IllegalArgumentException("Característica no encontrada: " + productoDto.getCaracteristicasId()));
+            Caracteristica caracteristica = caracteristicaRepository
+                    .findByIdAndEstadoTrue(productoDto.getCaracteristicasId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Característica no encontrada: " + productoDto.getCaracteristicasId()));
             producto.setCaracteristica(caracteristica);
         }
-        
+
         Producto guardado = productoRepository.save(producto);
+
+        // Notificación de sistema
+        notificacionService.crearNotificacionSistema(
+                "Nuevo Producto Creado",
+                "Se ha registrado el producto: " + guardado.getNombre(),
+                "Visualización de Artículos",
+                "bx-box");
+
+        // Notificación al Empleado (Visualización de Artículos)
+        notificacionService.crearNotificacionRol(
+                "EMPLEADO",
+                "Nuevo Producto Añadido",
+                "Se ha registrado el producto: " + guardado.getNombre(),
+                "Visualización de Artículos",
+                "bx-cube");
+
         return convertToDto(guardado);
     }
 
     @Override
     @Transactional
     public ProductoDto actualizarProducto(Integer id, ProductoDto productoDto) {
-        return productoRepository.findById(id) // Buscar por ID sin filtrar por estado para poder editar productos inactivos
+        return productoRepository.findById(id)
                 .map(existing -> {
                     existing.setNombre(productoDto.getNombre());
-                    existing.setStock(productoDto.getStock());
+                    // NO actualizar stock directamente desde el DTO para mantener la trazabilidad
+                    // existing.setStock(productoDto.getStock()); // Comentado para proteger el
+                    // stock
+
+                    // Mantener el stock existente o actualizarlo SOLO si es estrictamente necesario
+                    // y seguro
+                    // Por ahora, asumimos que el stock solo se mueve con Compra/Venta
+
                     existing.setCodigo(productoDto.getCodigo());
                     existing.setProveedor(productoDto.getProveedor() != null ? productoDto.getProveedor() : "");
                     existing.setImagen(productoDto.getImagen() != null ? productoDto.getImagen() : "");
-                    
+
                     // Actualizar ingreso y salida
-                    if (productoDto.getIngreso() != null) {
-                        existing.setIngreso(productoDto.getIngreso());
-                    }
-                    if (productoDto.getSalida() != null) {
-                        existing.setSalida(productoDto.getSalida());
-                    }
-                    
-                    if (productoDto.getCaracteristicasId() != null) {
-                        Caracteristica caracteristica = caracteristicaRepository.findById(productoDto.getCaracteristicasId())
-                                .orElseThrow(() -> new IllegalArgumentException("Característica no encontrada: " + productoDto.getCaracteristicasId()));
-                        existing.setCaracteristica(caracteristica);
-                    }
-                    
-                    Producto actualizado = productoRepository.save(existing);
-                    return convertToDto(actualizado);
+                    // Trazabilidad: No permitir modificar Ingreso ni Salida manualmente.
+                    // Estos valores solo deben cambiar por Compras (Ingreso) o Ventas (Salida).
+                    /*
+                     * if (productoDto.getIngreso() != null) {
+                     * existing.setIngreso(productoDto.getIngreso());
+                     * }
+                     * if (productoDto.getSalida() != null) {
+                     * existing.setSalida(productoDto.getSalida());
+                     * }
+                     */
+
+                    Producto guardado = productoRepository.save(existing);
+
+                    // Notificación de sistema
+                    notificacionService.crearNotificacionSistema(
+                            "Producto Actualizado",
+                            "Se ha modificado el producto: " + existing.getNombre(),
+                            "Visualización de Artículos",
+                            "bx-edit");
+
+                    // Notificación al Empleado (Visualización de Artículos)
+                    notificacionService.crearNotificacionRol(
+                            "EMPLEADO",
+                            "Producto Actualizado",
+                            "Se ha actualizado el producto: " + existing.getNombre(),
+                            "Visualización de Artículos",
+                            "bx-edit");
+
+                    return convertToDto(guardado);
                 })
                 .orElse(null);
     }
@@ -238,8 +283,24 @@ public class ProductoServiceImpl implements ProductoService {
     public boolean eliminarProducto(Integer id) {
         return productoRepository.findById(id)
                 .map(producto -> {
-                    producto.setEstado(false); 
+                    producto.setEstado(false);
                     productoRepository.save(producto);
+
+                    // Notificación de sistema
+                    notificacionService.crearNotificacionSistema(
+                            "Producto Eliminado",
+                            "Se ha eliminado el producto: " + producto.getNombre(),
+                            "Visualización de Artículos",
+                            "bx-trash");
+
+                    // Notificación al Empleado
+                    notificacionService.crearNotificacionRol(
+                            "EMPLEADO",
+                            "Producto Eliminado",
+                            "Se ha eliminado el producto: " + producto.getNombre(),
+                            "Visualización de Artículos",
+                            "bx-trash");
+
                     return true;
                 })
                 .orElse(false);
@@ -250,8 +311,25 @@ public class ProductoServiceImpl implements ProductoService {
     public boolean activarDesactivarProducto(Integer id, boolean activar) {
         return productoRepository.findById(id)
                 .map(producto -> {
-                    producto.setEstado(activar); 
+                    producto.setEstado(activar);
                     productoRepository.save(producto);
+
+                    // Notificación de sistema
+                    String accion = activar ? "Activado" : "Desactivado";
+                    notificacionService.crearNotificacionSistema(
+                            "Producto " + accion,
+                            "Se ha " + accion.toLowerCase() + " el producto: " + producto.getNombre(),
+                            "Visualización de Artículos",
+                            activar ? "bx-check-circle" : "bx-x-circle");
+
+                    // Notificación al Empleado
+                    notificacionService.crearNotificacionRol(
+                            "EMPLEADO",
+                            "Producto " + accion,
+                            "El producto " + producto.getNombre() + " ha sido " + accion.toLowerCase(),
+                            "Visualización de Artículos",
+                            activar ? "bx-check-circle" : "bx-x-circle");
+
                     return true;
                 })
                 .orElse(false);
@@ -279,89 +357,96 @@ public class ProductoServiceImpl implements ProductoService {
         // Primero intentar obtener desde compras recientes
         List<Producto> productosRecientes = new ArrayList<>();
         Set<Integer> productosIds = new HashSet<>();
-        
+
         try {
             // Obtener productos desde compras recientes ordenadas por fecha
-            List<Compra> comprasRecientes = 
-                compraRepository.findAll().stream()
+            List<Compra> comprasRecientes = compraRepository.findAll().stream()
                     .sorted((c1, c2) -> {
-                        if (c1.getFechaCompra() == null && c2.getFechaCompra() == null) return 0;
-                        if (c1.getFechaCompra() == null) return 1;
-                        if (c2.getFechaCompra() == null) return -1;
+                        if (c1.getFechaCompra() == null && c2.getFechaCompra() == null)
+                            return 0;
+                        if (c1.getFechaCompra() == null)
+                            return 1;
+                        if (c2.getFechaCompra() == null)
+                            return -1;
                         return c2.getFechaCompra().compareTo(c1.getFechaCompra());
                     })
                     .limit(cantidad * 2) // Obtener más para tener opciones
                     .collect(Collectors.toList());
-            
+
             for (Compra compra : comprasRecientes) {
-                if (productosIds.size() >= cantidad) break;
-                List<DetalleCompra> detalles = 
-                    detalleCompraRepository.findByCompra(compra);
+                if (productosIds.size() >= cantidad)
+                    break;
+                List<DetalleCompra> detalles = detalleCompraRepository.findByCompra(compra);
                 for (DetalleCompra detalle : detalles) {
                     Producto producto = detalle.getProducto();
-                    if (producto != null && producto.getEstado() != null && producto.getEstado() 
-                        && !productosIds.contains(producto.getId())) {
+                    if (producto != null && producto.getEstado() != null && producto.getEstado()
+                            && !productosIds.contains(producto.getId())) {
                         productosRecientes.add(producto);
                         productosIds.add(producto.getId());
-                        if (productosIds.size() >= cantidad) break;
+                        if (productosIds.size() >= cantidad)
+                            break;
                     }
                 }
             }
-            
+
             // Si aún no tenemos suficientes, obtener desde ventas recientes
             if (productosIds.size() < cantidad) {
-                List<Venta> ventasRecientes = 
-                    ventaRepository.findAll().stream()
+                List<Venta> ventasRecientes = ventaRepository.findAll().stream()
                         .sorted((v1, v2) -> {
-                            if (v1.getFechaVenta() == null && v2.getFechaVenta() == null) return 0;
-                            if (v1.getFechaVenta() == null) return 1;
-                            if (v2.getFechaVenta() == null) return -1;
+                            if (v1.getFechaVenta() == null && v2.getFechaVenta() == null)
+                                return 0;
+                            if (v1.getFechaVenta() == null)
+                                return 1;
+                            if (v2.getFechaVenta() == null)
+                                return -1;
                             return v2.getFechaVenta().compareTo(v1.getFechaVenta());
                         })
                         .limit(cantidad * 2)
                         .collect(Collectors.toList());
-                
+
                 for (Venta venta : ventasRecientes) {
-                    if (productosIds.size() >= cantidad) break;
-                    List<DetalleVenta> detalles = 
-                        detalleVentaRepository.findByVenta(venta);
+                    if (productosIds.size() >= cantidad)
+                        break;
+                    List<DetalleVenta> detalles = detalleVentaRepository.findByVenta(venta);
                     for (DetalleVenta detalle : detalles) {
                         Producto producto = detalle.getProducto();
-                        if (producto != null && producto.getEstado() != null && producto.getEstado() 
-                            && !productosIds.contains(producto.getId())) {
+                        if (producto != null && producto.getEstado() != null && producto.getEstado()
+                                && !productosIds.contains(producto.getId())) {
                             productosRecientes.add(producto);
                             productosIds.add(producto.getId());
-                            if (productosIds.size() >= cantidad) break;
+                            if (productosIds.size() >= cantidad)
+                                break;
                         }
                     }
                 }
             }
-            
+
             // Si aún no tenemos suficientes, completar con productos más recientes por ID
             if (productosIds.size() < cantidad) {
                 Pageable pageable = PageRequest.of(0, cantidad);
                 Page<Producto> productosPage = productoRepository.findByEstadoTrueOrderByIdDesc(pageable);
                 for (Producto producto : productosPage.getContent()) {
-                    if (productosIds.size() >= cantidad) break;
+                    if (productosIds.size() >= cantidad)
+                        break;
                     if (!productosIds.contains(producto.getId())) {
                         productosRecientes.add(producto);
                         productosIds.add(producto.getId());
                     }
                 }
             }
-            
+
         } catch (Exception e) {
             // Si hay error, usar método por defecto (por ID)
             Pageable pageable = PageRequest.of(0, cantidad);
             Page<Producto> productosPage = productoRepository.findByEstadoTrueOrderByIdDesc(pageable);
             productosRecientes = productosPage.getContent();
         }
-        
+
         // Limitar a la cantidad solicitada
         productosRecientes = productosRecientes.stream()
-            .limit(cantidad)
-            .collect(Collectors.toList());
-        
+                .limit(cantidad)
+                .collect(Collectors.toList());
+
         return productosRecientes.stream()
                 .map(producto -> {
                     // Forzar la carga de la relación antes de mapear
@@ -384,22 +469,28 @@ public class ProductoServiceImpl implements ProductoService {
         dto.setIngreso(producto.getIngreso() != null ? producto.getIngreso() : 0);
         dto.setSalida(producto.getSalida() != null ? producto.getSalida() : 0);
         dto.setEstado(producto.getEstado() != null ? producto.getEstado() : true);
-        
+
         if (producto.getCaracteristica() != null) {
             dto.setCaracteristicasId(producto.getCaracteristica().getId());
             CaracteristicasDto caracteristicaDto = new CaracteristicasDto();
             caracteristicaDto.setId(producto.getCaracteristica().getId());
-            caracteristicaDto.setCategoria(producto.getCaracteristica().getCategoria() != null ? producto.getCaracteristica().getCategoria() : "");
-            caracteristicaDto.setMarca(producto.getCaracteristica().getMarca() != null ? producto.getCaracteristica().getMarca() : "");
-            caracteristicaDto.setColor(producto.getCaracteristica().getColor() != null ? producto.getCaracteristica().getColor() : "");
-            caracteristicaDto.setDescripcion(producto.getCaracteristica().getDescripcion() != null ? producto.getCaracteristica().getDescripcion() : "");
+            caracteristicaDto.setCategoria(
+                    producto.getCaracteristica().getCategoria() != null ? producto.getCaracteristica().getCategoria()
+                            : "");
+            caracteristicaDto.setMarca(
+                    producto.getCaracteristica().getMarca() != null ? producto.getCaracteristica().getMarca() : "");
+            caracteristicaDto.setColor(
+                    producto.getCaracteristica().getColor() != null ? producto.getCaracteristica().getColor() : "");
+            caracteristicaDto.setDescripcion(producto.getCaracteristica().getDescripcion() != null
+                    ? producto.getCaracteristica().getDescripcion()
+                    : "");
             caracteristicaDto.setPrecioCompra(producto.getCaracteristica().getPrecioCompra());
             caracteristicaDto.setPrecioVenta(producto.getCaracteristica().getPrecioVenta());
             dto.setCaracteristica(caracteristicaDto);
         } else {
             dto.setCaracteristica(new CaracteristicasDto());
         }
-        
+
         return dto;
     }
 }

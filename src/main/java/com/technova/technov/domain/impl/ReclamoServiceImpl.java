@@ -45,20 +45,36 @@ public class ReclamoServiceImpl implements ReclamoService {
         if (descripcion == null || descripcion.trim().isEmpty()) {
             throw new IllegalArgumentException("La descripción no puede estar vacía");
         }
-        
+
         Usuario usuario = usuarioRepository.findByIdAndEstadoTrue(Long.valueOf(usuarioId))
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado o inactivo: " + usuarioId));
-        
+
         Reclamo reclamo = new Reclamo();
         reclamo.setUsuario(usuario);
         reclamo.setFechaReclamo(LocalDateTime.now());
         reclamo.setTitulo(titulo.trim());
         reclamo.setDescripcion(descripcion.trim());
         reclamo.setEstado("pendiente");
-        reclamo.setPrioridad(prioridad != null && !prioridad.trim().isEmpty() ? prioridad.trim().toLowerCase() : "normal");
+        reclamo.setPrioridad(
+                prioridad != null && !prioridad.trim().isEmpty() ? prioridad.trim().toLowerCase() : "normal");
         reclamo.setEnviadoAlAdmin(false);
-        
+
         Reclamo reclamoGuardado = reclamoRepository.save(reclamo);
+
+        // Notificar a Empleados y Administradores
+        notificacionService.crearNotificacionRol(
+                "EMPLEADO",
+                "Nuevo Reclamo Registrado",
+                "El usuario " + usuario.getEmail() + " ha registrado un reclamo: " + titulo,
+                "Atención al Cliente",
+                "bx-error-circle");
+
+        notificacionService.crearNotificacionSistema(
+                "Nuevo Reclamo Registrado",
+                "El usuario " + usuario.getEmail() + " ha registrado un reclamo: " + titulo,
+                "Atención al Cliente",
+                "bx-error-circle");
+
         return convertToDto(reclamoGuardado);
     }
 
@@ -67,17 +83,17 @@ public class ReclamoServiceImpl implements ReclamoService {
     public ReclamoDto responder(Integer id, String respuesta) {
         System.out.println("=== INICIANDO responder() RECLAMO ===");
         System.out.println("  -> Reclamo ID: " + id);
-        
+
         // Usar consulta con JOIN FETCH para cargar el usuario
         Reclamo r = reclamoRepository.findByIdWithUsuario(id)
                 .orElseThrow(() -> new IllegalArgumentException("Reclamo no encontrado: " + id));
-        
+
         System.out.println("  -> Reclamo encontrado: " + (r != null ? "Sí" : "No"));
-        
+
         // Obtener usuarioId - ahora debería estar cargado
         Long usuarioId = null;
         String titulo = r.getTitulo();
-        
+
         if (r.getUsuario() != null) {
             usuarioId = r.getUsuario().getId();
             System.out.println("  -> Usuario cargado: Sí");
@@ -86,14 +102,14 @@ public class ReclamoServiceImpl implements ReclamoService {
         } else {
             System.err.println("  -> ERROR: r.getUsuario() es null");
         }
-        
+
         // Si aún no tenemos el usuarioId, intentar obtenerlo del DTO después de guardar
         if (usuarioId == null) {
             r.setRespuesta(respuesta);
             r.setEstado("en_revision");
             Reclamo reclamoGuardado = reclamoRepository.save(r);
             ReclamoDto reclamoRespondido = convertToDto(reclamoGuardado);
-            
+
             if (reclamoRespondido != null && reclamoRespondido.getUsuarioId() != null) {
                 usuarioId = Long.valueOf(reclamoRespondido.getUsuarioId());
                 System.out.println("  -> Usuario ID obtenido del DTO: " + usuarioId);
@@ -103,9 +119,9 @@ public class ReclamoServiceImpl implements ReclamoService {
             r.setEstado("en_revision");
             reclamoRepository.save(r);
         }
-        
+
         ReclamoDto reclamoRespondido = convertToDto(r);
-        
+
         // Crear notificación para el cliente
         if (usuarioId != null) {
             try {
@@ -113,35 +129,32 @@ public class ReclamoServiceImpl implements ReclamoService {
                 System.out.println("  -> Reclamo ID: " + id);
                 System.out.println("  -> Usuario ID: " + usuarioId);
                 System.out.println("  -> Título: " + titulo);
-                
-                String mensaje = String.format(
-                    "Hemos respondido a tu reclamo sobre '%s'. " +
-                    "Revisa la respuesta en tu panel de reclamos.",
-                    titulo != null && titulo.length() > 50 
-                        ? titulo.substring(0, 50) + "..." 
-                        : (titulo != null ? titulo : "tu reclamo")
-                );
-                
+
+                String mensajeNotificacion = respuesta != null && respuesta.length() > 100
+                        ? respuesta.substring(0, 100) + "..."
+                        : respuesta;
+
                 // Crear JSON con datos adicionales
                 ObjectMapper objectMapper = new ObjectMapper();
                 java.util.Map<String, Object> dataAdicional = new java.util.HashMap<>();
                 dataAdicional.put("reclamoId", id);
                 dataAdicional.put("titulo", titulo);
                 String dataAdicionalJson = objectMapper.writeValueAsString(dataAdicional);
-                
+
                 NotificacionDto notificacion = NotificacionDto.builder()
                         .userId(usuarioId)
                         .titulo("Respuesta a tu reclamo")
-                        .mensaje(mensaje)
-                        .tipo("reclamo")
+                        .mensaje(mensajeNotificacion)
+                        .tipo("Atención al Cliente")
                         .icono("bx-error-circle")
                         .leida(false)
                         .dataAdicional(dataAdicionalJson)
                         .build();
-                
+
                 NotificacionDto notificacionCreada = notificacionService.crear(notificacion);
                 System.out.println("=== NOTIFICACIÓN: Notificación de respuesta a reclamo creada exitosamente ===");
-                System.out.println("  -> Notificación ID: " + (notificacionCreada != null ? notificacionCreada.getId() : "null"));
+                System.out.println(
+                        "  -> Notificación ID: " + (notificacionCreada != null ? notificacionCreada.getId() : "null"));
             } catch (Exception e) {
                 System.err.println("=== ERROR: No se pudo crear la notificación de respuesta a reclamo ===");
                 System.err.println("  -> Error: " + e.getMessage());
@@ -153,7 +166,15 @@ public class ReclamoServiceImpl implements ReclamoService {
             System.err.println("=== ADVERTENCIA: No se pudo crear notificación - Usuario ID es null ===");
             System.err.println("  -> Reclamo ID: " + id);
         }
-        
+
+        // Notificar a Empleados y Administradores sobre la respuesta
+        notificacionService.crearNotificacionRol(
+                "EMPLEADO",
+                "Reclamo Respondido",
+                "Se ha dado respuesta al reclamo '" + titulo + "'",
+                "Atención al Cliente",
+                "bx-message-check");
+
         return reclamoRespondido;
     }
 
@@ -162,8 +183,23 @@ public class ReclamoServiceImpl implements ReclamoService {
     public ReclamoDto cerrar(Integer id) {
         Reclamo r = reclamoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Reclamo no encontrado: " + id));
-        r.setEstado("resuelto");
-        return convertToDto(reclamoRepository.save(r));
+        Reclamo guardado = reclamoRepository.save(r);
+
+        // Notificar a Empleados y Administradores sobre el cierre
+        notificacionService.crearNotificacionRol(
+                "EMPLEADO",
+                "Reclamo Cerrado",
+                "El reclamo '" + r.getTitulo() + "' ha sido marcado como resuelto.",
+                "Atención al Cliente",
+                "bx-check-double");
+
+        notificacionService.crearNotificacionSistema(
+                "Reclamo Resuelto",
+                "El reclamo '" + r.getTitulo() + "' ha sido cerrado.",
+                "Atención al Cliente",
+                "bx-check-double");
+
+        return convertToDto(guardado);
     }
 
     @Override
@@ -172,9 +208,12 @@ public class ReclamoServiceImpl implements ReclamoService {
         List<Reclamo> reclamos = reclamoRepository.findByUsuario_IdOrderByFechaReclamoDesc(Long.valueOf(usuarioId));
         return reclamos.stream()
                 .sorted((r1, r2) -> {
-                    if (r1.getFechaReclamo() == null && r2.getFechaReclamo() == null) return 0;
-                    if (r1.getFechaReclamo() == null) return 1;
-                    if (r2.getFechaReclamo() == null) return -1;
+                    if (r1.getFechaReclamo() == null && r2.getFechaReclamo() == null)
+                        return 0;
+                    if (r1.getFechaReclamo() == null)
+                        return 1;
+                    if (r2.getFechaReclamo() == null)
+                        return -1;
                     return r2.getFechaReclamo().compareTo(r1.getFechaReclamo());
                 })
                 .map(this::convertToDto)
@@ -187,9 +226,12 @@ public class ReclamoServiceImpl implements ReclamoService {
         List<Reclamo> reclamos = reclamoRepository.findByEstadoIgnoreCaseOrderByFechaReclamoDesc(estado);
         return reclamos.stream()
                 .sorted((r1, r2) -> {
-                    if (r1.getFechaReclamo() == null && r2.getFechaReclamo() == null) return 0;
-                    if (r1.getFechaReclamo() == null) return 1;
-                    if (r2.getFechaReclamo() == null) return -1;
+                    if (r1.getFechaReclamo() == null && r2.getFechaReclamo() == null)
+                        return 0;
+                    if (r1.getFechaReclamo() == null)
+                        return 1;
+                    if (r2.getFechaReclamo() == null)
+                        return -1;
                     return r2.getFechaReclamo().compareTo(r1.getFechaReclamo());
                 })
                 .map(this::convertToDto)
@@ -277,15 +319,16 @@ public class ReclamoServiceImpl implements ReclamoService {
     public ReclamoDto evaluarResolucion(Integer id, String evaluacion) {
         Reclamo r = reclamoRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Reclamo no encontrado: " + id));
-        
+
         if (r.getRespuesta() == null || r.getRespuesta().trim().isEmpty()) {
             throw new IllegalArgumentException("El reclamo no tiene respuesta, no puede ser evaluado");
         }
-        
-        if (evaluacion == null || (!evaluacion.equalsIgnoreCase("resuelta") && !evaluacion.equalsIgnoreCase("no_resuelta"))) {
+
+        if (evaluacion == null
+                || (!evaluacion.equalsIgnoreCase("resuelta") && !evaluacion.equalsIgnoreCase("no_resuelta"))) {
             throw new IllegalArgumentException("La evaluación debe ser 'resuelta' o 'no_resuelta'");
         }
-        
+
         r.setEvaluacionCliente(evaluacion.toLowerCase());
         return convertToDto(reclamoRepository.save(r));
     }
@@ -329,4 +372,3 @@ public class ReclamoServiceImpl implements ReclamoService {
         }
     }
 }
-

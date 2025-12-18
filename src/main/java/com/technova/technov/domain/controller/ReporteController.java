@@ -16,6 +16,7 @@ import com.technova.technov.domain.service.ProductoService;
 import com.technova.technov.domain.service.UsuarioService;
 import com.technova.technov.domain.service.VentaService;
 import com.technova.technov.service.ReporteService;
+import com.technova.technov.domain.service.NotificacionService;
 import com.technova.technov.domain.repository.CaracteristicaRepository;
 
 import com.technova.technov.util.SecurityUtil;
@@ -37,9 +38,12 @@ public class ReporteController {
     private final VentaService ventaService;
     private final ReporteService reporteService;
     private final CaracteristicaRepository caracteristicaRepository;
-    
+
     @Autowired
     private SecurityUtil securityUtil;
+
+    @Autowired
+    private NotificacionService notificacionService;
 
     public ReporteController(
             ProductoService productoService,
@@ -57,7 +61,7 @@ public class ReporteController {
     @GetMapping("/admin/reportes")
     public String index(Model model) {
         UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
-        
+
         if (usuario == null || !"admin".equalsIgnoreCase(usuario.getRole())) {
             return "redirect:/login";
         }
@@ -69,7 +73,8 @@ public class ReporteController {
 
         // Obtener categorías únicas del repositorio y normalizarlas
         List<String> categorias = caracteristicaRepository.listarCategorias();
-        // Normalizar a minúsculas y eliminar duplicados (case-insensitive), filtrando "temporal"
+        // Normalizar a minúsculas y eliminar duplicados (case-insensitive), filtrando
+        // "temporal"
         categorias = categorias.stream()
                 .filter(c -> c != null && !c.trim().isEmpty() && !c.equalsIgnoreCase("temporal"))
                 .map(String::toLowerCase)
@@ -92,7 +97,7 @@ public class ReporteController {
         model.addAttribute("ventasCount", ventasCount);
         model.addAttribute("categorias", categorias);
         model.addAttribute("marcas", marcas);
-        
+
         return "frontend/admin/reportes/index";
     }
 
@@ -103,19 +108,19 @@ public class ReporteController {
             @RequestParam(required = false) Double precioMin,
             @RequestParam(required = false) Double precioMax,
             Model model) {
-        
+
         UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
-        
+
         if (usuario == null || !"admin".equalsIgnoreCase(usuario.getRole())) {
             return "redirect:/login";
         }
 
         List<ProductoDto> productos = productoService.listarProductos();
-        
+
         // Aplicar filtros
         if (categoria != null && !categoria.isEmpty()) {
             productos = productos.stream()
-                    .filter(p -> p.getCaracteristica() != null && 
+                    .filter(p -> p.getCaracteristica() != null &&
                             p.getCaracteristica().getCategoria() != null &&
                             p.getCaracteristica().getCategoria().toLowerCase().contains(categoria.toLowerCase()))
                     .collect(Collectors.toList());
@@ -123,7 +128,7 @@ public class ReporteController {
 
         if (marca != null && !marca.isEmpty()) {
             productos = productos.stream()
-                    .filter(p -> p.getCaracteristica() != null && 
+                    .filter(p -> p.getCaracteristica() != null &&
                             p.getCaracteristica().getMarca() != null &&
                             p.getCaracteristica().getMarca().toLowerCase().contains(marca.toLowerCase()))
                     .collect(Collectors.toList());
@@ -131,7 +136,7 @@ public class ReporteController {
 
         if (precioMin != null) {
             productos = productos.stream()
-                    .filter(p -> p.getCaracteristica() != null && 
+                    .filter(p -> p.getCaracteristica() != null &&
                             p.getCaracteristica().getPrecioVenta() != null &&
                             p.getCaracteristica().getPrecioVenta().doubleValue() >= precioMin)
                     .collect(Collectors.toList());
@@ -139,7 +144,7 @@ public class ReporteController {
 
         if (precioMax != null) {
             productos = productos.stream()
-                    .filter(p -> p.getCaracteristica() != null && 
+                    .filter(p -> p.getCaracteristica() != null &&
                             p.getCaracteristica().getPrecioVenta() != null &&
                             p.getCaracteristica().getPrecioVenta().doubleValue() <= precioMax)
                     .collect(Collectors.toList());
@@ -162,15 +167,15 @@ public class ReporteController {
             @RequestParam(required = false) String rol,
             @RequestParam(required = false) String busqueda,
             Model model) {
-        
+
         UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
-        
+
         if (usuario == null || !"admin".equalsIgnoreCase(usuario.getRole())) {
             return "redirect:/login";
         }
 
         List<UsuarioDto> usuarios = usuarioService.listarUsuarios();
-        
+
         // Aplicar filtros
         if (rol != null && !rol.isEmpty()) {
             usuarios = usuarios.stream()
@@ -182,8 +187,8 @@ public class ReporteController {
             final String busquedaLower = busqueda.toLowerCase();
             usuarios = usuarios.stream()
                     .filter(u -> (u.getName() != null && u.getName().toLowerCase().contains(busquedaLower)) ||
-                               (u.getEmail() != null && u.getEmail().toLowerCase().contains(busquedaLower)) ||
-                               (u.getDocumentNumber() != null && u.getDocumentNumber().contains(busqueda)))
+                            (u.getEmail() != null && u.getEmail().toLowerCase().contains(busquedaLower)) ||
+                            (u.getDocumentNumber() != null && u.getDocumentNumber().contains(busqueda)))
                     .collect(Collectors.toList());
         }
 
@@ -205,15 +210,15 @@ public class ReporteController {
             @RequestParam(required = false) String fechaDesde,
             @RequestParam(required = false) String fechaHasta,
             Model model) {
-        
+
         UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
-        
+
         if (usuario == null || !"admin".equalsIgnoreCase(usuario.getRole())) {
             return "redirect:/login";
         }
 
         List<VentaDto> ventas = ventaService.listar();
-        
+
         // Limitar a 50 para vista previa
         ventas = ventas.stream().limit(50).collect(Collectors.toList());
 
@@ -233,9 +238,9 @@ public class ReporteController {
             @RequestParam(required = false) String marca,
             @RequestParam(required = false) Double precioMin,
             @RequestParam(required = false) Double precioMax) throws IOException {
-        
+
         UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
-        
+
         if (usuario == null || !"admin".equalsIgnoreCase(usuario.getRole())) {
             return ResponseEntity.status(403).build();
         }
@@ -243,7 +248,15 @@ public class ReporteController {
         List<ProductoDto> productos = obtenerProductosFiltrados(categoria, marca, precioMin, precioMax);
         byte[] pdfBytes = reporteService.generarPdfProductos(productos);
 
-        String filename = "reporte_productos_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".pdf";
+        String filename = "reporte_productos_"
+                + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".pdf";
+
+        // Notificación de sistema
+        notificacionService.crearNotificacionSistema(
+                "Reporte Generado",
+                "Se ha descargado un reporte PDF de Productos.",
+                "Reportes",
+                "bx-file-pdf");
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
@@ -251,12 +264,13 @@ public class ReporteController {
                 .body(new ByteArrayResource(pdfBytes));
     }
 
-    private List<ProductoDto> obtenerProductosFiltrados(String categoria, String marca, Double precioMin, Double precioMax) {
+    private List<ProductoDto> obtenerProductosFiltrados(String categoria, String marca, Double precioMin,
+            Double precioMax) {
         List<ProductoDto> productos = productoService.listarProductos();
-        
+
         if (categoria != null && !categoria.isEmpty()) {
             productos = productos.stream()
-                    .filter(p -> p.getCaracteristica() != null && 
+                    .filter(p -> p.getCaracteristica() != null &&
                             p.getCaracteristica().getCategoria() != null &&
                             p.getCaracteristica().getCategoria().toLowerCase().contains(categoria.toLowerCase()))
                     .collect(Collectors.toList());
@@ -264,7 +278,7 @@ public class ReporteController {
 
         if (marca != null && !marca.isEmpty()) {
             productos = productos.stream()
-                    .filter(p -> p.getCaracteristica() != null && 
+                    .filter(p -> p.getCaracteristica() != null &&
                             p.getCaracteristica().getMarca() != null &&
                             p.getCaracteristica().getMarca().toLowerCase().contains(marca.toLowerCase()))
                     .collect(Collectors.toList());
@@ -272,7 +286,7 @@ public class ReporteController {
 
         if (precioMin != null) {
             productos = productos.stream()
-                    .filter(p -> p.getCaracteristica() != null && 
+                    .filter(p -> p.getCaracteristica() != null &&
                             p.getCaracteristica().getPrecioVenta() != null &&
                             p.getCaracteristica().getPrecioVenta().doubleValue() >= precioMin)
                     .collect(Collectors.toList());
@@ -280,7 +294,7 @@ public class ReporteController {
 
         if (precioMax != null) {
             productos = productos.stream()
-                    .filter(p -> p.getCaracteristica() != null && 
+                    .filter(p -> p.getCaracteristica() != null &&
                             p.getCaracteristica().getPrecioVenta() != null &&
                             p.getCaracteristica().getPrecioVenta().doubleValue() <= precioMax)
                     .collect(Collectors.toList());
@@ -293,15 +307,15 @@ public class ReporteController {
     public ResponseEntity<ByteArrayResource> usuariosPdf(
             @RequestParam(required = false) String rol,
             @RequestParam(required = false) String busqueda) throws IOException {
-        
+
         UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
-        
+
         if (usuario == null || !"admin".equalsIgnoreCase(usuario.getRole())) {
             return ResponseEntity.status(403).build();
         }
 
         List<UsuarioDto> usuarios = usuarioService.listarUsuarios();
-        
+
         if (rol != null && !rol.isEmpty()) {
             usuarios = usuarios.stream()
                     .filter(u -> rol.equalsIgnoreCase(u.getRole()))
@@ -312,14 +326,22 @@ public class ReporteController {
             final String busquedaLower = busqueda.toLowerCase();
             usuarios = usuarios.stream()
                     .filter(u -> (u.getName() != null && u.getName().toLowerCase().contains(busquedaLower)) ||
-                               (u.getEmail() != null && u.getEmail().toLowerCase().contains(busquedaLower)) ||
-                               (u.getDocumentNumber() != null && u.getDocumentNumber().contains(busqueda)))
+                            (u.getEmail() != null && u.getEmail().toLowerCase().contains(busquedaLower)) ||
+                            (u.getDocumentNumber() != null && u.getDocumentNumber().contains(busqueda)))
                     .collect(Collectors.toList());
         }
 
         byte[] pdfBytes = reporteService.generarPdfUsuarios(usuarios);
 
-        String filename = "reporte_usuarios_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".pdf";
+        String filename = "reporte_usuarios_"
+                + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".pdf";
+
+        // Notificación de sistema
+        notificacionService.crearNotificacionSistema(
+                "Reporte Generado",
+                "Se ha descargado un reporte PDF de Usuarios.",
+                "Reportes",
+                "bx-file-pdf");
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
@@ -332,16 +354,16 @@ public class ReporteController {
             @RequestParam(required = false) String categoria,
             @RequestParam(required = false) String marca,
             @RequestParam(required = false) String estado) throws IOException {
-        
+
         UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
-        
+
         if (usuario == null || !"admin".equalsIgnoreCase(usuario.getRole())) {
             return ResponseEntity.status(403).build();
         }
 
         List<VentaDto> ventas = ventaService.listar();
-        
-        // Los filtros de categoría y marca requerirían unirse con productos, 
+
+        // Los filtros de categoría y marca requerirían unirse con productos,
         // por simplicidad solo aplicamos filtro de estado si existe
         if (estado != null && !estado.isEmpty()) {
             // Nota: VentaDto no tiene campo estado, así que se omite este filtro
@@ -350,7 +372,15 @@ public class ReporteController {
 
         byte[] pdfBytes = reporteService.generarPdfVentas(ventas);
 
-        String filename = "reporte_ventas_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".pdf";
+        String filename = "reporte_ventas_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
+                + ".pdf";
+
+        // Notificación de sistema
+        notificacionService.crearNotificacionSistema(
+                "Reporte Generado",
+                "Se ha descargado un reporte PDF de Ventas.",
+                "Reportes",
+                "bx-file-pdf");
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
@@ -364,9 +394,9 @@ public class ReporteController {
             @RequestParam(required = false) String marca,
             @RequestParam(required = false) Double precioMin,
             @RequestParam(required = false) Double precioMax) throws IOException {
-        
+
         UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
-        
+
         if (usuario == null || !"admin".equalsIgnoreCase(usuario.getRole())) {
             return ResponseEntity.status(403).build();
         }
@@ -374,11 +404,20 @@ public class ReporteController {
         List<ProductoDto> productos = obtenerProductosFiltrados(categoria, marca, precioMin, precioMax);
         byte[] excelBytes = reporteService.generarExcelProductos(productos);
 
-        String filename = "reporte_productos_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".xlsx";
+        String filename = "reporte_productos_"
+                + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".xlsx";
+
+        // Notificación de sistema
+        notificacionService.crearNotificacionSistema(
+                "Reporte Generado",
+                "Se ha descargado un reporte Excel de Productos.",
+                "Reportes",
+                "bx-spreadsheet");
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .contentType(
+                        MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .body(new ByteArrayResource(excelBytes));
     }
 
@@ -386,15 +425,15 @@ public class ReporteController {
     public ResponseEntity<ByteArrayResource> usuariosExcel(
             @RequestParam(required = false) String rol,
             @RequestParam(required = false) String busqueda) throws IOException {
-        
+
         UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
-        
+
         if (usuario == null || !"admin".equalsIgnoreCase(usuario.getRole())) {
             return ResponseEntity.status(403).build();
         }
 
         List<UsuarioDto> usuarios = usuarioService.listarUsuarios();
-        
+
         if (rol != null && !rol.isEmpty()) {
             usuarios = usuarios.stream()
                     .filter(u -> rol.equalsIgnoreCase(u.getRole()))
@@ -405,43 +444,61 @@ public class ReporteController {
             final String busquedaLower = busqueda.toLowerCase();
             usuarios = usuarios.stream()
                     .filter(u -> (u.getName() != null && u.getName().toLowerCase().contains(busquedaLower)) ||
-                               (u.getEmail() != null && u.getEmail().toLowerCase().contains(busquedaLower)) ||
-                               (u.getDocumentNumber() != null && u.getDocumentNumber().contains(busqueda)))
+                            (u.getEmail() != null && u.getEmail().toLowerCase().contains(busquedaLower)) ||
+                            (u.getDocumentNumber() != null && u.getDocumentNumber().contains(busqueda)))
                     .collect(Collectors.toList());
         }
 
         byte[] excelBytes = reporteService.generarExcelUsuarios(usuarios);
 
-        String filename = "reporte_usuarios_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".xlsx";
+        String filename = "reporte_usuarios_"
+                + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".xlsx";
+
+        // Notificación de sistema
+        notificacionService.crearNotificacionSistema(
+                "Reporte Generado",
+                "Se ha descargado un reporte Excel de Usuarios.",
+                "Reportes",
+                "bx-spreadsheet");
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .contentType(
+                        MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .body(new ByteArrayResource(excelBytes));
     }
 
     @GetMapping("/admin/reportes/ventas/excel")
     public ResponseEntity<ByteArrayResource> ventasExcel(
             @RequestParam(required = false) String estado) throws IOException {
-        
+
         UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
-        
+
         if (usuario == null || !"admin".equalsIgnoreCase(usuario.getRole())) {
             return ResponseEntity.status(403).build();
         }
 
         List<VentaDto> ventas = ventaService.listar();
-        
+
         // Nota: VentaDto no tiene campo estado, así que se omite este filtro
         // Se puede implementar después si se agrega el campo estado a VentaDto
 
         byte[] excelBytes = reporteService.generarExcelVentas(ventas);
 
-        String filename = "reporte_ventas_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".xlsx";
+        String filename = "reporte_ventas_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"))
+                + ".xlsx";
+
+        // Notificación de sistema
+        notificacionService.crearNotificacionSistema(
+                "Reporte Generado",
+                "Se ha descargado un reporte Excel de Ventas.",
+                "Reportes",
+                "bx-spreadsheet");
 
         return ResponseEntity.ok()
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + filename + "\"")
-                .contentType(MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
+                .contentType(
+                        MediaType.parseMediaType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"))
                 .body(new ByteArrayResource(excelBytes));
     }
 }

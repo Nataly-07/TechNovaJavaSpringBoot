@@ -5,7 +5,6 @@ import lombok.*;
 import java.util.Date;
 import java.util.List;
 import com.technova.technov.domain.entity.Proveedor;
-import com.technova.technov.domain.entity.DetalleOrden;
 
 @Entity
 @Table(name = "orden_compra")

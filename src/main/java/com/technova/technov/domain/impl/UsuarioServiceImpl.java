@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.technova.technov.domain.dto.UsuarioDto;
 import com.technova.technov.domain.entity.Usuario;
 import com.technova.technov.domain.repository.UsuarioRepository;
+import com.technova.technov.domain.service.NotificacionService;
 import com.technova.technov.domain.service.UsuarioService;
 
 @Service
@@ -27,62 +28,69 @@ public class UsuarioServiceImpl implements UsuarioService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-/*     @Override
-    @Transactional(readOnly = true)
-    public List<UsuarioDto> listarUsuarios() { */
+    @Autowired
+    private NotificacionService notificacionService;
 
-/*         // Obtener todos los admins y empleados (activos e inactivos)
-        List<Usuario> admins = usuarioRepository.findByRoleIgnoreCase("admin");
-        List<Usuario> empleados = usuarioRepository.findByRoleIgnoreCase("empleado");
-        
-        // Obtener solo clientes activos
-        List<Usuario> clientesActivos = usuarioRepository.findByEstadoTrue().stream()
-                .filter(u -> "cliente".equalsIgnoreCase(u.getRole()))
-                .collect(Collectors.toList());
-        
-        // Combinar todas las listas
-        List<Usuario> todosUsuarios = new java.util.ArrayList<>();
-        todosUsuarios.addAll(admins);
-        todosUsuarios.addAll(empleados);
-        todosUsuarios.addAll(clientesActivos);
-        
+    /*
+     * @Override
+     * 
+     * @Transactional(readOnly = true)
+     * public List<UsuarioDto> listarUsuarios() {
+     */
+
+    /*
+     * // Obtener todos los admins y empleados (activos e inactivos)
+     * List<Usuario> admins = usuarioRepository.findByRoleIgnoreCase("admin");
+     * List<Usuario> empleados = usuarioRepository.findByRoleIgnoreCase("empleado");
+     * 
+     * // Obtener solo clientes activos
+     * List<Usuario> clientesActivos = usuarioRepository.findByEstadoTrue().stream()
+     * .filter(u -> "cliente".equalsIgnoreCase(u.getRole()))
+     * .collect(Collectors.toList());
+     * 
+     * // Combinar todas las listas
+     * List<Usuario> todosUsuarios = new java.util.ArrayList<>();
+     * todosUsuarios.addAll(admins);
+     * todosUsuarios.addAll(empleados);
+     * todosUsuarios.addAll(clientesActivos);
+     * 
+     * return todosUsuarios.stream()
+     * .map(usuario -> {
+     * UsuarioDto dto = modelMapper.map(usuario, UsuarioDto.class);
+     * dto.setEstado(usuario.getEstado());
+     * return dto;
+     * })
+     * 
+     * List<Usuario> usuarios = usuarioRepository.findByEstadoTrue();
+     * return usuarios.stream()
+     * .sorted((a, b) -> {
+     * // Ordenar por ID descendente (más reciente primero)
+     * return b.getId().compareTo(a.getId());
+     * })
+     * .map(usuario -> modelMapper.map(usuario, UsuarioDto.class))
+     * (Cambios en Perfil de Empleado)
+     * .collect(Collectors.toList());
+     * }
+     */
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<UsuarioDto> listarUsuarios() {
+        // Obtener todos los usuarios (activos e inactivos) sin filtrar por estado
+        List<Usuario> todosUsuarios = usuarioRepository.findAll();
+
+        // Ordenar por ID descendente
+        todosUsuarios.sort((a, b) -> b.getId().compareTo(a.getId()));
+
+        // Mapear a DTO y devolver la lista
         return todosUsuarios.stream()
                 .map(usuario -> {
                     UsuarioDto dto = modelMapper.map(usuario, UsuarioDto.class);
                     dto.setEstado(usuario.getEstado());
                     return dto;
                 })
-
-        List<Usuario> usuarios = usuarioRepository.findByEstadoTrue();
-        return usuarios.stream()
-                .sorted((a, b) -> {
-                    // Ordenar por ID descendente (más reciente primero)
-                    return b.getId().compareTo(a.getId());
-                })
-                .map(usuario -> modelMapper.map(usuario, UsuarioDto.class))
- (Cambios en Perfil de Empleado)
-                .collect(Collectors.toList()); 
-    }*/
-
-                @Override
-@Transactional(readOnly = true)
-public List<UsuarioDto> listarUsuarios() {
-    // Obtener todos los usuarios (activos e inactivos) sin filtrar por estado
-    List<Usuario> todosUsuarios = usuarioRepository.findAll();
-
-    // Ordenar por ID descendente
-    todosUsuarios.sort((a, b) -> b.getId().compareTo(a.getId()));
-
-    // Mapear a DTO y devolver la lista
-    return todosUsuarios.stream()
-            .map(usuario -> {
-                UsuarioDto dto = modelMapper.map(usuario, UsuarioDto.class);
-                dto.setEstado(usuario.getEstado());
-                return dto;
-            })
-            .collect(Collectors.toList());
-}
-
+                .collect(Collectors.toList());
+    }
 
     @Override
     @Transactional
@@ -93,8 +101,18 @@ public List<UsuarioDto> listarUsuarios() {
         if (personaDto.getPassword() != null && !personaDto.getPassword().isEmpty()) {
             nuevo.setPassword(passwordEncoder.encode(personaDto.getPassword()));
         }
-        nuevo.setEstado(true); 
+        nuevo.setEstado(true);
+        nuevo.setEstado(true);
         Usuario guardado = usuarioRepository.save(nuevo);
+
+        // Notificación de sistema
+        notificacionService.crearNotificacionSistema(
+                "Nuevo Usuario Registrado",
+                "Se ha registrado el usuario: " + guardado.getName() + " (" + guardado.getEmail() + ") - Rol: "
+                        + guardado.getRole(),
+                "Usuarios",
+                "bx-user-plus");
+
         return modelMapper.map(guardado, UsuarioDto.class);
     }
 
@@ -131,6 +149,15 @@ public List<UsuarioDto> listarUsuarios() {
                     }
                     // No actualizar otros campos si no vienen en el DTO
                     Usuario actualizado = usuarioRepository.save(existing);
+
+                    // Notificación de sistema
+                    notificacionService.crearNotificacionSistema(
+                            "Usuario Actualizado",
+                            "Se ha actualizado la información del usuario: " + actualizado.getName() + " ("
+                                    + actualizado.getEmail() + ")",
+                            "Usuarios",
+                            "bx-user-check");
+
                     UsuarioDto dto = modelMapper.map(actualizado, UsuarioDto.class);
                     dto.setEstado(actualizado.getEstado());
                     return dto;
@@ -174,8 +201,16 @@ public List<UsuarioDto> listarUsuarios() {
                         existing.setPassword(encodedPassword);
                     }
                     // No actualizar el rol en la actualización de perfil
-                    
+
                     Usuario actualizado = usuarioRepository.save(existing);
+
+                    // Notificación de sistema
+                    notificacionService.crearNotificacionSistema(
+                            "Perfil Actualizado",
+                            "El usuario " + actualizado.getName() + " ha actualizado su perfil.",
+                            "Usuarios",
+                            "bx-id-card");
+
                     UsuarioDto dto = modelMapper.map(actualizado, UsuarioDto.class);
                     dto.setEstado(actualizado.getEstado());
                     return dto;
@@ -192,12 +227,12 @@ public List<UsuarioDto> listarUsuarios() {
                     if (storedPassword == null) {
                         return false;
                     }
-                    
+
                     // Verificar si la contraseña está codificada con BCrypt
-                    boolean isEncoded = storedPassword.startsWith("$2a$") || 
-                                      storedPassword.startsWith("$2b$") || 
-                                      storedPassword.startsWith("$2y$");
-                    
+                    boolean isEncoded = storedPassword.startsWith("$2a$") ||
+                            storedPassword.startsWith("$2b$") ||
+                            storedPassword.startsWith("$2y$");
+
                     if (isEncoded) {
                         // Contraseña codificada: usar BCrypt para verificar
                         return passwordEncoder.matches(password, storedPassword);
@@ -215,16 +250,19 @@ public List<UsuarioDto> listarUsuarios() {
         if (email == null || documentType == null || documentNumber == null || phone == null) {
             return false;
         }
-        
-        // Buscar por email sin filtrar por estado (permite verificar cuentas activas e inactivas)
+
+        // Buscar por email sin filtrar por estado (permite verificar cuentas activas e
+        // inactivas)
         return usuarioRepository.findByEmail(email)
                 .map(usuario -> {
                     // Verificar que todos los datos coincidan
                     boolean emailMatch = usuario.getEmail() != null && usuario.getEmail().equalsIgnoreCase(email);
-                    boolean documentTypeMatch = usuario.getDocumentType() != null && usuario.getDocumentType().equals(documentType);
-                    boolean documentNumberMatch = usuario.getDocumentNumber() != null && usuario.getDocumentNumber().equals(documentNumber);
+                    boolean documentTypeMatch = usuario.getDocumentType() != null
+                            && usuario.getDocumentType().equals(documentType);
+                    boolean documentNumberMatch = usuario.getDocumentNumber() != null
+                            && usuario.getDocumentNumber().equals(documentNumber);
                     boolean phoneMatch = usuario.getPhone() != null && usuario.getPhone().equals(phone);
-                    
+
                     return emailMatch && documentTypeMatch && documentNumberMatch && phoneMatch;
                 })
                 .orElse(false);
@@ -236,7 +274,7 @@ public List<UsuarioDto> listarUsuarios() {
         if (email == null || email.trim().isEmpty() || newPassword == null || newPassword.trim().isEmpty()) {
             return false;
         }
-        
+
         return usuarioRepository.findByEmailAndEstadoTrue(email)
                 .map(usuario -> {
                     // Codificar y actualizar la contraseña
@@ -253,8 +291,17 @@ public List<UsuarioDto> listarUsuarios() {
     public boolean eliminarUsuario(Long idusuario) {
         return usuarioRepository.findById(idusuario)
                 .map(usuario -> {
-                    usuario.setEstado(false); 
+                    usuario.setEstado(false);
                     usuarioRepository.save(usuario);
+
+                    // Notificación de sistema
+                    notificacionService.crearNotificacionSistema(
+                            "Usuario Eliminado",
+                            "Se ha eliminado (desactivado) el usuario: " + usuario.getName() + " (" + usuario.getEmail()
+                                    + ")",
+                            "Usuarios",
+                            "bx-user-x");
+
                     return true;
                 })
                 .orElse(false);
@@ -265,8 +312,18 @@ public List<UsuarioDto> listarUsuarios() {
     public boolean activarDesactivarUsuario(Long idusuario, boolean activar) {
         return usuarioRepository.findById(idusuario)
                 .map(usuario -> {
-                    usuario.setEstado(activar); 
+                    usuario.setEstado(activar);
                     usuarioRepository.save(usuario);
+
+                    // Notificación de sistema
+                    String accion = activar ? "Activado" : "Desactivado";
+                    notificacionService.crearNotificacionSistema(
+                            "Usuario " + accion,
+                            "Se ha " + accion.toLowerCase() + " el usuario: " + usuario.getName() + " ("
+                                    + usuario.getEmail() + ")",
+                            "Usuarios",
+                            activar ? "bx-user-check" : "bx-user-x");
+
                     return true;
                 })
                 .orElse(false);
@@ -279,20 +336,20 @@ public List<UsuarioDto> listarUsuarios() {
                 .map(usuario -> {
                     String storedPassword = usuario.getPassword();
                     boolean passwordMatches = false;
-                    
+
                     // Verificar si la contraseña está codificada con BCrypt
-                    boolean isEncoded = storedPassword != null && 
-                                      (storedPassword.startsWith("$2a$") || 
-                                       storedPassword.startsWith("$2b$") || 
-                                       storedPassword.startsWith("$2y$"));
-                    
+                    boolean isEncoded = storedPassword != null &&
+                            (storedPassword.startsWith("$2a$") ||
+                                    storedPassword.startsWith("$2b$") ||
+                                    storedPassword.startsWith("$2y$"));
+
                     if (isEncoded) {
                         // Contraseña codificada: usar BCrypt para verificar
                         passwordMatches = passwordEncoder.matches(password, storedPassword);
                     } else {
                         // Contraseña en texto plano: comparar directamente
                         passwordMatches = storedPassword != null && storedPassword.equals(password);
-                        
+
                         // Si coincide y está en texto plano, migrarla automáticamente
                         if (passwordMatches) {
                             String encodedPassword = passwordEncoder.encode(password);
@@ -300,7 +357,7 @@ public List<UsuarioDto> listarUsuarios() {
                             usuarioRepository.save(usuario);
                         }
                     }
-                    
+
                     return passwordMatches ? modelMapper.map(usuario, UsuarioDto.class) : null;
                 })
                 .filter(dto -> dto != null);

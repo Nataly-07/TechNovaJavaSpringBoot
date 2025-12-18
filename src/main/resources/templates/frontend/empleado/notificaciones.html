@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Notificaciones - Empleado TechNova</title>
+
+    <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+    <link rel="stylesheet" th:href="@{/frontend/css/estilodas.css}">
+    <link rel="stylesheet" th:href="@{/frontend/css/stilotech.css}">
+    <link rel="stylesheet" th:href="@{/frontend/css/color-palette.css}">
+
+    <style>
+        .notification-container {
+            margin-top: 30px;
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .filter-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 15px;
+            overflow-x: auto;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border: none;
+            background: #f8f9fa;
+            color: #6c757d;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        .filter-btn:hover {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 10px rgba(102, 126, 234, 0.3);
+        }
+
+        .notification-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .notification-item {
+            display: flex;
+            gap: 20px;
+            padding: 20px;
+            border-radius: 12px;
+            background-color: #fff;
+            border: 1px solid #edf2f7;
+            transition: all 0.3s ease;
+        }
+
+        .notification-item:hover {
+            transform: translateX(5px);
+            border-color: #cbd5e0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .notification-item.unread {
+            background-color: #f8faff;
+            border-left: 4px solid #667eea;
+        }
+
+        .notification-icon {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            background: #f1f5f9;
+            color: #667eea;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .notification-item.unread .notification-icon {
+            background: #e0e7ff;
+            color: #4338ca;
+        }
+
+        .notification-content {
+            flex: 1;
+        }
+
+        .notif-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 5px;
+        }
+
+        .notif-title {
+            font-weight: 600;
+            font-size: 1.05rem;
+            color: #2d3748;
+            margin: 0;
+        }
+
+        .notif-time {
+            font-size: 0.8rem;
+            color: #a0aec0;
+            white-space: nowrap;
+        }
+
+        .notif-body {
+            color: #718096;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+
+        .notif-tag {
+            display: inline-block;
+            padding: 3px 10px;
+            background: #edf2f7;
+            color: #718096;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 50px 20px;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            color: #cbd5e1;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <a th:href="@{/}" class="logo">
+            <img th:src="@{'/frontend/imagenes/logo technova.png'}" alt="Logo" style="height: 52px;">
+            <span>TECHNOVA</span>
+        </a>
+
+        <div class="acciones-usuario">
+            <a th:href="@{/empleado/perfil}" class="account"><i class='bx bx-user-circle'></i> <span>Perfil</span></a>
+            <form method="POST" th:action="@{/logout}" style="display:inline;">
+                <button type="submit"
+                    style="background:none;border:none;color:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:5px;"
+                    class="account">
+                    <i class='bx bx-log-out'></i> <span>Cerrar Sesión</span>
+                </button>
+            </form>
+        </div>
+    </header>
+
+    <div class="dashboard-wrapper">
+        <div th:replace="~{frontend/layouts/sidebar-empleado :: sidebar}"></div>
+
+        <main class="main-content">
+
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <div>
+                    <h1 style="font-size: 1.8rem; color: #2d3748; margin-bottom: 5px;">Notificaciones</h1>
+                    <p style="color: #718096;">Novedades y tareas asignadas</p>
+                </div>
+            </div>
+
+            <div class="notification-container">
+                <!-- Filters -->
+                <div class="filter-tabs">
+                    <a href="#" class="filter-btn active" onclick="filterNotifications('all', event)">
+                        <i class='bx bx-grid-alt'></i> Todas
+                    </a>
+                    <a href="#" class="filter-btn" onclick="filterNotifications('Mensajes', event)">
+                        <i class='bx bx-message-detail'></i> Mensajes
+                    </a>
+                    <a href="#" class="filter-btn" onclick="filterNotifications('Visualización de Artículos', event)">
+                        <i class='bx bx-box'></i> Visualización de Artículos
+                    </a>
+                    <a href="#" class="filter-btn" onclick="filterNotifications('Pedidos', event)">
+                        <i class='bx bx-shopping-bag'></i> Pedidos
+                    </a>
+                    <a href="#" class="filter-btn" onclick="filterNotifications('Atención al Cliente', event)">
+                        <i class='bx bx-headphone'></i> Atención al Cliente
+                    </a>
+                </div>
+
+                <!-- List -->
+                <div th:if="${not #lists.isEmpty(notificaciones)}" class="notification-list" id="notificationsList">
+                    <div th:each="notificacion : ${notificaciones}" class="notification-item"
+                        th:classappend="${!notificacion.leida} ? 'unread' : ''"
+                        th:attr="data-type=${notificacion.tipo}">
+
+                        <div class="notification-icon">
+                            <i class='bx'
+                                th:classappend="${notificacion.icono != null ? notificacion.icono : 'bx-bell'}"></i>
+                        </div>
+
+                        <div class="notification-content">
+                            <div class="notif-header">
+                                <h4 class="notif-title" th:text="${notificacion.titulo}">Título de Notificación</h4>
+                                <span class="notif-time"
+                                    th:text="${#temporals.format(notificacion.fechaCreacion, 'dd/MM/yyyy HH:mm')}">Hace
+                                    5 min</span>
+                            </div>
+                            <p class="notif-body" th:text="${notificacion.mensaje}">Descripción de la notificación...
+                            </p>
+                            <span class="notif-tag" th:text="${notificacion.tipo}">General</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div th:if="${#lists.isEmpty(notificaciones)}" class="empty-state">
+                    <i class='bx bx-bell-off empty-icon'></i>
+                    <h3>Sin notificaciones</h3>
+                    <p style="color: #a0aec0;">Estás al día con tus actividades.</p>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 Technova</p>
+    </footer>
+
+    <script>
+        function filterNotifications(type, event) {
+            event.preventDefault();
+
+            // Update active state
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Filter items
+            const items = document.querySelectorAll('.notification-item');
+            items.forEach(item => {
+                if (type === 'all' || item.getAttribute('data-type') === type) {
+                    item.style.display = 'flex';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        }
+    </script>
+</body>
+
+</html>

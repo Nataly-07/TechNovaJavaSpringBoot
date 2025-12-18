@@ -3,6 +3,7 @@ package com.technova.technov.domain.impl;
 import com.technova.technov.domain.dto.PagoDto;
 import com.technova.technov.domain.entity.Pago;
 import com.technova.technov.domain.repository.PagoRepository;
+import com.technova.technov.domain.service.NotificacionService;
 import com.technova.technov.domain.service.PagoService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +23,9 @@ public class PagoServiceImpl implements PagoService {
     @Autowired
     private ModelMapper modelMapper;
 
+    @Autowired
+    private NotificacionService notificacionService;
+
     @Override
     @Transactional
     public PagoDto registrar(PagoDto dto) {
@@ -29,13 +33,13 @@ public class PagoServiceImpl implements PagoService {
             System.err.println("ERROR: PagoDto es null");
             return null;
         }
-        
+
         System.out.println("=== PagoServiceImpl.registrar ===");
         System.out.println("  -> DTO recibido - Factura: " + dto.getNumeroFactura() + ", Monto: " + dto.getMonto());
-        
+
         Pago pago = modelMapper.map(dto, Pago.class);
         pago.setId(null);
-        
+
         // Validar y establecer valores por defecto
         if (pago.getEstadoPago() == null) {
             pago.setEstadoPago("CONFIRMADO");
@@ -46,22 +50,31 @@ public class PagoServiceImpl implements PagoService {
         if (pago.getFechaFactura() == null) {
             pago.setFechaFactura(LocalDate.now());
         }
-        
+
         // Validar que el número de factura no sea null
         if (pago.getNumeroFactura() == null || pago.getNumeroFactura().trim().isEmpty()) {
             System.err.println("ERROR: Número de factura es null o vacío");
             throw new IllegalArgumentException("El número de factura no puede ser null o vacío");
         }
-        
-        System.out.println("  -> Pago entity antes de guardar - Factura: " + pago.getNumeroFactura() + ", Monto: " + pago.getMonto());
-        
+
+        System.out.println("  -> Pago entity antes de guardar - Factura: " + pago.getNumeroFactura() + ", Monto: "
+                + pago.getMonto());
+
         Pago saved = pagoRepository.save(pago);
-        
+
         System.out.println("  -> Pago guardado - ID: " + saved.getId() + ", Factura: " + saved.getNumeroFactura());
-        
+
         PagoDto result = modelMapper.map(saved, PagoDto.class);
         System.out.println("  -> DTO resultado - ID: " + result.getId() + ", Factura: " + result.getNumeroFactura());
-        
+
+        // Notificación de sistema
+        notificacionService.crearNotificacionSistema(
+                "Pago Registrado",
+                "Se ha registrado un nuevo pago por $" + result.getMonto() + " (Factura #" + result.getNumeroFactura()
+                        + ")",
+                "Pagos",
+                "bx-credit-card");
+
         return result;
     }
 
