@@ -10,6 +10,7 @@ import com.technova.technov.domain.repository.DetalleOrdenRepository;
 import com.technova.technov.domain.repository.OrdenCompraRepository;
 import com.technova.technov.domain.repository.ProductoRepository;
 import com.technova.technov.domain.repository.ProveedorRepository;
+import com.technova.technov.domain.service.NotificacionService;
 import com.technova.technov.domain.service.OrdenCompraService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -34,6 +35,9 @@ public class OrdenCompraServiceImpl implements OrdenCompraService {
 
     @Autowired
     private ProveedorRepository proveedorRepository;
+
+    @Autowired
+    private NotificacionService notificacionService;
 
     @Override
     @Transactional(readOnly = true)
@@ -105,7 +109,28 @@ public class OrdenCompraServiceImpl implements OrdenCompraService {
 
         guardada.setDetalles(detallesEntidad);
         guardada.setTotal(totalOrden);
-        return convertToDto(ordenCompraRepository.save(guardada));
+        guardada.setDetalles(detallesEntidad);
+        guardada.setTotal(totalOrden);
+        OrdenCompra finaSaved = ordenCompraRepository.save(guardada);
+
+        // Notificación de sistema
+        notificacionService.crearNotificacionSistema(
+                "Nueva Orden de Compra",
+                "Se ha generado una nueva orden de compra #" + finaSaved.getId() + " para "
+                        + (finaSaved.getProveedor() != null ? finaSaved.getProveedor().getNombre()
+                                : "Proveedor desconocido"),
+                "Pedidos",
+                "bx-cart-add");
+
+        // Notificación para Empleados
+        notificacionService.crearNotificacionRol(
+                "EMPLEADO",
+                "Nuevo Pedido para Gestionar",
+                "Se ha generado una nueva orden de compra #" + finaSaved.getId() + ". Revisa el panel de pedidos.",
+                "Pedidos",
+                "bx-cart-add");
+
+        return convertToDto(finaSaved);
     }
 
     @Override
@@ -137,7 +162,17 @@ public class OrdenCompraServiceImpl implements OrdenCompraService {
             }
         }
 
-        return convertToDto(ordenCompraRepository.save(orden));
+        OrdenCompra received = ordenCompraRepository.save(orden);
+
+        // Notificación de sistema
+        notificacionService.crearNotificacionSistema(
+                "Orden de Compra Recibida",
+                "Se han recibido los productos de la orden #" + received.getId()
+                        + ". El inventario ha sido actualizado.",
+                "Órdenes de Compra",
+                "bx-package");
+
+        return convertToDto(received);
     }
 
     private OrdenCompraDto convertToDto(OrdenCompra entidad) {

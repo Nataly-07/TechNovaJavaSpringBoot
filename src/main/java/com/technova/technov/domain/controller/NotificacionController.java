@@ -27,8 +27,10 @@ public class NotificacionController {
     }
 
     @GetMapping("/usuario/{userId}")
-    public ResponseEntity<List<NotificacionDto>> listarPorUsuario(@PathVariable Long userId) {
-        List<NotificacionDto> notificaciones = notificacionService.listarPorUsuario(userId);
+    public ResponseEntity<List<NotificacionDto>> listarPorUsuario(
+            @PathVariable Long userId,
+            @RequestParam(required = false, defaultValue = "false") boolean soloNoLeidas) {
+        List<NotificacionDto> notificaciones = notificacionService.listarPorUsuario(userId, soloNoLeidas);
         return ResponseEntity.ok(notificaciones);
     }
 
@@ -55,4 +57,3 @@ public class NotificacionController {
         return ResponseEntity.ok(creado);
     }
 }
-

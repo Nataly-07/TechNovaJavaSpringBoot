@@ -45,18 +45,33 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
         if (descripcion == null || descripcion.trim().isEmpty()) {
             throw new IllegalArgumentException("La descripción no puede estar vacía");
         }
-        
+
         Usuario usuario = usuarioRepository.findByIdAndEstadoTrue(Long.valueOf(usuarioId))
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado o inactivo: " + usuarioId));
-        
+
         AtencionCliente ticket = new AtencionCliente();
         ticket.setUsuario(usuario);
         ticket.setFechaConsulta(LocalDateTime.now());
         ticket.setTema(tema.trim());
         ticket.setDescripcion(descripcion.trim());
         ticket.setEstado("abierto");
-        
+
         AtencionCliente ticketGuardado = atencionClienteRepository.save(ticket);
+
+        // Notificar a Empleados y Administradores
+        notificacionService.crearNotificacionRol(
+                "EMPLEADO",
+                "Nueva Consulta de Cliente",
+                "El usuario " + usuario.getEmail() + " ha abierto un ticket: " + tema,
+                "Atención al Cliente",
+                "bx-headphone");
+
+        notificacionService.crearNotificacionSistema(
+                "Nueva Consulta de Cliente",
+                "El usuario " + usuario.getEmail() + " ha abierto un ticket: " + tema,
+                "Atención al Cliente",
+                "bx-headphone");
+
         return convertToDto(ticketGuardado);
     }
 
@@ -65,18 +80,19 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
     public AtencionClienteDto responder(Integer id, String respuesta) {
         System.out.println("=== INICIANDO responder() ===");
         System.out.println("  -> Ticket ID: " + id);
-        System.out.println("  -> Respuesta: " + (respuesta != null ? respuesta.substring(0, Math.min(50, respuesta.length())) : "null"));
-        
+        System.out.println("  -> Respuesta: "
+                + (respuesta != null ? respuesta.substring(0, Math.min(50, respuesta.length())) : "null"));
+
         // Usar consulta con JOIN FETCH para cargar el usuario
         AtencionCliente t = atencionClienteRepository.findByIdWithUsuario(id)
                 .orElseThrow(() -> new IllegalArgumentException("Ticket no encontrado: " + id));
-        
+
         System.out.println("  -> Ticket encontrado: " + (t != null ? "Sí" : "No"));
-        
+
         // Obtener usuarioId - ahora debería estar cargado
         Long usuarioId = null;
         String tema = t.getTema();
-        
+
         if (t.getUsuario() != null) {
             usuarioId = t.getUsuario().getId();
             System.out.println("  -> Usuario cargado: Sí");
@@ -85,14 +101,14 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
         } else {
             System.err.println("  -> ERROR: t.getUsuario() es null");
         }
-        
+
         // Si aún no tenemos el usuarioId, intentar obtenerlo del DTO después de guardar
         if (usuarioId == null) {
             t.setRespuesta(respuesta);
             t.setEstado("en_proceso");
             AtencionCliente ticketGuardado = atencionClienteRepository.save(t);
             AtencionClienteDto ticketRespondido = convertToDto(ticketGuardado);
-            
+
             if (ticketRespondido != null && ticketRespondido.getUsuarioId() != null) {
                 usuarioId = Long.valueOf(ticketRespondido.getUsuarioId());
                 System.out.println("  -> Usuario ID obtenido del DTO: " + usuarioId);
@@ -102,9 +118,9 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
             t.setEstado("en_proceso");
             atencionClienteRepository.save(t);
         }
-        
+
         AtencionClienteDto ticketRespondido = convertToDto(t);
-        
+
         // Crear notificación para el cliente
         if (usuarioId != null) {
             try {
@@ -112,35 +128,32 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
                 System.out.println("  -> Ticket ID: " + id);
                 System.out.println("  -> Usuario ID: " + usuarioId);
                 System.out.println("  -> Tema: " + tema);
-                
-                String mensaje = String.format(
-                    "Hemos respondido a tu consulta sobre '%s'. " +
-                    "Revisa la respuesta en tu panel de atención al cliente.",
-                    tema != null && tema.length() > 50 
-                        ? tema.substring(0, 50) + "..." 
-                        : (tema != null ? tema : "tu consulta")
-                );
-                
+
+                String mensajeNotificacion = respuesta != null && respuesta.length() > 100
+                        ? respuesta.substring(0, 100) + "..."
+                        : respuesta;
+
                 // Crear JSON con datos adicionales
                 ObjectMapper objectMapper = new ObjectMapper();
                 java.util.Map<String, Object> dataAdicional = new java.util.HashMap<>();
                 dataAdicional.put("ticketId", id);
                 dataAdicional.put("tema", tema);
                 String dataAdicionalJson = objectMapper.writeValueAsString(dataAdicional);
-                
+
                 NotificacionDto notificacion = NotificacionDto.builder()
                         .userId(usuarioId)
                         .titulo("Respuesta a tu consulta")
-                        .mensaje(mensaje)
-                        .tipo("atencion_cliente")
+                        .mensaje(mensajeNotificacion)
+                        .tipo("Atención al Cliente")
                         .icono("bx-headphone")
                         .leida(false)
                         .dataAdicional(dataAdicionalJson)
                         .build();
-                
+
                 NotificacionDto notificacionCreada = notificacionService.crear(notificacion);
                 System.out.println("=== NOTIFICACIÓN: Notificación de respuesta creada exitosamente ===");
-                System.out.println("  -> Notificación ID: " + (notificacionCreada != null ? notificacionCreada.getId() : "null"));
+                System.out.println(
+                        "  -> Notificación ID: " + (notificacionCreada != null ? notificacionCreada.getId() : "null"));
             } catch (Exception e) {
                 System.err.println("=== ERROR: No se pudo crear la notificación de respuesta ===");
                 System.err.println("  -> Error: " + e.getMessage());
@@ -153,9 +166,10 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
             System.err.println("  -> Ticket ID: " + id);
             System.err.println("  -> Ticket: " + (t != null ? "existe" : "null"));
             System.err.println("  -> Usuario en ticket: " + (t != null && t.getUsuario() != null ? "existe" : "null"));
-            System.err.println("  -> DTO UsuarioId: " + (ticketRespondido != null ? ticketRespondido.getUsuarioId() : "null"));
+            System.err.println(
+                    "  -> DTO UsuarioId: " + (ticketRespondido != null ? ticketRespondido.getUsuarioId() : "null"));
         }
-        
+
         System.out.println("=== FINALIZANDO responder() ===");
         return ticketRespondido;
     }
@@ -165,17 +179,17 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
     public AtencionClienteDto cerrar(Integer id) {
         System.out.println("=== INICIANDO cerrar() ===");
         System.out.println("  -> Ticket ID: " + id);
-        
+
         // Usar consulta con JOIN FETCH para cargar el usuario
         AtencionCliente t = atencionClienteRepository.findByIdWithUsuario(id)
                 .orElseThrow(() -> new IllegalArgumentException("Ticket no encontrado: " + id));
-        
+
         System.out.println("  -> Ticket encontrado: " + (t != null ? "Sí" : "No"));
-        
+
         // Obtener usuarioId - ahora debería estar cargado
         Long usuarioId = null;
         String tema = t.getTema();
-        
+
         if (t.getUsuario() != null) {
             usuarioId = t.getUsuario().getId();
             System.out.println("  -> Usuario cargado: Sí");
@@ -184,13 +198,13 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
         } else {
             System.err.println("  -> ERROR: t.getUsuario() es null");
         }
-        
+
         // Si aún no tenemos el usuarioId, intentar obtenerlo del DTO después de guardar
         if (usuarioId == null) {
             t.setEstado("resuelto");
             AtencionCliente ticketGuardado = atencionClienteRepository.save(t);
             AtencionClienteDto ticketCerrado = convertToDto(ticketGuardado);
-            
+
             if (ticketCerrado != null && ticketCerrado.getUsuarioId() != null) {
                 usuarioId = Long.valueOf(ticketCerrado.getUsuarioId());
                 System.out.println("  -> Usuario ID obtenido del DTO: " + usuarioId);
@@ -199,24 +213,22 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
             t.setEstado("resuelto");
             atencionClienteRepository.save(t);
         }
-        
+
         AtencionClienteDto ticketCerrado = convertToDto(t);
-        
+
         // Crear notificación para el cliente cuando se cierra el ticket
         if (usuarioId != null) {
             try {
                 System.out.println("=== CREAR NOTIFICACIÓN DE TICKET CERRADO ===");
                 System.out.println("  -> Ticket ID: " + id);
                 System.out.println("  -> Usuario ID: " + usuarioId);
-                
-                String mensaje = String.format(
-                    "Tu consulta sobre '%s' ha sido resuelta y cerrada. " +
-                    "Si necesitas más ayuda, puedes crear una nueva consulta.",
-                    tema != null && tema.length() > 50 
-                        ? tema.substring(0, 50) + "..." 
-                        : (tema != null ? tema : "tu consulta")
-                );
-                
+
+                String mensajeCierre = String.format(
+                        "Tu consulta sobre '%s' ha sido resuelta y cerrada.",
+                        tema != null && tema.length() > 50
+                                ? tema.substring(0, 50) + "..."
+                                : (tema != null ? tema : "tu consulta"));
+
                 // Crear JSON con datos adicionales
                 ObjectMapper objectMapper = new ObjectMapper();
                 java.util.Map<String, Object> dataAdicional = new java.util.HashMap<>();
@@ -224,20 +236,21 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
                 dataAdicional.put("tema", tema);
                 dataAdicional.put("estado", "resuelto");
                 String dataAdicionalJson = objectMapper.writeValueAsString(dataAdicional);
-                
+
                 NotificacionDto notificacion = NotificacionDto.builder()
                         .userId(usuarioId)
                         .titulo("Consulta resuelta")
-                        .mensaje(mensaje)
-                        .tipo("atencion_cliente")
+                        .mensaje(mensajeCierre)
+                        .tipo("Atención al Cliente")
                         .icono("bx-headphone")
                         .leida(false)
                         .dataAdicional(dataAdicionalJson)
                         .build();
-                
+
                 NotificacionDto notificacionCreada = notificacionService.crear(notificacion);
                 System.out.println("=== NOTIFICACIÓN: Notificación de ticket cerrado creada exitosamente ===");
-                System.out.println("  -> Notificación ID: " + (notificacionCreada != null ? notificacionCreada.getId() : "null"));
+                System.out.println(
+                        "  -> Notificación ID: " + (notificacionCreada != null ? notificacionCreada.getId() : "null"));
             } catch (Exception e) {
                 System.err.println("=== ERROR: No se pudo crear la notificación de ticket cerrado ===");
                 System.err.println("  -> Error: " + e.getMessage());
@@ -250,9 +263,10 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
             System.err.println("  -> Ticket ID: " + id);
             System.err.println("  -> Ticket: " + (t != null ? "existe" : "null"));
             System.err.println("  -> Usuario en ticket: " + (t != null && t.getUsuario() != null ? "existe" : "null"));
-            System.err.println("  -> DTO UsuarioId: " + (ticketCerrado != null ? ticketCerrado.getUsuarioId() : "null"));
+            System.err
+                    .println("  -> DTO UsuarioId: " + (ticketCerrado != null ? ticketCerrado.getUsuarioId() : "null"));
         }
-        
+
         System.out.println("=== FINALIZANDO cerrar() ===");
         return ticketCerrado;
     }
@@ -260,12 +274,16 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
     @Override
     @Transactional(readOnly = true)
     public List<AtencionClienteDto> listarPorUsuario(Integer usuarioId) {
-        List<AtencionCliente> tickets = atencionClienteRepository.findByUsuario_IdOrderByFechaConsultaDesc(Long.valueOf(usuarioId));
+        List<AtencionCliente> tickets = atencionClienteRepository
+                .findByUsuario_IdOrderByFechaConsultaDesc(Long.valueOf(usuarioId));
         return tickets.stream()
                 .sorted((t1, t2) -> {
-                    if (t1.getFechaConsulta() == null && t2.getFechaConsulta() == null) return 0;
-                    if (t1.getFechaConsulta() == null) return 1;
-                    if (t2.getFechaConsulta() == null) return -1;
+                    if (t1.getFechaConsulta() == null && t2.getFechaConsulta() == null)
+                        return 0;
+                    if (t1.getFechaConsulta() == null)
+                        return 1;
+                    if (t2.getFechaConsulta() == null)
+                        return -1;
                     return t2.getFechaConsulta().compareTo(t1.getFechaConsulta());
                 })
                 .map(this::convertToDto)
@@ -275,12 +293,16 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
     @Override
     @Transactional(readOnly = true)
     public List<AtencionClienteDto> listarPorEstado(String estado) {
-        List<AtencionCliente> tickets = atencionClienteRepository.findByEstadoIgnoreCaseOrderByFechaConsultaDesc(estado);
+        List<AtencionCliente> tickets = atencionClienteRepository
+                .findByEstadoIgnoreCaseOrderByFechaConsultaDesc(estado);
         return tickets.stream()
                 .sorted((t1, t2) -> {
-                    if (t1.getFechaConsulta() == null && t2.getFechaConsulta() == null) return 0;
-                    if (t1.getFechaConsulta() == null) return 1;
-                    if (t2.getFechaConsulta() == null) return -1;
+                    if (t1.getFechaConsulta() == null && t2.getFechaConsulta() == null)
+                        return 0;
+                    if (t1.getFechaConsulta() == null)
+                        return 1;
+                    if (t2.getFechaConsulta() == null)
+                        return -1;
                     return t2.getFechaConsulta().compareTo(t1.getFechaConsulta());
                 })
                 .map(this::convertToDto)
@@ -290,7 +312,8 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
     @Override
     @Transactional(readOnly = true)
     public List<AtencionClienteDto> listarTodos() {
-        // Usar findAllByOrderByFechaConsultaDesc para mantener consistencia con el conteo
+        // Usar findAllByOrderByFechaConsultaDesc para mantener consistencia con el
+        // conteo
         List<AtencionCliente> tickets = atencionClienteRepository.findAllByOrderByFechaConsultaDesc();
         return tickets.stream()
                 .map(this::convertToDto)

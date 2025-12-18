@@ -3,7 +3,6 @@ package com.technova.technov.domain.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import com.technova.technov.domain.entity.Producto;
-import com.technova.technov.domain.entity.OrdenCompra;
 
 @Entity
 @Table(name = "detalle_orden")

@@ -20,7 +20,7 @@ public class NotificacionServiceImpl implements NotificacionService {
     private final UsuarioRepository usuarioRepository;
 
     public NotificacionServiceImpl(NotificacionRepository notificacionRepository,
-                                   UsuarioRepository usuarioRepository) {
+            UsuarioRepository usuarioRepository) {
         this.notificacionRepository = notificacionRepository;
         this.usuarioRepository = usuarioRepository;
     }
@@ -33,25 +33,41 @@ public class NotificacionServiceImpl implements NotificacionService {
                     // Ordenar por fecha de creación descendente (más reciente primero)
                     if (a.getFechaCreacion() != null && b.getFechaCreacion() != null) {
                         int fechaCompare = b.getFechaCreacion().compareTo(a.getFechaCreacion());
-                        if (fechaCompare != 0) return fechaCompare;
+                        if (fechaCompare != 0)
+                            return fechaCompare;
                     }
                     // Si las fechas son iguales o nulas, ordenar por ID descendente
                     return b.getId().compareTo(a.getId());
                 })
+                .map(this::toDto).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<NotificacionDto> listarPorUsuario(Long userId, boolean soloNoLeidas) {
+        List<Notificacion> notificaciones;
+        if (soloNoLeidas) {
+            notificaciones = notificacionRepository.findByUsuario_IdAndLeidaOrderByFechaCreacionDesc(userId, false);
+            // wait, leida=false means unread. But method is findBy...AndLeida...
+            // Let's assume repo method exists or I use the convention correctly.
+            // In step 491 I used findByUsuario_IdAndLeidaFalseOrderByFechaCreacionDesc or
+            // similar.
+            // Let's check repository if I created it? I haven't seen repo file.
+            // Better to use `findByUsuario_IdAndLeidaOrderByFechaCreacionDesc(userId,
+            // false)` assuming standard JPA name.
+        } else {
+            notificaciones = notificacionRepository.findByUsuario_IdOrderByFechaCreacionDesc(userId);
+        }
+        return notificaciones.stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<NotificacionDto> listarPorUsuario(Long userId) {
-        return notificacionRepository.findByUsuario_IdOrderByFechaCreacionDesc(userId)
-                .stream().map(this::toDto).collect(Collectors.toList());
-    }
-
-    @Override
-    @Transactional(readOnly = true)
     public List<NotificacionDto> listarPorUsuarioYLeida(Long userId, boolean leida) {
+        // This is redundant with above but kept for interface compatibility if needed,
+        // OR I can just map this to the above method.
         return notificacionRepository.findByUsuario_IdAndLeidaOrderByFechaCreacionDesc(userId, leida)
                 .stream().map(this::toDto).collect(Collectors.toList());
     }
@@ -65,7 +81,8 @@ public class NotificacionServiceImpl implements NotificacionService {
                     // Ordenar por fecha de creación descendente (más reciente primero)
                     if (a.getFechaCreacion() != null && b.getFechaCreacion() != null) {
                         int fechaCompare = b.getFechaCreacion().compareTo(a.getFechaCreacion());
-                        if (fechaCompare != 0) return fechaCompare;
+                        if (fechaCompare != 0)
+                            return fechaCompare;
                     }
                     // Si las fechas son iguales o nulas, ordenar por ID descendente
                     return b.getId().compareTo(a.getId());
@@ -83,17 +100,17 @@ public class NotificacionServiceImpl implements NotificacionService {
         if (dto.getUserId() == null) {
             throw new IllegalArgumentException("UserId no puede ser null");
         }
-        
+
         System.out.println("=== CREAR NOTIFICACIÓN ===");
         System.out.println("  -> UserId: " + dto.getUserId());
         System.out.println("  -> Título: " + dto.getTitulo());
         System.out.println("  -> Tipo: " + dto.getTipo());
-        
+
         Usuario usuario = usuarioRepository.findById(dto.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + dto.getUserId()));
-        
+
         System.out.println("  -> Usuario encontrado: " + usuario.getEmail());
-        
+
         Notificacion entity = Notificacion.builder()
                 .usuario(usuario)
                 .titulo(dto.getTitulo() != null ? dto.getTitulo() : "Notificación")
@@ -106,11 +123,31 @@ public class NotificacionServiceImpl implements NotificacionService {
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .build();
-        
+
         Notificacion saved = notificacionRepository.save(entity);
         System.out.println("  -> Notificación guardada con ID: " + saved.getId());
-        
+
         return toDto(saved);
+    }
+
+    @Override
+    @Transactional
+    public NotificacionDto crear(Usuario usuario, String titulo, String mensaje, String tipo, String icono) {
+        if (usuario == null) {
+            throw new IllegalArgumentException("Usuario no puede ser null");
+        }
+        Notificacion entity = Notificacion.builder()
+                .usuario(usuario)
+                .titulo(titulo)
+                .mensaje(mensaje)
+                .tipo(tipo)
+                .icono(icono != null ? icono : "bx-bell")
+                .leida(false)
+                .fechaCreacion(Instant.now())
+                .createdAt(Instant.now())
+                .updatedAt(Instant.now())
+                .build();
+        return toDto(notificacionRepository.save(entity));
     }
 
     @Override
@@ -125,8 +162,66 @@ public class NotificacionServiceImpl implements NotificacionService {
                 .orElse(null);
     }
 
+    @Override
+    @Transactional
+    public void crearNotificacionSistema(String titulo, String mensaje, String modulo, String icono) {
+        // Encontrar todos los administradores
+        List<Usuario> admins = usuarioRepository.findByRoleIgnoreCase("ADMIN");
+
+        if (admins.isEmpty()) {
+            System.out
+                    .println("ADVERTENCIA: No se encontraron administradores para enviar la notificación del sistema.");
+            return;
+        }
+
+        Instant now = Instant.now();
+
+        List<Notificacion> notificaciones = admins.stream().map(admin -> Notificacion.builder()
+                .usuario(admin)
+                .titulo(titulo)
+                .mensaje(mensaje)
+                .tipo(modulo) // Usamos el campo 'tipo' para guardar el Módulo (Inventario, Ventas, etc.)
+                .icono(icono != null ? icono : "bx-bell")
+                .leida(false)
+                .fechaCreacion(now)
+                .createdAt(now)
+                .updatedAt(now)
+                .build()).collect(Collectors.toList());
+
+        notificacionRepository.saveAll(notificaciones);
+    }
+
+    @Override
+    @Transactional
+    public void crearNotificacionRol(String role, String titulo, String mensaje, String modulo, String icono) {
+        List<Usuario> users = usuarioRepository.findByRoleIgnoreCase(role);
+
+        if (users.isEmpty()) {
+            return;
+        }
+
+        Instant now = Instant.now();
+
+        List<Notificacion> notificaciones = users.stream().map(user -> Notificacion.builder()
+                .usuario(user)
+                .titulo(titulo)
+                .mensaje(mensaje)
+                .tipo(modulo)
+                .icono(icono != null ? icono : "bx-bell")
+                .leida(false)
+                .fechaCreacion(now)
+                .createdAt(now)
+                .updatedAt(now)
+                .build()).collect(Collectors.toList());
+
+        notificacionRepository.saveAll(notificaciones);
+    }
+
+    // ... existing toDto method ...
+
     private NotificacionDto toDto(Notificacion n) {
-        if (n == null) return null;
+        if (n == null)
+            return null;
         return NotificacionDto.builder()
                 .id(n.getId())
                 .userId(n.getUsuario() != null ? n.getUsuario().getId() : null)

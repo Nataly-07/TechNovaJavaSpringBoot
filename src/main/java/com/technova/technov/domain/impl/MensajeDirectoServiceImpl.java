@@ -4,7 +4,6 @@ import com.technova.technov.domain.dto.MensajeDirectoDto;
 import com.technova.technov.domain.dto.NotificacionDto;
 import com.technova.technov.domain.entity.MensajeDirecto;
 import com.technova.technov.domain.repository.MensajeDirectoRepository;
-import com.technova.technov.domain.repository.UsuarioRepository;
 import com.technova.technov.domain.service.MensajeDirectoService;
 import com.technova.technov.domain.service.NotificacionService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,9 +23,6 @@ public class MensajeDirectoServiceImpl implements MensajeDirectoService {
     @Autowired
     private NotificacionService notificacionService;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
     public MensajeDirectoServiceImpl(MensajeDirectoRepository mensajeDirectoRepository) {
         this.mensajeDirectoRepository = mensajeDirectoRepository;
     }
@@ -39,7 +35,8 @@ public class MensajeDirectoServiceImpl implements MensajeDirectoService {
                     // Ordenar por fecha de creación descendente (más reciente primero)
                     if (a.getCreatedAt() != null && b.getCreatedAt() != null) {
                         int fechaCompare = b.getCreatedAt().compareTo(a.getCreatedAt());
-                        if (fechaCompare != 0) return fechaCompare;
+                        if (fechaCompare != 0)
+                            return fechaCompare;
                     }
                     // Si las fechas son iguales o nulas, ordenar por ID descendente
                     return b.getId().compareTo(a.getId());
@@ -98,7 +95,7 @@ public class MensajeDirectoServiceImpl implements MensajeDirectoService {
     @Transactional
     public MensajeDirectoDto crearConversacion(Long userId, String asunto, String mensaje, String prioridad) {
         String conversationId = "conv_" + System.currentTimeMillis() + "_" + userId;
-        
+
         MensajeDirecto entity = MensajeDirecto.builder()
                 .conversationId(conversationId)
                 .parentMessageId(null)
@@ -118,7 +115,24 @@ public class MensajeDirectoServiceImpl implements MensajeDirectoService {
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .build();
-        return toDto(mensajeDirectoRepository.save(entity));
+        MensajeDirecto saved = mensajeDirectoRepository.save(entity);
+
+        // Notificación de sistema
+        notificacionService.crearNotificacionSistema(
+                "Nuevo Mensaje Recibido",
+                "El usuario " + userId + " ha iniciado una nueva conversación: " + asunto,
+                "Mensajes",
+                "bx-message-detail");
+
+        // Notificación al Empleado (Mensajes)
+        notificacionService.crearNotificacionRol(
+                "EMPLEADO",
+                "Nuevo Mensaje Recibido",
+                "Has recibido un nuevo mensaje de un usuario sobre: " + asunto,
+                "Mensajes",
+                "bx-message-detail");
+
+        return toDto(saved);
     }
 
     @Override
@@ -126,7 +140,7 @@ public class MensajeDirectoServiceImpl implements MensajeDirectoService {
     public MensajeDirectoDto responderMensaje(Long parentMessageId, Long senderId, String senderType, String mensaje) {
         MensajeDirecto parentMessage = mensajeDirectoRepository.findById(parentMessageId)
                 .orElseThrow(() -> new IllegalArgumentException("Mensaje padre no encontrado: " + parentMessageId));
-        
+
         // Si un empleado responde, marcar el mensaje original como leído y respondido
         if ("empleado".equalsIgnoreCase(senderType)) {
             parentMessage.setRead(true);
@@ -134,7 +148,7 @@ public class MensajeDirectoServiceImpl implements MensajeDirectoService {
             parentMessage.setEstado("respondido");
             parentMessage.setUpdatedAt(Instant.now());
             mensajeDirectoRepository.save(parentMessage);
-            
+
             // Crear notificación para el cliente cuando un empleado responde
             Long usuarioId = parentMessage.getUserId();
             if (usuarioId != null) {
@@ -142,36 +156,33 @@ public class MensajeDirectoServiceImpl implements MensajeDirectoService {
                     System.out.println("=== CREAR NOTIFICACIÓN DE RESPUESTA A MENSAJE ===");
                     System.out.println("  -> Mensaje ID: " + parentMessageId);
                     System.out.println("  -> Usuario ID: " + usuarioId);
-                    
+
                     String asunto = parentMessage.getAsunto();
-                    String mensajeNotificacion = String.format(
-                        "Hemos respondido a tu mensaje sobre '%s'. " +
-                        "Revisa la respuesta en tu panel de mensajes.",
-                        asunto != null && asunto.length() > 50 
-                            ? asunto.substring(0, 50) + "..." 
-                            : (asunto != null ? asunto : "tu mensaje")
-                    );
-                    
+                    String mensajeNotificacion = mensaje != null && mensaje.length() > 100
+                            ? mensaje.substring(0, 100) + "..."
+                            : mensaje;
+
                     // Crear JSON con datos adicionales
                     ObjectMapper objectMapper = new ObjectMapper();
                     java.util.Map<String, Object> dataAdicional = new java.util.HashMap<>();
                     dataAdicional.put("mensajeId", parentMessageId);
                     dataAdicional.put("asunto", asunto);
                     String dataAdicionalJson = objectMapper.writeValueAsString(dataAdicional);
-                    
+
                     NotificacionDto notificacion = NotificacionDto.builder()
                             .userId(usuarioId)
                             .titulo("Respuesta a tu mensaje")
                             .mensaje(mensajeNotificacion)
-                            .tipo("mensaje")
+                            .tipo("Mensajes")
                             .icono("bx-message")
                             .leida(false)
                             .dataAdicional(dataAdicionalJson)
                             .build();
-                    
+
                     NotificacionDto notificacionCreada = notificacionService.crear(notificacion);
                     System.out.println("=== NOTIFICACIÓN: Notificación de respuesta a mensaje creada exitosamente ===");
-                    System.out.println("  -> Notificación ID: " + (notificacionCreada != null ? notificacionCreada.getId() : "null"));
+                    System.out.println("  -> Notificación ID: "
+                            + (notificacionCreada != null ? notificacionCreada.getId() : "null"));
                 } catch (Exception e) {
                     System.err.println("=== ERROR: No se pudo crear la notificación de respuesta a mensaje ===");
                     System.err.println("  -> Error: " + e.getMessage());
@@ -182,11 +193,31 @@ public class MensajeDirectoServiceImpl implements MensajeDirectoService {
             } else {
                 System.err.println("=== ADVERTENCIA: No se pudo crear notificación - Usuario ID es null ===");
                 System.err.println("  -> Mensaje ID: " + parentMessageId);
+        }
+
+        // Si un ADMINISTRADOR responde a un EMPLEADO, notificar al empleado
+        if ("admin".equalsIgnoreCase(senderType) && "empleado".equalsIgnoreCase(parentMessage.getSenderType())) {
+            String descCorto = mensaje != null && mensaje.length() > 100
+                    ? mensaje.substring(0, 100) + "..."
+                    : mensaje;
+            
+            // Notificamos al empleado específico que envió el mensaje original
+            Long empleadoId = parentMessage.getSenderId();
+            if (empleadoId != null) {
+                NotificacionDto notif = NotificacionDto.builder()
+                        .userId(empleadoId)
+                        .titulo("Respuesta a tu mensaje")
+                        .mensaje(descCorto)
+                        .tipo("Mensajes")
+                        .icono("bx-message-check")
+                        .leida(false)
+                        .build();
+                notificacionService.crear(notif);
             }
         }
-        
+
         Long recipientId = "empleado".equalsIgnoreCase(senderType) ? parentMessage.getUserId() : null;
-        
+
         MensajeDirecto reply = MensajeDirecto.builder()
                 .conversationId(parentMessage.getConversationId())
                 .parentMessageId(parentMessageId)
@@ -196,7 +227,9 @@ public class MensajeDirectoServiceImpl implements MensajeDirectoService {
                 .isRead(false)
                 .readAt(null)
                 .userId("empleado".equalsIgnoreCase(senderType) ? senderId : parentMessage.getUserId())
-                .asunto("Re: " + parentMessage.getAsunto())
+                .asunto(parentMessage.getAsunto() != null && parentMessage.getAsunto().toLowerCase().startsWith("re:")
+                        ? parentMessage.getAsunto()
+                        : "Re: " + (parentMessage.getAsunto() != null ? parentMessage.getAsunto() : ""))
                 .mensaje(mensaje)
                 .prioridad(parentMessage.getPrioridad())
                 .estado("enviado")
@@ -206,7 +239,18 @@ public class MensajeDirectoServiceImpl implements MensajeDirectoService {
                 .createdAt(Instant.now())
                 .updatedAt(Instant.now())
                 .build();
-        return toDto(mensajeDirectoRepository.save(reply));
+        MensajeDirecto savedReply = mensajeDirectoRepository.save(reply);
+
+        // Si responde un cliente (no empleado), notificar al sistema
+        if (!"empleado".equalsIgnoreCase(senderType)) {
+            notificacionService.crearNotificacionSistema(
+                    "Respuesta Recibida",
+                    "Nueva respuesta en conversación sobre: " + parentMessage.getAsunto(),
+                    "Mensajes",
+                    "bx-message-dots");
+        }
+
+        return toDto(savedReply);
     }
 
     @Override
@@ -234,7 +278,8 @@ public class MensajeDirectoServiceImpl implements MensajeDirectoService {
     }
 
     private MensajeDirectoDto toDto(MensajeDirecto m) {
-        if (m == null) return null;
+        if (m == null)
+            return null;
         return MensajeDirectoDto.builder()
                 .id(m.getId())
                 .conversationId(m.getConversationId())

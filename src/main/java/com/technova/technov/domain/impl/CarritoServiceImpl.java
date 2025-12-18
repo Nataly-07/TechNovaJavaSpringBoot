@@ -23,6 +23,9 @@ public class CarritoServiceImpl implements CarritoService {
     private DetalleCarritoRepository detalleCarritoRepository;
 
     @Autowired
+    private com.technova.technov.domain.service.NotificacionService notificacionService; // Inject Service
+
+    @Autowired
     private ProductoRepository productoRepository;
 
     @Autowired
@@ -47,18 +50,19 @@ public class CarritoServiceImpl implements CarritoService {
     @Transactional
     @Override
     public List<CarritoItemDto> agregar(Integer usuarioId, Integer productoId, Integer cantidad) {
-        if (cantidad == null || cantidad < 1) cantidad = 1;
+        if (cantidad == null || cantidad < 1)
+            cantidad = 1;
         Carrito carrito = obtenerOCrearCarrito(usuarioId);
-        
+
         // Buscar el producto y verificar stock
         Producto prod = productoRepository.findById(productoId)
                 .orElseThrow(() -> new IllegalArgumentException("Producto no encontrado: " + productoId));
-        
+
         // Verificar si el producto está agotado
         if (prod.getStock() == null || prod.getStock() <= 0) {
             throw new IllegalArgumentException("El producto está agotado y no se puede agregar al carrito");
         }
-        
+
         // Buscar si ya existe item del mismo producto
         List<DetalleCarrito> detalles = detalleCarritoRepository.findByCarrito(carrito);
         for (DetalleCarrito d : detalles) {
@@ -72,25 +76,53 @@ public class CarritoServiceImpl implements CarritoService {
                 return listar(usuarioId);
             }
         }
-        
+
         // Verificar stock antes de agregar nuevo item
         if (prod.getStock() < cantidad) {
             throw new IllegalArgumentException("No hay suficiente stock disponible");
         }
-        
+
         DetalleCarrito nuevo = new DetalleCarrito();
         nuevo.setId(null);
         nuevo.setCarrito(carrito);
         nuevo.setProducto(prod);
         nuevo.setCantidad(cantidad);
         detalleCarritoRepository.save(nuevo);
+
+        // Notify User (Optional: Don't spam on every add, maybe just on first item or
+        // special cases?)
+        // The user requested: "Carrito – cambios en los productos del carrito (ej.
+        // stock actualizado, promociones)."
+        // Adding to cart is an explicit user action, maybe doesn't need a notification?
+        // However, let's add a subtle one or skip it to avoid clutter.
+        // Let's SKIP "Item Added" to avoid spam, as the user sees it immediately in UI.
+        // We will focus on "Stock Changes" or "Price Changes" later if possible,
+        // but for now, let's notify if the user updates quantity significantly or
+        // similar?
+        // UPDATE: User requirement "changes in products of the cart". This implies
+        // external changes.
+        // But for completeness of "Client Notifications Module", listing their activity
+        // is good.
+
+        /*
+         * notificacionService.crear(
+         * carrito.getUsuario(),
+         * "Producto en Carrito",
+         * "Has agregado " + cantidad + " unidad(es) de " + prod.getNombre() +
+         * " al carrito.",
+         * "Carrito",
+         * "bx-cart"
+         * );
+         */
+
         return listar(usuarioId);
     }
 
     @Transactional
     @Override
     public List<CarritoItemDto> actualizar(Integer usuarioId, Integer detalleId, Integer cantidad) {
-        if (cantidad == null || cantidad < 1) cantidad = 1;
+        if (cantidad == null || cantidad < 1)
+            cantidad = 1;
         DetalleCarrito detalle = detalleCarritoRepository.findById(detalleId)
                 .orElseThrow(() -> new IllegalArgumentException("Detalle no encontrado: " + detalleId));
         detalle.setCantidad(cantidad);
@@ -114,7 +146,8 @@ public class CarritoServiceImpl implements CarritoService {
 
     private Carrito obtenerOCrearCarrito(Integer usuarioId) {
         Optional<Carrito> existente = carritoRepository.findFirstByUsuario_Id(Long.valueOf(usuarioId));
-        if (existente.isPresent()) return existente.get();
+        if (existente.isPresent())
+            return existente.get();
         Usuario usuario = usuarioRepository.findById(Long.valueOf(usuarioId))
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + usuarioId));
         Carrito nuevo = new Carrito();

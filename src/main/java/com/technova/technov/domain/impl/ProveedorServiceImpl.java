@@ -14,6 +14,7 @@ import com.technova.technov.domain.entity.Producto;
 import com.technova.technov.domain.entity.Proveedor;
 import com.technova.technov.domain.repository.ProductoRepository;
 import com.technova.technov.domain.repository.ProveedorRepository;
+import com.technova.technov.domain.service.NotificacionService;
 import com.technova.technov.domain.service.ProveedorService;
 
 @Service
@@ -27,6 +28,9 @@ public class ProveedorServiceImpl implements ProveedorService {
 
     @Autowired
     private ModelMapper modelMapper;
+
+    @Autowired
+    private NotificacionService notificacionService;
 
     @Override
     @Transactional(readOnly = true)
@@ -53,6 +57,14 @@ public class ProveedorServiceImpl implements ProveedorService {
         entity.setId(null);
         entity.setEstado(true); // true = activo
         Proveedor saved = proveedorRepository.save(entity);
+
+        // Notificación de sistema
+        notificacionService.crearNotificacionSistema(
+                "Nuevo Proveedor Registrado",
+                "Se ha registrado el proveedor: " + saved.getNombre(),
+                "Proveedores",
+                "bx-buildings");
+
         return convertToDto(saved);
     }
 
@@ -82,6 +94,14 @@ public class ProveedorServiceImpl implements ProveedorService {
                         existing.setProducto(producto);
                     }
                     Proveedor updated = proveedorRepository.save(existing);
+
+                    // Notificación de sistema
+                    notificacionService.crearNotificacionSistema(
+                            "Proveedor Actualizado",
+                            "Se ha actualizado el proveedor: " + updated.getNombre(),
+                            "Proveedores",
+                            "bx-edit");
+
                     ProveedorDto dto = convertToDto(updated);
                     dto.setEstado(updated.getEstado());
                     return dto;
@@ -96,6 +116,14 @@ public class ProveedorServiceImpl implements ProveedorService {
                 .map(proveedor -> {
                     proveedor.setEstado(false);
                     proveedorRepository.save(proveedor);
+
+                    // Notificación de sistema
+                    notificacionService.crearNotificacionSistema(
+                            "Proveedor Eliminado",
+                            "Se ha eliminado (desactivado) el proveedor: " + proveedor.getNombre(),
+                            "Proveedores",
+                            "bx-trash");
+
                     return true;
                 })
                 .orElse(false);
@@ -108,6 +136,15 @@ public class ProveedorServiceImpl implements ProveedorService {
                 .map(proveedor -> {
                     proveedor.setEstado(activar);
                     proveedorRepository.save(proveedor);
+
+                    // Notificación de sistema
+                    String accion = activar ? "Activado" : "Desactivado";
+                    notificacionService.crearNotificacionSistema(
+                            "Proveedor " + accion,
+                            "Se ha " + accion.toLowerCase() + " el proveedor: " + proveedor.getNombre(),
+                            "Proveedores",
+                            activar ? "bx-check-circle" : "bx-x-circle");
+
                     return true;
                 })
                 .orElse(false);

@@ -11,7 +11,9 @@ import com.technova.technov.domain.service.FavoritoService;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.technova.technov.domain.service.NotificacionService; // Import NotificacionService
 
 import java.time.Instant;
 import java.util.List;
@@ -30,6 +32,9 @@ public class FavoritoServiceImpl implements FavoritoService {
     private ProductoRepository productoRepository;
 
     @Autowired
+    private NotificacionService notificacionService; // Inject Service
+
+    @Autowired
     private ModelMapper modelMapper;
 
     @Transactional(readOnly = true)
@@ -40,7 +45,8 @@ public class FavoritoServiceImpl implements FavoritoService {
                     // Ordenar por fecha de actualización descendente (más reciente primero)
                     if (a.getUpdatedAt() != null && b.getUpdatedAt() != null) {
                         int fechaCompare = b.getUpdatedAt().compareTo(a.getUpdatedAt());
-                        if (fechaCompare != 0) return fechaCompare;
+                        if (fechaCompare != 0)
+                            return fechaCompare;
                     }
                     // Si las fechas son iguales o nulas, ordenar por ID descendente
                     return b.getId().compareTo(a.getId());
@@ -58,7 +64,8 @@ public class FavoritoServiceImpl implements FavoritoService {
                     // Ordenar por fecha de actualización descendente (más reciente primero)
                     if (a.getUpdatedAt() != null && b.getUpdatedAt() != null) {
                         int fechaCompare = b.getUpdatedAt().compareTo(a.getUpdatedAt());
-                        if (fechaCompare != 0) return fechaCompare;
+                        if (fechaCompare != 0)
+                            return fechaCompare;
                     }
                     // Si las fechas son iguales o nulas, ordenar por ID descendente
                     return b.getId().compareTo(a.getId());
@@ -86,6 +93,15 @@ public class FavoritoServiceImpl implements FavoritoService {
             fav.setUpdatedAt(Instant.now());
         }
         fav = favoritoRepository.save(fav);
+
+        // Notify User
+        notificacionService.crear(
+                u,
+                "Producto añadido a Favoritos",
+                "Has añadido '" + p.getNombre() + "' a tu lista de favoritos.",
+                "Favoritos",
+                "bx-heart");
+
         return convertToDto(fav);
     }
 
@@ -116,7 +132,13 @@ public class FavoritoServiceImpl implements FavoritoService {
     @Override
     public boolean toggle(Long usuarioId, Integer productoId) {
         return favoritoRepository.findByUsuario_IdAndProducto_Id(usuarioId, productoId)
-                .map(f -> { favoritoRepository.delete(f); return false; })
-                .orElseGet(() -> { agregar(usuarioId, productoId); return true; });
+                .map(f -> {
+                    favoritoRepository.delete(f);
+                    return false;
+                })
+                .orElseGet(() -> {
+                    agregar(usuarioId, productoId);
+                    return true;
+                });
     }
 }
