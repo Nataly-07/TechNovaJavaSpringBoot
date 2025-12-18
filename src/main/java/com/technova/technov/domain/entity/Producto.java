@@ -1,4 +1,5 @@
 package com.technova.technov.domain.entity;
+// Force recompile
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -6,8 +7,10 @@ import lombok.*;
 /**
  * Entidad que representa un producto del catálogo.
  *
- * <p>Mapea la tabla {@code producto} e incluye referencias a sus
- * características técnicas mediante la relación con {@link Caracteristica}.</p>
+ * <p>
+ * Mapea la tabla {@code producto} e incluye referencias a sus
+ * características técnicas mediante la relación con {@link Caracteristica}.
+ * </p>
  */
 @Entity
 @Table(name = "producto")

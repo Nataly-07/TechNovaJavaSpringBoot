@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Gestión de Órdenes de Compra - Technova</title>
+  <meta name="_csrf" th:content="${_csrf.token}" />
+  <meta name="_csrf_header" th:content="${_csrf.headerName}" />
+
+  <link href='https://unpkg.com/boxicons@2.0.9/css/boxicons.min.css' rel='stylesheet'>
+  <link rel="stylesheet" th:href="@{/frontend/css/estilodas.css}">
+  <link rel="stylesheet" th:href="@{/frontend/css/stilotech.css}">
+  <link rel="stylesheet" th:href="@{/frontend/css/color-palette.css}">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    .ordenes-container {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+      max-width: 85%;
+      width: 85%;
+      margin: 0 auto;
+      /* Centering */
+    }
+
+    .ordenes-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+    }
+
+    .ordenes-header h2 {
+      color: #2c3e50;
+      margin: 0;
+      font-size: 1.8rem;
+    }
+
+    .btn-agregar {
+      background: linear-gradient(135deg, #00cc44 0%, #00a638 100%);
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 1rem;
+      text-decoration: none;
+    }
+
+    .btn-agregar:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(0, 204, 68, 0.3);
+      color: white;
+    }
+
+    .table-container {
+      overflow-x: auto;
+    }
+
+    .table-ordenes {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    .table-ordenes thead {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .table-ordenes th,
+    .table-ordenes td {
+      padding: 15px;
+      text-align: left;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .table-ordenes th {
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.85rem;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-estado {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .badge-pendiente {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .badge-recibida {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .btn-recibir {
+      background: #28a745;
+      color: white;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-weight: 500;
+    }
+
+    .btn-recibir:hover {
+      background: #218838;
+    }
+
+    .alert {
+      padding: 15px 20px;
+      border-radius: 10px;
+      margin-bottom: 25px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .alert-success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .alert-error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+  </style>
+</head>
+
+<body>
+  <header class="header">
+    <div class="logo" style="cursor: default;">
+      <img th:src="@{/frontend/imagenes/logo technova.png}" alt="Logo">
+      <span>TECHNOVA</span>
+    </div>
+
+    <div class="acciones-usuario">
+      <a th:href="@{/admin/perfil}" class="account"><i class='bx bx-user-circle'></i> <span>Perfil</span></a>
+      <form method="POST" th:action="@{/logout}" style="display:inline;">
+        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
+        <button type="submit"
+          style="background:none;border:none;color:inherit;cursor:pointer;display:inline-flex;align-items:center;gap:5px;"
+          class="account">
+          <i class='bx bx-log-out'></i> <span>Cerrar Sesión</span>
+        </button>
+      </form>
+    </div>
+  </header>
+
+  <div class="dashboard-wrapper">
+    <div th:replace="~{frontend/layouts/sidebar-admin :: sidebar}"></div>
+
+    <main class="main-content" style="width: 100%; max-width: none; padding: 20px;">
+      <div class="ordenes-container">
+        <div class="ordenes-header">
+          <h2><i class='bx bx-cart'></i> Gestión de Órdenes de Compra</h2>
+          <div style="display: flex; gap: 10px;">
+            <a th:href="@{/admin/ordenes/crear}" class="btn-agregar">
+              <i class='bx bx-plus-circle'></i> Nueva Orden
+            </a>
+          </div>
+        </div>
+
+        <div th:if="${mensaje}" class="alert alert-success">
+          <i class='bx bx-check-circle'></i>
+          <span th:text="${mensaje}"></span>
+        </div>
+        <div th:if="${error}" class="alert alert-error">
+          <i class='bx bx-error-circle'></i>
+          <span th:text="${error}"></span>
+        </div>
+
+        <div class="table-container">
+          <table class="table-ordenes" th:if="${ordenes != null && !ordenes.isEmpty()}">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Proveedor</th>
+                <th>Productos</th>
+                <th>Fecha</th>
+                <th>Total</th>
+                <th>Cantidad</th>
+                <th>Estado</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr th:each="orden : ${ordenes}" th:onclick="'verDetalleOrden(' + ${orden.id} + ')'"
+                style="cursor: pointer; transition: background-color 0.2s;">
+                <td th:text="${orden.id}">-</td>
+                <td th:text="${orden.proveedorNombre}">-</td>
+                <td
+                  th:text="${orden.detalles != null ? #strings.listJoin(orden.detalles.![productoNombre], ', ') : '-'}">
+                  -</td>
+                <td th:text="${#dates.format(orden.fecha, 'dd/MM/yyyy')}">-</td>
+                <td th:text="${'$ ' + #numbers.formatDecimal(orden.total, 0, 'COMMA', 2, 'POINT')}">-</td>
+                <td th:text="${orden.detalles != null ? #aggregates.sum(orden.detalles.![cantidad]) : 0}">-</td>
+                <td>
+                  <span th:if="${orden.estado == 'PENDIENTE'}" class="badge-estado badge-pendiente">Pendiente</span>
+                  <span th:if="${orden.estado == 'RECIBIDA'}" class="badge-estado badge-recibida">Recibida</span>
+                </td>
+                <td onclick="event.stopPropagation()">
+                  <form th:if="${orden.estado == 'PENDIENTE'}"
+                    th:action="@{/admin/ordenes/recibir/{id}(id=${orden.id})}" method="post" style="display:inline;">
+                    <button type="button" class="btn-recibir" onclick="confirmarRecepcion(this.form)"
+                      title="Recibir Pedido">
+                      <i class='bx bx-check-double'></i> Recibir Orden
+                    </button>
+                  </form>
+                  <span th:if="${orden.estado == 'RECIBIDA'}" style="color: #28a745; font-size: 0.9em;">
+                    <i class='bx bx-check'></i> Completada
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="empty-state" th:if="${ordenes == null || ordenes.isEmpty()}"
+            style="text-align: center; padding: 40px; color: #7f8c8d;">
+            <i class='bx bx-cart-alt' style="font-size: 4rem; opacity: 0.5;"></i>
+            <h3>No hay órdenes registradas</h3>
+            <p>Comienza creando una nueva orden de compra.</p>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal Detalle Orden -->
+  <div id="modalDetalle" class="modal"
+    style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center;">
+    <div class="modal-content"
+      style="background: white; border-radius: 12px; padding: 25px; max-width: 700px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative; animation: fadeIn 0.3s ease;">
+      <div
+        style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 20px;">
+        <h3 style="margin: 0; color: #2c3e50;"><i class='bx bx-file'></i> Detalle de Orden #<span id="modalId"></span>
+        </h3>
+        <button onclick="cerrarModal()"
+          style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #7f8c8d;">&times;</button>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
+        <div><strong>Proveedor:</strong> <span id="modalProveedor"></span></div>
+        <div><strong>Fecha:</strong> <span id="modalFecha"></span></div>
+        <div><strong>Estado:</strong> <span id="modalEstado"></span></div>
+        <div><strong>Total:</strong> <span id="modalTotal" style="font-weight: bold; color: #28a745;"></span></div>
+      </div>
+
+      <h4 style="margin-bottom: 10px; color: #495057;">Productos</h4>
+      <table style="width: 100%; border-collapse: collapse;">
+        <thead style="background: #f8f9fa;">
+          <tr>
+            <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Producto</th>
+            <th style="padding: 10px; text-align: center; border-bottom: 2px solid #dee2e6;">Cant.</th>
+            <th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6;">Precio Unit.</th>
+            <th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6;">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody id="modalTablaCuerpo">
+          <!-- JS populate -->
+        </tbody>
+      </table>
+
+      <div style="margin-top: 25px; text-align: right;">
+        <button onclick="imprimirFactura()"
+          style="background: #17a2b8; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; display: inline-flex;">
+          <i class='bx bx-printer'></i> Factura
+        </button>
+        <button onclick="cerrarModal()"
+          style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">Cerrar</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2025 Technova</p>
+  </footer>
+
+  <script>
+    function confirmarRecepcion(form) {
+      Swal.fire({
+        title: '¿Recibir Orden?',
+        text: "El stock de los productos se actualizará automáticamente. Esta acción no se puede deshacer.",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#28a745',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, recibir productos',
+        cancelButtonText: 'Cancelar'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          form.submit();
+        }
+      })
+    }
+
+    function verDetalleOrden(id) {
+      // Mostrar loading
+      Swal.fire({
+        title: 'Cargando...',
+        text: 'Obteniendo detalles de la orden',
+        allowOutsideClick: false,
+        didOpen: () => {
+          Swal.showLoading();
+        }
+      });
+
+      fetch('/admin/ordenes/api/' + id)
+        .then(response => {
+          if (!response.ok) throw new Error('Error al cargar la orden');
+          return response.json();
+        })
+        .then(orden => {
+          Swal.close();
+
+          // Llenar datos
+          document.getElementById('modalId').textContent = orden.id;
+          document.getElementById('modalProveedor').textContent = orden.proveedorNombre;
+          // Formatear fecha simple (asumiendo string ISO o timestamp en JSON)
+          const fecha = new Date(orden.fecha);
+          document.getElementById('modalFecha').textContent = fecha.toLocaleDateString();
+          document.getElementById('modalEstado').textContent = orden.estado;
+          document.getElementById('modalTotal').textContent = '$ ' + orden.total.toLocaleString('es-CO', { minimumFractionDigits: 0 });
+
+          // Llenar tabla
+          const tbody = document.getElementById('modalTablaCuerpo');
+          tbody.innerHTML = '';
+
+          orden.detalles.forEach(d => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                        <td style="padding: 10px; border-bottom: 1px solid #e0e0e0;">${d.productoNombre}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; text-align: center;">${d.cantidad}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; text-align: right;">$ ${d.precioUnitario.toLocaleString('es-CO')}</td>
+                        <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; text-align: right;">$ ${d.subtotal.toLocaleString('es-CO')}</td>
+                    `;
+            tbody.appendChild(tr);
+          });
+
+          // Mostrar modal
+          const modal = document.getElementById('modalDetalle');
+          modal.style.display = 'flex';
+        })
+        .catch(error => {
+          Swal.fire('Error', 'No se pudo cargar la información de la orden', 'error');
+          console.error(error);
+        });
+    }
+
+    function cerrarModal() {
+      document.getElementById('modalDetalle').style.display = 'none';
+    }
+
+    function imprimirFactura() {
+      window.print();
+    }
+
+    // Cerrar al hacer clic fuera
+    window.onclick = function (event) {
+      const modal = document.getElementById('modalDetalle');
+      if (event.target == modal) {
+        modal.style.display = "none";
+      }
+    }
+  </script>
+</body>
+
+</html>
