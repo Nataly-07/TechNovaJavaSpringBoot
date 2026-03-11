@@ -34,7 +34,7 @@ public class CarritoServiceImpl implements CarritoService {
     @Transactional(readOnly = true)
     @Override
     public List<CarritoItemDto> listar(Integer usuarioId) {
-        Optional<Carrito> carritoOpt = carritoRepository.findFirstByUsuario_Id(Long.valueOf(usuarioId));
+        Optional<Carrito> carritoOpt = carritoRepository.findFirstByUsuario_Id(usuarioId);
         if (carritoOpt.isEmpty()) {
             return List.of(); // Retornar lista vacía si no existe carrito
         }
@@ -145,10 +145,10 @@ public class CarritoServiceImpl implements CarritoService {
     }
 
     private Carrito obtenerOCrearCarrito(Integer usuarioId) {
-        Optional<Carrito> existente = carritoRepository.findFirstByUsuario_Id(Long.valueOf(usuarioId));
+        Optional<Carrito> existente = carritoRepository.findFirstByUsuario_Id(usuarioId);
         if (existente.isPresent())
             return existente.get();
-        Usuario usuario = usuarioRepository.findById(Long.valueOf(usuarioId))
+        Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + usuarioId));
         Carrito nuevo = new Carrito();
         nuevo.setId(null);

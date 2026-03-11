@@ -45,7 +45,7 @@ public class ComprasServiceImpl implements ComprasService {
     @Override
     @Transactional
     public CompraDto crear(CompraRequestDto request) {
-        Usuario usuario = usuarioRepository.findByIdAndEstadoTrue(Long.valueOf(request.getUsuarioId()))
+        Usuario usuario = usuarioRepository.findByIdAndEstadoTrue(request.getUsuarioId())
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + request.getUsuarioId()));
 
         Proveedor proveedor = null;
@@ -118,7 +118,7 @@ public class ComprasServiceImpl implements ComprasService {
     public CompraDto actualizar(Integer id, CompraRequestDto request) {
         return compraRepository.findById(id)
                 .map(existing -> {
-                    Usuario usuario = usuarioRepository.findByIdAndEstadoTrue(Long.valueOf(request.getUsuarioId()))
+                    Usuario usuario = usuarioRepository.findByIdAndEstadoTrue(request.getUsuarioId())
                             .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + request.getUsuarioId()));
                     existing.setUsuario(usuario);
                     

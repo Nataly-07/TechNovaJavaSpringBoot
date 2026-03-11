@@ -7,5 +7,5 @@ public interface UserPaymentMethodService {
     List<UserPaymentMethodDto> listarTodos();
     List<UserPaymentMethodDto> listarPorUsuario(Integer usuarioId);
     UserPaymentMethodDto guardar(Integer usuarioId, UserPaymentMethodDto upm);
-    void eliminar(Long id);
+    void eliminar(Integer id);
 }

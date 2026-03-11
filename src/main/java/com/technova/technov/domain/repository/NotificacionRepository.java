@@ -8,8 +8,8 @@ import java.time.Instant;
 import java.util.List;
 
 @Repository
-public interface NotificacionRepository extends JpaRepository<Notificacion, Long> {
-    List<Notificacion> findByUsuario_IdOrderByFechaCreacionDesc(Long userId);
-    List<Notificacion> findByUsuario_IdAndLeidaOrderByFechaCreacionDesc(Long userId, boolean leida);
-    List<Notificacion> findByUsuario_IdAndFechaCreacionBetween(Long userId, Instant from, Instant to);
+public interface NotificacionRepository extends JpaRepository<Notificacion, Integer> {
+    List<Notificacion> findByUsuario_IdOrderByFechaCreacionDesc(Integer userId);
+    List<Notificacion> findByUsuario_IdAndLeidaOrderByFechaCreacionDesc(Integer userId, boolean leida);
+    List<Notificacion> findByUsuario_IdAndFechaCreacionBetween(Integer userId, Instant from, Instant to);
 }

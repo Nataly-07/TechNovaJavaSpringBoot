@@ -15,22 +15,22 @@ public class MensajeDirecto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    private Integer id;
 
     @Column(name = "conversation_id")
     private String conversationId;
 
     @Column(name = "parent_message_id")
-    private Long parentMessageId;
+    private Integer parentMessageId;
 
     @Column(name = "sender_type", nullable = false)
     private String senderType; // cliente | empleado
 
     @Column(name = "sender_id")
-    private Long senderId;
+    private Integer senderId;
 
     @Column(name = "recipient_id")
-    private Long recipientId;
+    private Integer recipientId;
 
     @Column(name = "is_read", nullable = false)
     private boolean isRead;
@@ -39,7 +39,7 @@ public class MensajeDirecto {
     private Instant readAt;
 
     @Column(name = "user_id", nullable = false)
-    private Long userId;
+    private Integer userId;
 
     @Column(name = "asunto", nullable = false)
     private String asunto;
@@ -54,7 +54,7 @@ public class MensajeDirecto {
     private String estado; // enviado | leido | respondido, etc.
 
     @Column(name = "empleado_id")
-    private Long empleadoId;
+    private Integer empleadoId;
 
     @Column(name = "respuesta", columnDefinition = "TEXT")
     private String respuesta;

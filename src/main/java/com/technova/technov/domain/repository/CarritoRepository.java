@@ -19,5 +19,5 @@ public interface CarritoRepository extends JpaRepository<Carrito, Integer> {
      * @param usuarioId identificador del usuario
      * @return carrito si existe
      */
-    Optional<Carrito> findFirstByUsuario_Id(Long usuarioId);
+    Optional<Carrito> findFirstByUsuario_Id(Integer usuarioId);
 }

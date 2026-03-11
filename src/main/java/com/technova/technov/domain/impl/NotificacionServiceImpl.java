@@ -44,17 +44,10 @@ public class NotificacionServiceImpl implements NotificacionService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<NotificacionDto> listarPorUsuario(Long userId, boolean soloNoLeidas) {
+    public List<NotificacionDto> listarPorUsuario(Integer userId, boolean soloNoLeidas) {
         List<Notificacion> notificaciones;
         if (soloNoLeidas) {
             notificaciones = notificacionRepository.findByUsuario_IdAndLeidaOrderByFechaCreacionDesc(userId, false);
-            // wait, leida=false means unread. But method is findBy...AndLeida...
-            // Let's assume repo method exists or I use the convention correctly.
-            // In step 491 I used findByUsuario_IdAndLeidaFalseOrderByFechaCreacionDesc or
-            // similar.
-            // Let's check repository if I created it? I haven't seen repo file.
-            // Better to use `findByUsuario_IdAndLeidaOrderByFechaCreacionDesc(userId,
-            // false)` assuming standard JPA name.
         } else {
             notificaciones = notificacionRepository.findByUsuario_IdOrderByFechaCreacionDesc(userId);
         }
@@ -65,16 +58,14 @@ public class NotificacionServiceImpl implements NotificacionService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<NotificacionDto> listarPorUsuarioYLeida(Long userId, boolean leida) {
-        // This is redundant with above but kept for interface compatibility if needed,
-        // OR I can just map this to the above method.
+    public List<NotificacionDto> listarPorUsuarioYLeida(Integer userId, boolean leida) {
         return notificacionRepository.findByUsuario_IdAndLeidaOrderByFechaCreacionDesc(userId, leida)
                 .stream().map(this::toDto).collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<NotificacionDto> listarPorUsuarioYRango(Long userId, Instant desde, Instant hasta) {
+    public List<NotificacionDto> listarPorUsuarioYRango(Integer userId, Instant desde, Instant hasta) {
         return notificacionRepository.findByUsuario_IdAndFechaCreacionBetween(userId, desde, hasta)
                 .stream()
                 .sorted((a, b) -> {
@@ -152,7 +143,7 @@ public class NotificacionServiceImpl implements NotificacionService {
 
     @Override
     @Transactional
-    public NotificacionDto marcarLeida(Long id) {
+    public NotificacionDto marcarLeida(Integer id) {
         return notificacionRepository.findById(id)
                 .map(n -> {
                     n.setLeida(true);

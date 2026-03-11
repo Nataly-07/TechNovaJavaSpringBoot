@@ -20,7 +20,7 @@ public interface VentaRepository extends JpaRepository<Venta, Integer> {
      * @param usuarioId identificador del usuario
      * @return lista de ventas del usuario
      */
-    List<Venta> findByUsuario_Id(Long usuarioId);
+    List<Venta> findByUsuario_Id(Integer usuarioId);
     /**
      * Lista ventas dentro del rango de fechas [desde, hasta].
      *
@@ -31,6 +31,6 @@ public interface VentaRepository extends JpaRepository<Venta, Integer> {
     List<Venta> findByFechaVentaBetween(LocalDate desde, LocalDate hasta);
     List<Venta> findByEstadoTrue();
     java.util.Optional<Venta> findByIdAndEstadoTrue(Integer id);
-    List<Venta> findByUsuario_IdAndEstadoTrue(Long usuarioId);
+    List<Venta> findByUsuario_IdAndEstadoTrue(Integer usuarioId);
     List<Venta> findByFechaVentaBetweenAndEstadoTrue(LocalDate desde, LocalDate hasta);
 }

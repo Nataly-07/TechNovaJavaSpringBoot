@@ -8,18 +8,18 @@ import java.util.List;
 public interface NotificacionService {
     List<NotificacionDto> listarTodos();
 
-    List<NotificacionDto> listarPorUsuario(Long userId, boolean soloNoLeidas);
+    List<NotificacionDto> listarPorUsuario(Integer userId, boolean soloNoLeidas);
 
-    List<NotificacionDto> listarPorUsuarioYLeida(Long userId, boolean leida);
+    List<NotificacionDto> listarPorUsuarioYLeida(Integer userId, boolean leida);
 
-    List<NotificacionDto> listarPorUsuarioYRango(Long userId, Instant desde, Instant hasta);
+    List<NotificacionDto> listarPorUsuarioYRango(Integer userId, Instant desde, Instant hasta);
 
     NotificacionDto crear(NotificacionDto dto);
 
     // Sobrecarga para facilitar creación desde servicios
     NotificacionDto crear(Usuario usuario, String titulo, String mensaje, String tipo, String icono);
 
-    NotificacionDto marcarLeida(Long id);
+    NotificacionDto marcarLeida(Integer id);
 
     void crearNotificacionSistema(String titulo, String mensaje, String modulo, String icono);
 

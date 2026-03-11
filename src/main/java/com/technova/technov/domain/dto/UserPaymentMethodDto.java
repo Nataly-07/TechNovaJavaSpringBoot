@@ -12,8 +12,8 @@ import java.time.Instant;
 @AllArgsConstructor
 @Builder
 public class UserPaymentMethodDto {
-    private Long id;
-    private Long userId;
+    private Integer id;
+    private Integer userId;
     private String metodoPago;
     private boolean isDefault;
     private String brand;

@@ -47,14 +47,14 @@ public class MensajeDirectoServiceImpl implements MensajeDirectoService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<MensajeDirectoDto> listarPorUsuario(Long userId) {
+    public List<MensajeDirectoDto> listarPorUsuario(Integer userId) {
         return mensajeDirectoRepository.findByUserIdOrderByCreatedAtDesc(userId)
                 .stream().map(this::toDto).collect(Collectors.toList());
     }
 
     @Override
     @Transactional(readOnly = true)
-    public List<MensajeDirectoDto> listarPorEmpleado(Long empleadoId) {
+    public List<MensajeDirectoDto> listarPorEmpleado(Integer empleadoId) {
         return mensajeDirectoRepository.findByEmpleadoIdOrderByCreatedAtDesc(empleadoId)
                 .stream().map(this::toDto).collect(Collectors.toList());
     }
@@ -93,7 +93,7 @@ public class MensajeDirectoServiceImpl implements MensajeDirectoService {
 
     @Override
     @Transactional
-    public MensajeDirectoDto crearConversacion(Long userId, String asunto, String mensaje, String prioridad) {
+    public MensajeDirectoDto crearConversacion(Integer userId, String asunto, String mensaje, String prioridad) {
         String conversationId = "conv_" + System.currentTimeMillis() + "_" + userId;
 
         MensajeDirecto entity = MensajeDirecto.builder()
@@ -137,7 +137,7 @@ public class MensajeDirectoServiceImpl implements MensajeDirectoService {
 
     @Override
     @Transactional
-    public MensajeDirectoDto responderMensaje(Long parentMessageId, Long senderId, String senderType, String mensaje) {
+    public MensajeDirectoDto responderMensaje(Integer parentMessageId, Integer senderId, String senderType, String mensaje) {
         MensajeDirecto parentMessage = mensajeDirectoRepository.findById(parentMessageId)
                 .orElseThrow(() -> new IllegalArgumentException("Mensaje padre no encontrado: " + parentMessageId));
 
@@ -150,7 +150,7 @@ public class MensajeDirectoServiceImpl implements MensajeDirectoService {
             mensajeDirectoRepository.save(parentMessage);
 
             // Crear notificación para el cliente cuando un empleado responde
-            Long usuarioId = parentMessage.getUserId();
+            Integer usuarioId = parentMessage.getUserId();
             if (usuarioId != null) {
                 try {
                     System.out.println("=== CREAR NOTIFICACIÓN DE RESPUESTA A MENSAJE ===");
@@ -193,7 +193,7 @@ public class MensajeDirectoServiceImpl implements MensajeDirectoService {
             } else {
                 System.err.println("=== ADVERTENCIA: No se pudo crear notificación - Usuario ID es null ===");
                 System.err.println("  -> Mensaje ID: " + parentMessageId);
-        }
+            }
 
         // Si un ADMINISTRADOR responde a un EMPLEADO, notificar al empleado
         if ("admin".equalsIgnoreCase(senderType) && "empleado".equalsIgnoreCase(parentMessage.getSenderType())) {
@@ -202,7 +202,7 @@ public class MensajeDirectoServiceImpl implements MensajeDirectoService {
                     : mensaje;
             
             // Notificamos al empleado específico que envió el mensaje original
-            Long empleadoId = parentMessage.getSenderId();
+            Integer empleadoId = parentMessage.getSenderId();
             if (empleadoId != null) {
                 NotificacionDto notif = NotificacionDto.builder()
                         .userId(empleadoId)
@@ -215,8 +215,9 @@ public class MensajeDirectoServiceImpl implements MensajeDirectoService {
                 notificacionService.crear(notif);
             }
         }
+        }
 
-        Long recipientId = "empleado".equalsIgnoreCase(senderType) ? parentMessage.getUserId() : null;
+        Integer recipientId = "empleado".equalsIgnoreCase(senderType) ? parentMessage.getUserId() : null;
 
         MensajeDirecto reply = MensajeDirecto.builder()
                 .conversationId(parentMessage.getConversationId())
@@ -255,7 +256,7 @@ public class MensajeDirectoServiceImpl implements MensajeDirectoService {
 
     @Override
     @Transactional
-    public MensajeDirectoDto marcarLeido(Long id) {
+    public MensajeDirectoDto marcarLeido(Integer id) {
         return mensajeDirectoRepository.findById(id)
                 .map(m -> {
                     m.setRead(true);
@@ -271,7 +272,7 @@ public class MensajeDirectoServiceImpl implements MensajeDirectoService {
 
     @Override
     @Transactional(readOnly = true)
-    public MensajeDirectoDto obtenerPorId(Long id) {
+    public MensajeDirectoDto obtenerPorId(Integer id) {
         return mensajeDirectoRepository.findById(id)
                 .map(this::toDto)
                 .orElse(null);

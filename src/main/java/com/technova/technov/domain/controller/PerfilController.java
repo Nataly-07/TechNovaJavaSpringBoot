@@ -106,18 +106,18 @@ public class PerfilController {
         }
 
         // Obtener estadísticas del cliente
-        Long usuarioId = usuario.getId();
+        Integer usuarioId = usuario.getId();
         int favoritosCount = favoritoService.listarPorUsuario(usuarioId).size();
-        int carritoCount = carritoService.listar(usuarioId.intValue()).size();
+        int carritoCount = carritoService.listar(usuarioId).size();
 
         List<com.technova.technov.domain.dto.CompraDto> todasLasCompras = comprasService.listar();
         int comprasCount = (int) todasLasCompras.stream()
-                .filter(c -> c.getUsuarioId() != null && c.getUsuarioId().equals(usuarioId.intValue()))
+                .filter(c -> c.getUsuarioId() != null && c.getUsuarioId().equals(usuarioId))
                 .count();
 
         int pedidosCount = 0;
         try {
-            List<com.technova.technov.domain.dto.VentaDto> pedidos = ventaService.porUsuario(usuarioId.intValue());
+            List<com.technova.technov.domain.dto.VentaDto> pedidos = ventaService.porUsuario(usuarioId);
             pedidosCount = pedidos != null ? pedidos.size() : 0;
         } catch (Exception e) {
             pedidosCount = 0;

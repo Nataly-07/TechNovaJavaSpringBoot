@@ -8,9 +8,9 @@ import com.technova.technov.domain.entity.Usuario;
 import java.util.Optional;
 
 @Repository
-public interface UsuarioRepository extends JpaRepository<Usuario, Long> {
+public interface UsuarioRepository extends JpaRepository<Usuario, Integer> {
     java.util.List<Usuario> findByEstadoTrue();
-    java.util.Optional<Usuario> findByIdAndEstadoTrue(Long id);
+    java.util.Optional<Usuario> findByIdAndEstadoTrue(Integer id);
     Optional<Usuario> findByEmailAndPasswordAndEstadoTrue(String email, String password);
     Optional<Usuario> findByEmailAndEstadoTrue(String email);
     Optional<Usuario> findByEmail(String email); // Buscar por email sin filtrar por estado

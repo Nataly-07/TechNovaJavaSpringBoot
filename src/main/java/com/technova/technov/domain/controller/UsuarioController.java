@@ -39,7 +39,7 @@ public class UsuarioController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UsuarioDto> obtenerPorId(@PathVariable Long id) {
+    public ResponseEntity<UsuarioDto> obtenerPorId(@PathVariable Integer id) {
         UsuarioDto usuario = usuarioService.usuarioPorId(id).orElse(null);
         if (usuario == null) {
             return ResponseEntity.notFound().build();
@@ -210,7 +210,7 @@ public class UsuarioController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UsuarioDto> actualizarUsuarios(@PathVariable Long id, @RequestBody UsuarioDto usuarioDto) {
+    public ResponseEntity<UsuarioDto> actualizarUsuario(@PathVariable Integer id, @RequestBody UsuarioDto usuarioDto) {
         UsuarioDto usuarioDtoActualizado = usuarioService.actualizarUsuario(id, usuarioDto);
         if (usuarioDtoActualizado == null) {
             return ResponseEntity.notFound().build();
@@ -219,7 +219,7 @@ public class UsuarioController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminarUsuario(@PathVariable Long id) {
+    public ResponseEntity<Void> eliminarUsuario(@PathVariable Integer id) {
         boolean eliminarUsuario = usuarioService.eliminarUsuario(id);
         if (!eliminarUsuario) {
             return ResponseEntity.notFound().build();
@@ -228,18 +228,12 @@ public class UsuarioController {
     }
 
     @PatchMapping("/{id}/estado")
-    public ResponseEntity<UsuarioDto> activarDesactivarUsuario(
-            @PathVariable Long id,
-            @RequestParam boolean activar) {
+    public ResponseEntity<Void> activarDesactivarUsuario(@PathVariable Integer id, @RequestParam boolean activar) {
         boolean resultado = usuarioService.activarDesactivarUsuario(id, activar);
         if (!resultado) {
             return ResponseEntity.notFound().build();
         }
-        UsuarioDto usuario = usuarioService.usuarioPorId(id).orElse(null);
-        if (usuario == null) {
-            return ResponseEntity.notFound().build();
-        }
-        return ResponseEntity.ok(usuario);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/verificar-estado")

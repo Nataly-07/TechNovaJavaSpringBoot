@@ -88,7 +88,7 @@ public class MedioDePagoServiceImpl implements MedioDePagoService {
         }
         Usuario usuario = null;
         if (dto.getUsuarioId() != null) {
-            usuario = usuarioRepository.findById(Long.valueOf(dto.getUsuarioId())).orElse(null);
+            usuario = usuarioRepository.findById(dto.getUsuarioId()).orElse(null);
         }
         MedioDePago medioDePago = new MedioDePago();
         medioDePago.setId(dto.getId());

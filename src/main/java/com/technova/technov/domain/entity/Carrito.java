@@ -21,7 +21,7 @@ public class Carrito {
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ID_Usuario", nullable = false)
+    @JoinColumn(name = "ID_Usuario", nullable = false, columnDefinition = "INTEGER")
     private Usuario usuario;
 
     @Column(name = "Fecha_Creacion", nullable = false)

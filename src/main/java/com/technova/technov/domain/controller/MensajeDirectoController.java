@@ -25,13 +25,13 @@ public class MensajeDirectoController {
     }
 
     @GetMapping("/usuario/{userId}")
-    public ResponseEntity<List<MensajeDirectoDto>> listarPorUsuario(@PathVariable Long userId) {
+    public ResponseEntity<List<MensajeDirectoDto>> listarPorUsuario(@PathVariable Integer userId) {
         List<MensajeDirectoDto> mensajes = mensajeDirectoService.listarPorUsuario(userId);
         return ResponseEntity.ok(mensajes);
     }
 
     @GetMapping("/empleado/{empleadoId}")
-    public ResponseEntity<List<MensajeDirectoDto>> listarPorEmpleado(@PathVariable Long empleadoId) {
+    public ResponseEntity<List<MensajeDirectoDto>> listarPorEmpleado(@PathVariable Integer empleadoId) {
         List<MensajeDirectoDto> mensajes = mensajeDirectoService.listarPorEmpleado(empleadoId);
         return ResponseEntity.ok(mensajes);
     }
@@ -50,7 +50,7 @@ public class MensajeDirectoController {
 
     @PostMapping("/conversacion")
     public ResponseEntity<?> crearConversacion(
-            @RequestParam Long userId,
+            @RequestParam Integer userId,
             @RequestParam String asunto,
             @RequestParam String mensaje,
             @RequestParam(required = false, defaultValue = "normal") String prioridad) {
@@ -70,7 +70,7 @@ public class MensajeDirectoController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<MensajeDirectoDto> obtenerPorId(@PathVariable Long id) {
+    public ResponseEntity<MensajeDirectoDto> obtenerPorId(@PathVariable Integer id) {
         MensajeDirectoDto mensaje = mensajeDirectoService.obtenerPorId(id);
         if (mensaje == null) {
             return ResponseEntity.notFound().build();
@@ -80,8 +80,8 @@ public class MensajeDirectoController {
 
     @PostMapping("/{id}/responder")
     public ResponseEntity<?> responderMensaje(
-            @PathVariable Long id,
-            @RequestParam Long senderId,
+            @PathVariable Integer id,
+            @RequestParam Integer senderId,
             @RequestParam String senderType,
             @RequestParam String mensaje) {
         try {
@@ -100,7 +100,7 @@ public class MensajeDirectoController {
     }
 
     @PutMapping("/{id}/marcar-leido")
-    public ResponseEntity<MensajeDirectoDto> marcarLeido(@PathVariable Long id) {
+    public ResponseEntity<MensajeDirectoDto> marcarLeido(@PathVariable Integer id) {
         MensajeDirectoDto mensaje = mensajeDirectoService.marcarLeido(id);
         if (mensaje == null) {
             return ResponseEntity.notFound().build();

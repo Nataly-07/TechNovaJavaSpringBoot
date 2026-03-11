@@ -35,14 +35,14 @@ public class UserPaymentMethodServiceImpl implements UserPaymentMethodService {
     @Override
     @Transactional(readOnly = true)
     public List<UserPaymentMethodDto> listarPorUsuario(Integer usuarioId) {
-        return userPaymentMethodRepository.findByUsuario_Id(usuarioId.longValue())
+        return userPaymentMethodRepository.findByUsuario_Id(usuarioId)
                 .stream().map(this::toDto).collect(Collectors.toList());
     }
 
     @Override
     @Transactional
     public UserPaymentMethodDto guardar(Integer usuarioId, UserPaymentMethodDto upm) {
-        Usuario u = usuarioRepository.findById(usuarioId.longValue())
+        Usuario u = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + usuarioId));
         UserPaymentMethod entity = toEntity(upm);
         entity.setUsuario(u);
@@ -52,7 +52,7 @@ public class UserPaymentMethodServiceImpl implements UserPaymentMethodService {
 
     @Override
     @Transactional
-    public void eliminar(Long id) {
+    public void eliminar(Integer id) {
         userPaymentMethodRepository.deleteById(id);
     }
 

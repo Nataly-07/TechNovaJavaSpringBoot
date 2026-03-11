@@ -118,7 +118,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     @Transactional(readOnly = true)
-    public Optional<UsuarioDto> usuarioPorId(Long id) {
+    public Optional<UsuarioDto> usuarioPorId(Integer id) {
         return usuarioRepository.findById(id)
                 .map(usuario -> {
                     UsuarioDto dto = modelMapper.map(usuario, UsuarioDto.class);
@@ -140,7 +140,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     @Transactional
-    public UsuarioDto actualizarUsuario(Long idusuario, UsuarioDto usuarioDto) {
+    public UsuarioDto actualizarUsuario(Integer idusuario, UsuarioDto usuarioDto) {
         return usuarioRepository.findById(idusuario)
                 .map(existing -> {
                     // Solo actualizar el rol si viene en el DTO
@@ -167,7 +167,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     @Transactional
-    public UsuarioDto actualizarPerfil(Long idusuario, UsuarioDto usuarioDto) {
+    public UsuarioDto actualizarPerfil(Integer idusuario, UsuarioDto usuarioDto) {
         return usuarioRepository.findById(idusuario)
                 .map(existing -> {
                     // Actualizar campos del perfil
@@ -220,7 +220,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     @Transactional(readOnly = true)
-    public boolean validarPassword(Long usuarioId, String password) {
+    public boolean validarPassword(Integer usuarioId, String password) {
         return usuarioRepository.findById(usuarioId)
                 .map(usuario -> {
                     String storedPassword = usuario.getPassword();
@@ -288,7 +288,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     @Transactional
-    public boolean eliminarUsuario(Long idusuario) {
+    public boolean eliminarUsuario(Integer idusuario) {
         return usuarioRepository.findById(idusuario)
                 .map(usuario -> {
                     usuario.setEstado(false);
@@ -309,7 +309,7 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     @Transactional
-    public boolean activarDesactivarUsuario(Long idusuario, boolean activar) {
+    public boolean activarDesactivarUsuario(Integer idusuario, boolean activar) {
         return usuarioRepository.findById(idusuario)
                 .map(usuario -> {
                     usuario.setEstado(activar);
