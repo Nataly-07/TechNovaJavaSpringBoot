@@ -5,8 +5,8 @@ import java.util.List;
 
 public interface MensajeEmpleadoService {
     List<MensajeEmpleadoDto> listarTodos();
-    List<MensajeEmpleadoDto> listarPorEmpleado(Long empleadoId);
+    List<MensajeEmpleadoDto> listarPorEmpleado(Integer empleadoId);
     List<MensajeEmpleadoDto> listarPorTipoYPrioridad(String tipo, String prioridad);
     MensajeEmpleadoDto crear(MensajeEmpleadoDto dto);
-    MensajeEmpleadoDto marcarLeido(Long id);
+    MensajeEmpleadoDto marcarLeido(Integer id);
 }

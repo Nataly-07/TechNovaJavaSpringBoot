@@ -12,12 +12,12 @@ import java.util.List;
  * Proporciona consulta de métodos de pago por usuario.
  */
 @Repository
-public interface UserPaymentMethodRepository extends JpaRepository<UserPaymentMethod, Long> {
+public interface UserPaymentMethodRepository extends JpaRepository<UserPaymentMethod, Integer> {
     /**
      * Lista los métodos de pago asociados a un usuario.
      *
      * @param usuarioId identificador del usuario
      * @return lista de métodos de pago del usuario
      */
-    List<UserPaymentMethod> findByUsuario_Id(Long usuarioId);
+    List<UserPaymentMethod> findByUsuario_Id(Integer usuarioId);
 }

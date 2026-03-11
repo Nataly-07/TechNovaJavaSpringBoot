@@ -25,7 +25,7 @@ public class MensajeEmpleadoController {
     }
 
     @GetMapping("/empleado/{empleadoId}")
-    public ResponseEntity<List<MensajeEmpleadoDto>> listarPorEmpleado(@PathVariable Long empleadoId) {
+    public ResponseEntity<List<MensajeEmpleadoDto>> listarPorEmpleado(@PathVariable Integer empleadoId) {
         List<MensajeEmpleadoDto> mensajes = mensajeEmpleadoService.listarPorEmpleado(empleadoId);
         return ResponseEntity.ok(mensajes);
     }

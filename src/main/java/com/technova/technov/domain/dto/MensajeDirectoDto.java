@@ -12,20 +12,20 @@ import java.time.Instant;
 @AllArgsConstructor
 @Builder
 public class MensajeDirectoDto {
-    private Long id;
+    private Integer id;
     private String conversationId;
-    private Long parentMessageId;
+    private Integer parentMessageId;
     private String senderType;
-    private Long senderId;
-    private Long recipientId;
+    private Integer senderId;
+    private Integer recipientId;
     private boolean isRead;
     private Instant readAt;
-    private Long userId;
+    private Integer userId;
     private String asunto;
     private String mensaje;
     private String prioridad;
     private String estado;
-    private Long empleadoId;
+    private Integer empleadoId;
     private String respuesta;
     private Instant fechaRespuesta;
     private Instant createdAt;

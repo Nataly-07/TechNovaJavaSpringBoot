@@ -46,7 +46,7 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
             throw new IllegalArgumentException("La descripción no puede estar vacía");
         }
 
-        Usuario usuario = usuarioRepository.findByIdAndEstadoTrue(Long.valueOf(usuarioId))
+        Usuario usuario = usuarioRepository.findByIdAndEstadoTrue(usuarioId)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado o inactivo: " + usuarioId));
 
         AtencionCliente ticket = new AtencionCliente();
@@ -90,7 +90,7 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
         System.out.println("  -> Ticket encontrado: " + (t != null ? "Sí" : "No"));
 
         // Obtener usuarioId - ahora debería estar cargado
-        Long usuarioId = null;
+        Integer usuarioId = null;
         String tema = t.getTema();
 
         if (t.getUsuario() != null) {
@@ -110,7 +110,7 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
             AtencionClienteDto ticketRespondido = convertToDto(ticketGuardado);
 
             if (ticketRespondido != null && ticketRespondido.getUsuarioId() != null) {
-                usuarioId = Long.valueOf(ticketRespondido.getUsuarioId());
+                usuarioId = ticketRespondido.getUsuarioId();
                 System.out.println("  -> Usuario ID obtenido del DTO: " + usuarioId);
             }
         } else {
@@ -187,7 +187,7 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
         System.out.println("  -> Ticket encontrado: " + (t != null ? "Sí" : "No"));
 
         // Obtener usuarioId - ahora debería estar cargado
-        Long usuarioId = null;
+        Integer usuarioId = null;
         String tema = t.getTema();
 
         if (t.getUsuario() != null) {
@@ -206,7 +206,7 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
             AtencionClienteDto ticketCerrado = convertToDto(ticketGuardado);
 
             if (ticketCerrado != null && ticketCerrado.getUsuarioId() != null) {
-                usuarioId = Long.valueOf(ticketCerrado.getUsuarioId());
+                usuarioId = ticketCerrado.getUsuarioId();
                 System.out.println("  -> Usuario ID obtenido del DTO: " + usuarioId);
             }
         } else {
@@ -275,7 +275,7 @@ public class AtencionClienteServiceImpl implements AtencionClienteService {
     @Transactional(readOnly = true)
     public List<AtencionClienteDto> listarPorUsuario(Integer usuarioId) {
         List<AtencionCliente> tickets = atencionClienteRepository
-                .findByUsuario_IdOrderByFechaConsultaDesc(Long.valueOf(usuarioId));
+                .findByUsuario_IdOrderByFechaConsultaDesc(usuarioId);
         return tickets.stream()
                 .sorted((t1, t2) -> {
                     if (t1.getFechaConsulta() == null && t2.getFechaConsulta() == null)

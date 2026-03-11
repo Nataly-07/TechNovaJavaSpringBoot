@@ -5,7 +5,7 @@ USE technova_java;
 
 CREATE TABLE IF NOT EXISTS reclamos (
     ID_Reclamo INT AUTO_INCREMENT PRIMARY KEY,
-    ID_Usuario BIGINT NOT NULL,
+    ID_Usuario INT NOT NULL,
     Fecha_Reclamo DATETIME NOT NULL,
     Titulo VARCHAR(200) NOT NULL,
     Descripcion TEXT NOT NULL,

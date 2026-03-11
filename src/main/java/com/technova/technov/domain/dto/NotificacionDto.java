@@ -12,8 +12,8 @@ import java.time.Instant;
 @AllArgsConstructor
 @Builder
 public class NotificacionDto {
-    private Long id;
-    private Long userId;
+    private Integer id;
+    private Integer userId;
     private String titulo;
     private String mensaje;
     private String tipo;

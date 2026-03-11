@@ -182,7 +182,7 @@ public class AdminMensajesController {
             model.addAttribute("empleados", empleados);
             
             // Crear mapa de nombres de empleados
-            java.util.Map<Long, String> nombresEmpleados = new java.util.HashMap<>();
+            java.util.Map<Integer, String> nombresEmpleados = new java.util.HashMap<>();
             for (com.technova.technov.domain.dto.UsuarioDto emp : empleados) {
                 if (emp.getId() != null) {
                     nombresEmpleados.put(emp.getId(), emp.getName() != null ? emp.getName() : "Empleado #" + emp.getId());

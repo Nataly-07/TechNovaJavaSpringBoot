@@ -25,14 +25,14 @@ public class FavoritoController {
     }
 
     @GetMapping("/usuario/{usuarioId}")
-    public ResponseEntity<List<FavoritoDto>> listarPorUsuario(@PathVariable Long usuarioId) {
+    public ResponseEntity<List<FavoritoDto>> listarPorUsuario(@PathVariable Integer usuarioId) {
         List<FavoritoDto> favoritos = favoritoService.listarPorUsuario(usuarioId);
         return ResponseEntity.ok(favoritos);
     }
 
     @PostMapping("/usuario/{usuarioId}/producto/{productoId}")
     public ResponseEntity<FavoritoDto> agregar(
-            @PathVariable Long usuarioId,
+            @PathVariable Integer usuarioId,
             @PathVariable Integer productoId) {
         FavoritoDto agregado = favoritoService.agregar(usuarioId, productoId);
         return ResponseEntity.ok(agregado);
@@ -40,7 +40,7 @@ public class FavoritoController {
 
     @PostMapping("/usuario/{usuarioId}/producto/{productoId}/toggle")
     public ResponseEntity<Boolean> toggle(
-            @PathVariable Long usuarioId,
+            @PathVariable Integer usuarioId,
             @PathVariable Integer productoId) {
         boolean resultado = favoritoService.toggle(usuarioId, productoId);
         return ResponseEntity.ok(resultado);
@@ -48,7 +48,7 @@ public class FavoritoController {
 
     @DeleteMapping("/usuario/{usuarioId}/producto/{productoId}")
     public ResponseEntity<?> eliminar(
-            @PathVariable Long usuarioId,
+            @PathVariable Integer usuarioId,
             @PathVariable Integer productoId) {
         try {
             FavoritoDto eliminado = favoritoService.eliminar(usuarioId, productoId);

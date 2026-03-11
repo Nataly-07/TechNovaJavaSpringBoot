@@ -7,9 +7,9 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface MensajeDirectoRepository extends JpaRepository<MensajeDirecto, Long> {
-    List<MensajeDirecto> findByUserIdOrderByCreatedAtDesc(Long userId);
-    List<MensajeDirecto> findByEmpleadoIdOrderByCreatedAtDesc(Long empleadoId);
+public interface MensajeDirectoRepository extends JpaRepository<MensajeDirecto, Integer> {
+    List<MensajeDirecto> findByUserIdOrderByCreatedAtDesc(Integer userId);
+    List<MensajeDirecto> findByEmpleadoIdOrderByCreatedAtDesc(Integer empleadoId);
     List<MensajeDirecto> findByConversationIdOrderByCreatedAtAsc(String conversationId);
-    List<MensajeDirecto> findByUserIdAndEstadoOrderByCreatedAtDesc(Long userId, String estado);
+    List<MensajeDirecto> findByUserIdAndEstadoOrderByCreatedAtDesc(Integer userId, String estado);
 }

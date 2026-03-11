@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -59,11 +60,11 @@ public class CheckoutServiceImpl implements CheckoutService {
     @Override
     @Transactional
     public CheckoutResponseDto checkout(Integer usuarioId) {
-        Usuario usuario = usuarioRepository.findById(Long.valueOf(usuarioId))
+        Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + usuarioId));
 
-        Carrito carrito = carritoRepository.findFirstByUsuario_Id(Long.valueOf(usuarioId))
-                .orElseThrow(() -> new IllegalStateException("El usuario no tiene carrito"));
+        Optional<Carrito> existente = carritoRepository.findFirstByUsuario_Id(usuarioId);
+        Carrito carrito = existente.orElseThrow(() -> new IllegalStateException("El usuario no tiene carrito"));
 
         List<DetalleCarrito> items = detalleCarritoRepository.findByCarrito(carrito);
         if (items.isEmpty()) {

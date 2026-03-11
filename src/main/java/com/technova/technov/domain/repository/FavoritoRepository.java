@@ -13,14 +13,14 @@ import java.util.Optional;
  * Proporciona consultas para listar y localizar favoritos de un usuario sobre productos específicos.
  */
 @Repository
-public interface FavoritoRepository extends JpaRepository<Favorito, Long> {
+public interface FavoritoRepository extends JpaRepository<Favorito, Integer> {
     /**
      * Obtiene todos los favoritos asociados al usuario indicado.
      *
      * @param userId identificador del usuario
      * @return lista de favoritos del usuario
      */
-    List<Favorito> findByUsuario_Id(Long userId);
+    List<Favorito> findByUsuario_Id(Integer userId);
     /**
      * Busca si existe un favorito para un usuario y producto concretos.
      *
@@ -28,5 +28,5 @@ public interface FavoritoRepository extends JpaRepository<Favorito, Long> {
      * @param productoId identificador del producto
      * @return favorito, si existe
      */
-    Optional<Favorito> findByUsuario_IdAndProducto_Id(Long userId, Integer productoId);
+    Optional<Favorito> findByUsuario_IdAndProducto_Id(Integer userId, Integer productoId);
 }

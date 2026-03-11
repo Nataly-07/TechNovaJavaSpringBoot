@@ -54,7 +54,7 @@ public class MensajeEmpleadoServiceImpl implements MensajeEmpleadoService {
 
     @Override
     @Transactional(readOnly = true)
-    public List<MensajeEmpleadoDto> listarPorEmpleado(Long empleadoId) {
+    public List<MensajeEmpleadoDto> listarPorEmpleado(Integer empleadoId) {
         return mensajeEmpleadoRepository.findByEmpleadoIdOrderByCreatedAtDesc(empleadoId)
                 .stream().map(this::toDto).collect(Collectors.toList());
     }
@@ -88,7 +88,7 @@ public class MensajeEmpleadoServiceImpl implements MensajeEmpleadoService {
 
     @Override
     @Transactional
-    public MensajeEmpleadoDto marcarLeido(Long id) {
+    public MensajeEmpleadoDto marcarLeido(Integer id) {
         return mensajeEmpleadoRepository.findById(id)
                 .map(m -> {
                     m.setLeido(true);

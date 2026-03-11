@@ -46,8 +46,7 @@ public class ReclamoServiceImpl implements ReclamoService {
             throw new IllegalArgumentException("La descripción no puede estar vacía");
         }
 
-        Usuario usuario = usuarioRepository.findByIdAndEstadoTrue(Long.valueOf(usuarioId))
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado o inactivo: " + usuarioId));
+        Usuario usuario = usuarioRepository.findById(usuarioId).orElse(null);
 
         Reclamo reclamo = new Reclamo();
         reclamo.setUsuario(usuario);
@@ -91,11 +90,11 @@ public class ReclamoServiceImpl implements ReclamoService {
         System.out.println("  -> Reclamo encontrado: " + (r != null ? "Sí" : "No"));
 
         // Obtener usuarioId - ahora debería estar cargado
-        Long usuarioId = null;
+        Integer usuarioId = null;
         String titulo = r.getTitulo();
 
         if (r.getUsuario() != null) {
-            usuarioId = r.getUsuario().getId();
+            usuarioId = r.getUsuario().getId().intValue();
             System.out.println("  -> Usuario cargado: Sí");
             System.out.println("  -> Usuario ID: " + usuarioId);
             System.out.println("  -> Usuario Email: " + r.getUsuario().getEmail());
@@ -111,7 +110,7 @@ public class ReclamoServiceImpl implements ReclamoService {
             ReclamoDto reclamoRespondido = convertToDto(reclamoGuardado);
 
             if (reclamoRespondido != null && reclamoRespondido.getUsuarioId() != null) {
-                usuarioId = Long.valueOf(reclamoRespondido.getUsuarioId());
+                usuarioId = reclamoRespondido.getUsuarioId();
                 System.out.println("  -> Usuario ID obtenido del DTO: " + usuarioId);
             }
         } else {
@@ -205,7 +204,7 @@ public class ReclamoServiceImpl implements ReclamoService {
     @Override
     @Transactional(readOnly = true)
     public List<ReclamoDto> listarPorUsuario(Integer usuarioId) {
-        List<Reclamo> reclamos = reclamoRepository.findByUsuario_IdOrderByFechaReclamoDesc(Long.valueOf(usuarioId));
+        List<Reclamo> reclamos = reclamoRepository.findByUsuario_IdOrderByFechaReclamoDesc(usuarioId);
         return reclamos.stream()
                 .sorted((r1, r2) -> {
                     if (r1.getFechaReclamo() == null && r2.getFechaReclamo() == null)

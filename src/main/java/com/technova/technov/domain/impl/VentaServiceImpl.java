@@ -69,7 +69,7 @@ public class VentaServiceImpl implements VentaService {
     @Override
     @Transactional
     public List<VentaDto> porUsuario(Integer usuarioId) {
-        return ventaRepository.findByUsuario_IdAndEstadoTrue(Long.valueOf(usuarioId)).stream()
+        return ventaRepository.findByUsuario_IdAndEstadoTrue(usuarioId).stream()
                 .sorted((a, b) -> {
                     // Ordenar por fecha descendente (más reciente primero)
                     int fechaCompare = b.getFechaVenta().compareTo(a.getFechaVenta());
@@ -103,7 +103,7 @@ public class VentaServiceImpl implements VentaService {
     @Override
     @Transactional
     public VentaDto crear(VentaRequestDto request) {
-        Usuario usuario = usuarioRepository.findByIdAndEstadoTrue(Long.valueOf(request.getUsuarioId()))
+        Usuario usuario = usuarioRepository.findByIdAndEstadoTrue(request.getUsuarioId())
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + request.getUsuarioId()));
 
         Venta venta = new Venta();
@@ -182,7 +182,7 @@ public class VentaServiceImpl implements VentaService {
     public VentaDto actualizar(Integer id, VentaRequestDto request) {
         return ventaRepository.findByIdAndEstadoTrue(id)
                 .map(existing -> {
-                    Usuario usuario = usuarioRepository.findByIdAndEstadoTrue(Long.valueOf(request.getUsuarioId()))
+                    Usuario usuario = usuarioRepository.findByIdAndEstadoTrue(request.getUsuarioId())
                             .orElseThrow(() -> new IllegalArgumentException(
                                     "Usuario no encontrado: " + request.getUsuarioId()));
                     existing.setUsuario(usuario);

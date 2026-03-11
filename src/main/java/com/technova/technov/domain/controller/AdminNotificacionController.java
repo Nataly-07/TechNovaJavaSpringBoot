@@ -57,7 +57,7 @@ public class AdminNotificacionController {
     }
 
     @PostMapping("/admin/notificaciones/marcar-leida/{id}")
-    public String marcarLeida(@PathVariable Long id) {
+    public String marcarLeida(@PathVariable Integer id) {
         notificacionService.marcarLeida(id);
         return "redirect:/admin/notificaciones";
     }

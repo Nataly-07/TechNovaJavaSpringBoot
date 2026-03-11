@@ -11,7 +11,7 @@ import java.util.Optional;
 
 @Repository
 public interface ReclamoRepository extends JpaRepository<Reclamo, Integer> {
-    List<Reclamo> findByUsuario_IdOrderByFechaReclamoDesc(Long usuarioId);
+    List<Reclamo> findByUsuario_IdOrderByFechaReclamoDesc(Integer usuarioId);
     List<Reclamo> findByEstadoIgnoreCaseOrderByFechaReclamoDesc(String estado);
     List<Reclamo> findAllByOrderByFechaReclamoDesc();
     List<Reclamo> findByEnviadoAlAdminTrueOrderByFechaReclamoDesc();

@@ -5,8 +5,8 @@ import java.util.List;
 
 public interface FavoritoService {
     List<FavoritoDto> listarTodos();
-    List<FavoritoDto> listarPorUsuario(Long usuarioId);
-    FavoritoDto agregar(Long usuarioId, Integer productoId);
-    FavoritoDto eliminar(Long usuarioId, Integer productoId);
-    boolean toggle(Long usuarioId, Integer productoId);
+    List<FavoritoDto> listarPorUsuario(Integer usuarioId);
+    FavoritoDto agregar(Integer usuarioId, Integer productoId);
+    FavoritoDto eliminar(Integer usuarioId, Integer productoId);
+    boolean toggle(Integer usuarioId, Integer productoId);
 }

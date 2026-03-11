@@ -28,7 +28,7 @@ public class NotificacionController {
 
     @GetMapping("/usuario/{userId}")
     public ResponseEntity<List<NotificacionDto>> listarPorUsuario(
-            @PathVariable Long userId,
+            @PathVariable Integer userId,
             @RequestParam(required = false, defaultValue = "false") boolean soloNoLeidas) {
         List<NotificacionDto> notificaciones = notificacionService.listarPorUsuario(userId, soloNoLeidas);
         return ResponseEntity.ok(notificaciones);
@@ -36,7 +36,7 @@ public class NotificacionController {
 
     @GetMapping("/usuario/{userId}/leida")
     public ResponseEntity<List<NotificacionDto>> listarPorUsuarioYLeida(
-            @PathVariable Long userId,
+            @PathVariable Integer userId,
             @RequestParam boolean leida) {
         List<NotificacionDto> notificaciones = notificacionService.listarPorUsuarioYLeida(userId, leida);
         return ResponseEntity.ok(notificaciones);
@@ -44,7 +44,7 @@ public class NotificacionController {
 
     @GetMapping("/usuario/{userId}/rango")
     public ResponseEntity<List<NotificacionDto>> listarPorUsuarioYRango(
-            @PathVariable Long userId,
+            @PathVariable Integer userId,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant desde,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant hasta) {
         List<NotificacionDto> notificaciones = notificacionService.listarPorUsuarioYRango(userId, desde, hasta);

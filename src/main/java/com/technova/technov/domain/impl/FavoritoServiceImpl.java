@@ -57,7 +57,7 @@ public class FavoritoServiceImpl implements FavoritoService {
 
     @Transactional(readOnly = true)
     @Override
-    public List<FavoritoDto> listarPorUsuario(Long usuarioId) {
+    public List<FavoritoDto> listarPorUsuario(Integer usuarioId) {
         List<Favorito> favoritos = favoritoRepository.findByUsuario_Id(usuarioId);
         return favoritos.stream()
                 .sorted((a, b) -> {
@@ -76,7 +76,7 @@ public class FavoritoServiceImpl implements FavoritoService {
 
     @Transactional
     @Override
-    public FavoritoDto agregar(Long usuarioId, Integer productoId) {
+    public FavoritoDto agregar(Integer usuarioId, Integer productoId) {
         Usuario u = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + usuarioId));
         Producto p = productoRepository.findById(productoId)
@@ -107,7 +107,7 @@ public class FavoritoServiceImpl implements FavoritoService {
 
     @Transactional
     @Override
-    public FavoritoDto eliminar(Long usuarioId, Integer productoId) {
+    public FavoritoDto eliminar(Integer usuarioId, Integer productoId) {
         return favoritoRepository.findByUsuario_IdAndProducto_Id(usuarioId, productoId)
                 .map(f -> {
                     FavoritoDto dto = convertToDto(f);
@@ -130,7 +130,7 @@ public class FavoritoServiceImpl implements FavoritoService {
 
     @Transactional
     @Override
-    public boolean toggle(Long usuarioId, Integer productoId) {
+    public boolean toggle(Integer usuarioId, Integer productoId) {
         return favoritoRepository.findByUsuario_IdAndProducto_Id(usuarioId, productoId)
                 .map(f -> {
                     favoritoRepository.delete(f);

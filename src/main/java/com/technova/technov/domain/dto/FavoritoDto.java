@@ -10,7 +10,7 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class FavoritoDto {
-    private Long id;
-    private Long usuarioId;
+    private Integer id;
+    private Integer usuarioId;
     private Integer productoId;
 }

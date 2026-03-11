@@ -162,7 +162,7 @@ public class AdminPagosController {
                             // Obtener información del cliente
                             if (venta.getUsuarioId() != null) {
                                 try {
-                                    java.util.Optional<UsuarioDto> clienteOpt = usuarioService.usuarioPorId(Long.valueOf(venta.getUsuarioId()));
+                                    java.util.Optional<UsuarioDto> clienteOpt = usuarioService.usuarioPorId(venta.getUsuarioId());
                                     if (clienteOpt.isPresent()) {
                                         UsuarioDto cliente = clienteOpt.get();
                                         String nombreCompleto = (cliente.getName() != null ? cliente.getName() : "N/A");
@@ -211,7 +211,7 @@ public class AdminPagosController {
                             ventasPorPagoTemp.put(pago.getId(), venta);
                             if (venta.getUsuarioId() != null) {
                                 try {
-                                    java.util.Optional<UsuarioDto> clienteOpt = usuarioService.usuarioPorId(Long.valueOf(venta.getUsuarioId()));
+                                    java.util.Optional<UsuarioDto> clienteOpt = usuarioService.usuarioPorId(venta.getUsuarioId());
                                     if (clienteOpt.isPresent()) {
                                         UsuarioDto cliente = clienteOpt.get();
                                         nombresClientesTemp.put(pago.getId(), cliente.getName() != null ? cliente.getName() : "N/A");
@@ -398,7 +398,7 @@ public class AdminPagosController {
                         
                         if (venta.getUsuarioId() != null) {
                             try {
-                                java.util.Optional<UsuarioDto> clienteOpt = usuarioService.usuarioPorId(Long.valueOf(venta.getUsuarioId()));
+                                java.util.Optional<UsuarioDto> clienteOpt = usuarioService.usuarioPorId(venta.getUsuarioId());
                                 if (clienteOpt.isPresent()) {
                                     cliente = clienteOpt.get();
                                     System.out.println("  -> Cliente obtenido: " + (cliente.getName() != null ? cliente.getName() : "N/A"));
@@ -468,7 +468,7 @@ public class AdminPagosController {
             try {
                 venta = ventaService.detalle(ventaId);
                 if (venta != null && venta.getUsuarioId() != null) {
-                    java.util.Optional<UsuarioDto> clienteOpt = usuarioService.usuarioPorId(Long.valueOf(venta.getUsuarioId()));
+                    java.util.Optional<UsuarioDto> clienteOpt = usuarioService.usuarioPorId(venta.getUsuarioId());
                     if (clienteOpt.isPresent()) {
                         cliente = clienteOpt.get();
                     }
