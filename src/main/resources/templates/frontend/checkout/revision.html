@@ -114,8 +114,10 @@
                 class="account btn-finalizar" 
                 id="btnFinalizarCompra"
                 style="width: 100%; padding: 15px; font-size: 18px; background: var(--gradient-primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600;">
-          <i class='bx bx-check-circle' style="margin-right: 8px;"></i>
-          Finalizar Compra
+          <i class='bx bx-credit-card' style="margin-right: 8px;" th:if="${pago != null && pago.metodoPago == 'paypal_sandbox'}"></i>
+          <i class='bx bx-check-circle' style="margin-right: 8px;" th:if="${pago == null || pago.metodoPago == null || pago.metodoPago != 'paypal_sandbox'}"></i>
+          <span th:if="${pago != null && pago.metodoPago == 'paypal_sandbox'}">Ir a PayPal y pagar</span>
+          <span th:if="${pago == null || pago.metodoPago == null || pago.metodoPago != 'paypal_sandbox'}">Finalizar Compra</span>
         </button>
       </form>
       

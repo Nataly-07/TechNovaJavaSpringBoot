@@ -19,7 +19,7 @@ public class Reclamo {
     private Integer id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ID_Usuario", nullable = false, columnDefinition = "INTEGER")
+    @JoinColumn(name = "ID_Usuario", nullable = false, foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Usuario usuario;
 
     @Column(name = "Fecha_Reclamo", nullable = false)
