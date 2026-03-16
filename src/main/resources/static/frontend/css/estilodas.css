@@ -272,7 +272,15 @@ footer {
     align-self: flex-start;
     height: 100vh;
     overflow: auto;
+    -ms-overflow-style: none; /* IE/Edge legacy */
+    scrollbar-width: none; /* Firefox */
     flex-shrink: 0;
+}
+
+.menu-dashboard::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+    display: none; /* Chrome/Safari/Opera */
 }
 
 /* Scrollbar del sidebar - solo vertical */
@@ -1575,6 +1583,48 @@ footer {
 
 /* Pantallas muy pequeñas (hasta 768px) */
 @media (max-width: 768px) {
+    .dashboard-wrapper {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .menu-dashboard {
+        width: 100%;
+        min-width: 100%;
+        max-width: 100%;
+        padding: 14px 10px;
+        border-radius: 0 0 14px 14px;
+        position: relative;
+        height: auto;
+    }
+
+    .menu-dashboard .top-menu {
+        display: none;
+    }
+
+    .menu-dashboard .menu .enlace {
+        padding: 14px 10px;
+        justify-content: flex-start;
+    }
+
+    .menu-dashboard .menu .enlace i {
+        margin-right: 12px;
+    }
+
+    .menu-dashboard.open {
+        width: 100%;
+        min-width: 100%;
+        max-width: 100%;
+    }
+
+    .menu-dashboard.open .menu .enlace {
+        justify-content: flex-start;
+    }
+
+    .menu-dashboard.open .menu .enlace i {
+        margin-right: 12px;
+    }
+
     .welcome-section h1 {
         font-size: 2rem;
     }

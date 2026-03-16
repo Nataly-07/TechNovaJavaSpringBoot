@@ -194,6 +194,7 @@ public class MensajeDirectoServiceImpl implements MensajeDirectoService {
                 System.err.println("=== ADVERTENCIA: No se pudo crear notificación - Usuario ID es null ===");
                 System.err.println("  -> Mensaje ID: " + parentMessageId);
             }
+        }
 
         // Si un ADMINISTRADOR responde a un EMPLEADO, notificar al empleado
         if ("admin".equalsIgnoreCase(senderType) && "empleado".equalsIgnoreCase(parentMessage.getSenderType())) {
@@ -214,7 +215,6 @@ public class MensajeDirectoServiceImpl implements MensajeDirectoService {
                         .build();
                 notificacionService.crear(notif);
             }
-        }
         }
 
         Integer recipientId = "empleado".equalsIgnoreCase(senderType) ? parentMessage.getUserId() : null;

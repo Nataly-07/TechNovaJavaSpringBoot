@@ -2,7 +2,6 @@ package com.technova.technov.domain.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
-import com.technova.technov.domain.entity.Producto;
 
 @Entity
 @Table(name = "detalle_orden")
@@ -21,7 +20,7 @@ public class DetalleOrden {
     private OrdenCompra ordenCompra;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "ID_Producto")
+    @JoinColumn(name = "ID_Producto", foreignKey = @ForeignKey(ConstraintMode.NO_CONSTRAINT))
     private Producto producto;
 
     @Column(name = "Cantidad")

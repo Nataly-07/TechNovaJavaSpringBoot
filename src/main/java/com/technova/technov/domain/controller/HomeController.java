@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.springframework.http.HttpHeaders;
@@ -13,6 +14,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,6 +38,7 @@ import com.technova.technov.domain.service.CheckoutService;
 import com.technova.technov.domain.service.ComprasService;
 import com.technova.technov.domain.service.FavoritoService;
 import com.technova.technov.domain.service.MedioDePagoService;
+import com.technova.technov.domain.service.PaypalCheckoutService;
 import com.technova.technov.domain.service.ProductoService;
 import com.technova.technov.domain.service.VentaService;
 import com.technova.technov.service.ReporteService;
@@ -54,12 +57,19 @@ public class HomeController {
     private final MedioDePagoService medioDePagoService;
     private final VentaService ventaService;
     private final CheckoutService checkoutService;
+    private final PaypalCheckoutService paypalCheckoutService;
     
     @Autowired
     private SecurityUtil securityUtil;
     
     @Autowired
     private ReporteService reporteService;
+
+    @Value("${technova.paypal.mock-enabled:false}")
+    private boolean paypalMockEnabled;
+
+    @Value("${technova.paypal.mock-status:APPROVED}")
+    private String paypalMockStatus;
 
     public HomeController(
             ProductoService productoService,
@@ -69,7 +79,8 @@ public class HomeController {
             ComprasService comprasService,
             MedioDePagoService medioDePagoService,
             VentaService ventaService,
-            CheckoutService checkoutService) {
+            CheckoutService checkoutService,
+            PaypalCheckoutService paypalCheckoutService) {
         this.productoService = productoService;
         this.caracteristicaService = caracteristicaService;
         this.carritoService = carritoService;
@@ -78,6 +89,7 @@ public class HomeController {
         this.medioDePagoService = medioDePagoService;
         this.ventaService = ventaService;
         this.checkoutService = checkoutService;
+        this.paypalCheckoutService = paypalCheckoutService;
     }
 
     /**
@@ -899,22 +911,12 @@ public class HomeController {
             }
         }
         
-        // Métodos de pago fijos
+        // Método de pago disponible: PayPal
         List<Map<String, String>> metodosFormato = new ArrayList<>();
-        Map<String, String> tarjetaCredito = new HashMap<>();
-        tarjetaCredito.put("value", "tarjeta_credito");
-        tarjetaCredito.put("label", "Tarjeta de Crédito");
-        metodosFormato.add(tarjetaCredito);
-        
-        Map<String, String> tarjetaDebito = new HashMap<>();
-        tarjetaDebito.put("value", "tarjeta_debito");
-        tarjetaDebito.put("label", "Tarjeta Débito");
-        metodosFormato.add(tarjetaDebito);
-        
-        Map<String, String> nequi = new HashMap<>();
-        nequi.put("value", "nequi");
-        nequi.put("label", "Nequi");
-        metodosFormato.add(nequi);
+        Map<String, String> paypal = new HashMap<>();
+        paypal.put("value", "paypal_sandbox");
+        paypal.put("label", "PayPal Sandbox");
+        metodosFormato.add(paypal);
         
         model.addAttribute("productos", items);
         model.addAttribute("precios", precios);
@@ -929,11 +931,19 @@ public class HomeController {
             @RequestParam Map<String, String> datosPago,
             jakarta.servlet.http.HttpSession session,
             RedirectAttributes redirectAttributes) {
+        if (metodoPago == null || metodoPago.isBlank()) {
+            session.setAttribute("error", "Debes seleccionar un método de pago.");
+            return "redirect:/checkout/pago";
+        }
+
+        if (!"paypal_sandbox".equalsIgnoreCase(metodoPago.trim())) {
+            session.setAttribute("error", "Método de pago no permitido. Usa PayPal Sandbox.");
+            return "redirect:/checkout/pago";
+        }
+
         // Guardar datos en sesión (solo si no están vacíos)
         Map<String, Object> pago = new HashMap<>();
-        if (metodoPago != null && !metodoPago.trim().isEmpty()) {
-            pago.put("metodoPago", metodoPago.trim());
-        }
+        pago.put("metodoPago", "paypal_sandbox");
         // Filtrar datosPago para quitar valores vacíos y el propio metodoPago
         Map<String, String> datosPagoFiltrados = new HashMap<>();
         for (Map.Entry<String, String> entry : datosPago.entrySet()) {
@@ -1185,62 +1195,41 @@ public class HomeController {
                 return "redirect:/checkout/revision";
             }
             
-            System.out.println("Procesando checkout para usuario: " + usuario.getId());
-            // Procesar el checkout
-            CheckoutResponseDto checkoutResponse;
-            try {
-                checkoutResponse = checkoutService.checkout(usuario.getId().intValue());
-                System.out.println("Checkout exitoso. Venta ID: " + checkoutResponse.getVentaId() + ", Total: " + checkoutResponse.getTotal());
-            } catch (Exception e) {
-                System.err.println("Error al procesar checkout: " + e.getMessage());
-                e.printStackTrace();
-                session.setAttribute("error", "Error al procesar la compra: " + (e.getMessage() != null ? e.getMessage() : "Error desconocido"));
-                return "redirect:/checkout/revision";
+            String metodoPago = String.valueOf(pago.get("metodoPago"));
+
+            if ("paypal_sandbox".equalsIgnoreCase(metodoPago)) {
+                BigDecimal total = calcularTotalCarrito(items);
+                if (total.compareTo(BigDecimal.ZERO) <= 0) {
+                    session.setAttribute("error", "No se pudo calcular el total de la compra.");
+                    return "redirect:/checkout/revision";
+                }
+
+                String reference = "TECHNOVA-PAYPAL-" + usuario.getId() + "-" + UUID.randomUUID();
+                session.setAttribute("checkout_paypal_reference", reference);
+                session.setAttribute("checkout_paypal_total", total);
+
+                if (paypalCheckoutService.isConfigured()) {
+                    PaypalCheckoutService.ApprovalData approvalData =
+                            paypalCheckoutService.createOrder(reference, total, usuario.getEmail());
+                    session.setAttribute("checkout_paypal_order_id", approvalData.orderId());
+                    return "redirect:" + approvalData.approvalUrl();
+                }
+
+                if (!paypalMockEnabled) {
+                    session.setAttribute("error", "PayPal no está configurado. Define TECHNOVA_PAYPAL_CLIENT_ID y TECHNOVA_PAYPAL_CLIENT_SECRET.");
+                    return "redirect:/checkout/revision";
+                }
+
+                String status = paypalMockStatus != null ? paypalMockStatus.trim().toUpperCase() : "APPROVED";
+                if (!"APPROVED".equals(status)) {
+                    session.setAttribute("error", "Pago no aprobado en modo sandbox (" + status + ").");
+                    return "redirect:/checkout/revision";
+                }
+
+                return procesarCheckoutExitoso(session, usuario.getId().intValue(), metodoPago);
             }
-            
-            if (checkoutResponse == null || checkoutResponse.getVentaId() == null) {
-                System.err.println("Error: La respuesta del checkout es inválida");
-                session.setAttribute("error", "Error al procesar la compra. Por favor, intenta nuevamente.");
-                return "redirect:/checkout/revision";
-            }
-            
-            // Guardar información de pago ANTES de limpiar (para mostrarla en el modal)
-            Map<String, Object> pagoInfo = (Map<String, Object>) session.getAttribute("checkout_pago");
-            String metodoPago = null;
-            if (pagoInfo != null && pagoInfo.containsKey("metodoPago")) {
-                metodoPago = (String) pagoInfo.get("metodoPago");
-            }
-            
-            // Limpiar datos de sesión del checkout
-            session.removeAttribute("checkout_informacion");
-            session.removeAttribute("checkout_direccion");
-            session.removeAttribute("checkout_envio");
-            session.removeAttribute("error"); // Limpiar errores previos
-            
-            // Guardar datos básicos de confirmación en la sesión para mostrar el modal
-            // Los datos completos se obtendrán en checkoutRevision cuando la transacción esté confirmada
-            BigDecimal totalFinal = checkoutResponse.getTotal() != null ? checkoutResponse.getTotal() : BigDecimal.ZERO;
-            Integer itemsCount = checkoutResponse.getItems() != null ? checkoutResponse.getItems().size() : 0;
-            
-            System.out.println("Guardando datos de confirmación - Venta ID: " + checkoutResponse.getVentaId() + 
-                             ", Total: $" + totalFinal + ", Items: " + itemsCount);
-            
-            // Guardar datos de confirmación en la sesión para mostrar el modal
-            session.setAttribute("checkout_venta_id", checkoutResponse.getVentaId());
-            session.setAttribute("checkout_total", totalFinal);
-            session.setAttribute("checkout_fecha", java.time.LocalDate.now());
-            session.setAttribute("checkout_items_count", itemsCount);
-            session.setAttribute("checkout_items", new ArrayList<>()); // Se llenará en checkoutRevision
-            if (metodoPago != null) {
-                session.setAttribute("checkout_metodo_pago", metodoPago);
-            }
-            session.setAttribute("checkout_success", true);
-            
-            // Limpiar pago después de guardar la información necesaria
-            session.removeAttribute("checkout_pago");
-            
-            System.out.println("Redirigiendo a /checkout/revision con modal de éxito - Datos reales guardados");
-            return "redirect:/checkout/revision";
+
+            return procesarCheckoutExitoso(session, usuario.getId().intValue(), metodoPago);
             
         } catch (IllegalArgumentException e) {
             System.err.println("Error de validación en checkout: " + e.getMessage());
@@ -1259,6 +1248,122 @@ public class HomeController {
             session.setAttribute("error", errorMsg);
             return "redirect:/checkout/revision";
         }
+    }
+
+    private String procesarCheckoutExitoso(
+            jakarta.servlet.http.HttpSession session,
+            Integer usuarioId,
+            String metodoPago) {
+        System.out.println("Procesando checkout definitivo para usuario: " + usuarioId);
+
+        CheckoutResponseDto checkoutResponse;
+        try {
+            checkoutResponse = checkoutService.checkout(usuarioId);
+            System.out.println("Checkout exitoso. Venta ID: " + checkoutResponse.getVentaId() + ", Total: " + checkoutResponse.getTotal());
+        } catch (Exception e) {
+            System.err.println("Error al procesar checkout: " + e.getMessage());
+            e.printStackTrace();
+            session.setAttribute("error", "Error al procesar la compra: " + (e.getMessage() != null ? e.getMessage() : "Error desconocido"));
+            return "redirect:/checkout/revision";
+        }
+
+        if (checkoutResponse == null || checkoutResponse.getVentaId() == null) {
+            System.err.println("Error: La respuesta del checkout es inválida");
+            session.setAttribute("error", "Error al procesar la compra. Por favor, intenta nuevamente.");
+            return "redirect:/checkout/revision";
+        }
+
+        // Limpiar datos de sesión del checkout
+        session.removeAttribute("checkout_informacion");
+        session.removeAttribute("checkout_direccion");
+        session.removeAttribute("checkout_envio");
+        session.removeAttribute("error");
+
+        BigDecimal totalFinal = checkoutResponse.getTotal() != null ? checkoutResponse.getTotal() : BigDecimal.ZERO;
+        Integer itemsCount = checkoutResponse.getItems() != null ? checkoutResponse.getItems().size() : 0;
+
+        session.setAttribute("checkout_venta_id", checkoutResponse.getVentaId());
+        session.setAttribute("checkout_total", totalFinal);
+        session.setAttribute("checkout_fecha", java.time.LocalDate.now());
+        session.setAttribute("checkout_items_count", itemsCount);
+        session.setAttribute("checkout_items", new ArrayList<>());
+        session.setAttribute("checkout_metodo_pago", metodoPago);
+        session.setAttribute("checkout_success", true);
+
+        session.removeAttribute("checkout_pago");
+        session.removeAttribute("checkout_paypal_reference");
+        session.removeAttribute("checkout_paypal_total");
+        session.removeAttribute("checkout_paypal_order_id");
+
+        return "redirect:/checkout/revision";
+    }
+
+    private BigDecimal calcularTotalCarrito(List<CarritoItemDto> items) {
+        BigDecimal total = BigDecimal.ZERO;
+        if (items == null || items.isEmpty()) {
+            return total;
+        }
+        for (CarritoItemDto item : items) {
+            if (item == null || item.getProductoId() == null) {
+                continue;
+            }
+            ProductoDto producto = productoService.productoPorId(item.getProductoId()).orElse(null);
+            if (producto == null || producto.getCaracteristica() == null || producto.getCaracteristica().getPrecioVenta() == null) {
+                continue;
+            }
+            int cantidad = item.getCantidad() != null && item.getCantidad() > 0 ? item.getCantidad() : 1;
+            total = total.add(producto.getCaracteristica().getPrecioVenta().multiply(BigDecimal.valueOf(cantidad)));
+        }
+        return total;
+    }
+
+    @GetMapping("/checkout/paypal/retorno")
+    public String retornoPaypal(
+            @RequestParam(name = "token", required = false) String token,
+            @RequestParam(name = "cancel", required = false, defaultValue = "false") boolean cancel,
+            jakarta.servlet.http.HttpSession session) {
+        UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
+        if (usuario == null || usuario.getId() == null) {
+            session.setAttribute("error", "Debes iniciar sesión nuevamente para confirmar el pago.");
+            return "redirect:/login";
+        }
+
+        if (cancel) {
+            session.setAttribute("error", "Pago cancelado por el usuario en PayPal.");
+            return "redirect:/checkout/revision";
+        }
+
+        String referenceSesion = (String) session.getAttribute("checkout_paypal_reference");
+        String orderEsperada = (String) session.getAttribute("checkout_paypal_order_id");
+
+        if (token == null || token.isBlank()) {
+            session.setAttribute("error", "PayPal no devolvió token de la orden.");
+            return "redirect:/checkout/revision";
+        }
+
+        if (orderEsperada != null && !orderEsperada.equals(token)) {
+            session.setAttribute("error", "El token de PayPal no coincide con la orden esperada.");
+            return "redirect:/checkout/revision";
+        }
+
+        if (paypalCheckoutService.isConfigured()) {
+            PaypalCheckoutService.CaptureResult captureResult = paypalCheckoutService.captureOrder(token);
+            if (referenceSesion != null && captureResult.referenceCode() != null && !captureResult.referenceCode().isBlank()
+                    && !referenceSesion.equals(captureResult.referenceCode())) {
+                session.setAttribute("error", "No se pudo validar la referencia de la orden en PayPal.");
+                return "redirect:/checkout/revision";
+            }
+            if (!captureResult.completed()) {
+                session.setAttribute("error", "Pago en PayPal no aprobado (" + captureResult.status() + ").");
+                return "redirect:/checkout/revision";
+            }
+        } else if (!paypalMockEnabled) {
+            session.setAttribute("error", "PayPal no está configurado en el servidor.");
+            return "redirect:/checkout/revision";
+        }
+
+        String metodoPago = "paypal_sandbox";
+        return procesarCheckoutExitoso(session, usuario.getId().intValue(), metodoPago);
     }
 
     @GetMapping("/checkout/clear-success")
