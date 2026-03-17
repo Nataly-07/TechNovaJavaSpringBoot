@@ -16,22 +16,25 @@
   <link rel="stylesheet" th:href="@{/frontend/css/color-palette.css}">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
-    .inventario-container {
-      background: white;
-      border-radius: 16px;
-      padding: 30px;
-      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
-      width: 98% !important;
-      margin: 0 auto !important;
-      max-width: 85% !important;
-      /* Aumentado de 1800px a 98% para asegurar que tome todo el espacio */
+    .dashboard-wrapper .main-content {
+      flex: 1;
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      padding: 24px 24px 24px 0;
+      overflow-x: visible;
     }
 
-    .main-content {
-      padding: 10px !important;
-      max-width: 100% !important;
-      width: auto !important;
-      flex: 1 !important;
+    .inventario-container {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 12px 30px rgba(24, 39, 75, 0.08);
+      border: 1px solid #e8edf7;
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      min-height: calc(100vh - 140px);
     }
 
     /* Estilos personalizados para barras de desplazamiento */
@@ -205,10 +208,14 @@
     .table-container {
       overflow-x: auto;
       margin-bottom: 30px;
+      border: 1px solid #e8edf7;
+      border-radius: 14px;
+      background: #fff;
     }
 
     .table-inventario {
       width: 100%;
+      min-width: 880px;
       border-collapse: collapse;
       background: white;
     }
@@ -233,7 +240,24 @@
     }
 
     .table-inventario tbody tr:hover {
-      background: #f5f5f5;
+      background: #f7f9fc;
+    }
+
+    .table-inventario tbody tr.row-clickable {
+      cursor: pointer;
+    }
+
+    .movimientos-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(360px, 1fr));
+      gap: 20px;
+    }
+
+    .movimiento-card {
+      background: #ffffff;
+      border: 1px solid #e8edf7;
+      border-radius: 14px;
+      padding: 18px;
     }
 
     .stock-badge {
@@ -532,6 +556,137 @@
       background: #d0d0d0;
     }
 
+    .product-detail-modal {
+      max-width: 920px;
+      width: 95%;
+    }
+
+    .product-detail-layout {
+      display: grid;
+      grid-template-columns: 280px 1fr;
+      gap: 22px;
+    }
+
+    .product-image-panel {
+      border: 1px solid #e8edf7;
+      border-radius: 14px;
+      padding: 14px;
+      background: #fafcff;
+    }
+
+    .product-image-preview {
+      width: 100%;
+      height: 240px;
+      border-radius: 12px;
+      border: 1px solid #dbe5f1;
+      object-fit: cover;
+      background: #eef3fa;
+      display: block;
+    }
+
+    .product-image-fallback {
+      width: 100%;
+      height: 240px;
+      border-radius: 12px;
+      border: 1px dashed #b9c8dd;
+      background: #eef3fa;
+      color: #6f8198;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.9rem;
+    }
+
+    .product-image-fallback i {
+      font-size: 2rem;
+    }
+
+    .product-meta-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .product-meta-badge {
+      background: #e9effa;
+      color: #334e75;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .detail-section {
+      border: 1px solid #e8edf7;
+      border-radius: 14px;
+      padding: 14px 16px;
+      background: #fff;
+      margin-bottom: 12px;
+    }
+
+    .detail-section-title {
+      margin: 0 0 10px;
+      color: #2d3f5f;
+      font-size: 0.95rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 14px;
+    }
+
+    .detail-item {
+      background: #f8fbff;
+      border: 1px solid #e5edf8;
+      border-radius: 10px;
+      padding: 8px 10px;
+    }
+
+    .detail-item-label {
+      display: block;
+      font-size: 0.75rem;
+      color: #5b6f8a;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      margin-bottom: 2px;
+    }
+
+    .detail-item-value {
+      color: #23324a;
+      font-weight: 600;
+      word-break: break-word;
+    }
+
+    .detail-description {
+      background: #f8fbff;
+      border: 1px solid #e5edf8;
+      border-radius: 10px;
+      padding: 10px 12px;
+      min-height: 70px;
+      color: #2f3f58;
+      line-height: 1.4;
+    }
+
+    .detail-image-link {
+      color: #4b66a8;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .detail-image-link:hover {
+      text-decoration: underline;
+    }
+
     .alert {
       padding: 15px 20px;
       border-radius: 10px;
@@ -577,12 +732,25 @@
     }
 
     @media (max-width: 768px) {
+      .dashboard-wrapper .main-content {
+        padding: 16px;
+      }
+
+      .inventario-container {
+        padding: 20px;
+        border-radius: 16px;
+      }
+
       .form-row {
         grid-template-columns: 1fr;
       }
 
       .modal-content {
         padding: 20px;
+      }
+
+      .product-detail-layout {
+        grid-template-columns: 1fr;
       }
     }
   </style>
@@ -681,15 +849,9 @@
                   <th>ID</th>
                   <th>Código</th>
                   <th>Nombre</th>
-                  <th>Imagen</th>
                   <th>Categoría</th>
-                  <th>Color</th>
-                  <th>Descripción</th>
-                  <th>Precio Compra</th>
                   <th>Precio Venta</th>
                   <th>Marca</th>
-                  <th>Ingreso</th>
-                  <th>Salida</th>
                   <th>Stock</th>
                   <th>Estado</th>
                   <th>Acciones</th>
@@ -697,27 +859,14 @@
               </thead>
               <tbody>
                 <tr th:each="producto : ${productos}"
-                  th:data-estado="${producto.estado != null ? producto.estado : true}">
+                  th:data-estado="${producto.estado != null ? producto.estado : true}"
+                  th:data-producto-id="${producto.id}"
+                  class="row-clickable"
+                  onclick="verDetalleProducto(this.getAttribute('data-producto-id'))">
                   <td th:text="${producto.id}">-</td>
                   <td th:text="${producto.codigo}">-</td>
                   <td th:text="${producto.nombre}">-</td>
-                  <td>
-                    <img th:if="${producto.imagen != null && !producto.imagen.isEmpty()}" th:src="${producto.imagen}"
-                      style="width: 40px; height: 40px; object-fit: cover; border-radius: 4px;" alt="Imagen producto" />
-                    <span th:if="${producto.imagen == null || producto.imagen.isEmpty()}">-</span>
-                  </td>
                   <td th:text="${producto.caracteristica != null ? producto.caracteristica.categoria : 'N/A'}">N/A</td>
-                  <td th:text="${producto.caracteristica != null ? producto.caracteristica.color : 'N/A'}">N/A</td>
-                  <td th:text="${producto.caracteristica != null ? producto.caracteristica.descripcion : 'N/A'}">N/A
-                  </td>
-                  <td>
-                    <span th:if="${producto.caracteristica != null && producto.caracteristica.precioCompra != null}">
-                      $<span
-                        th:text="${#numbers.formatDecimal(producto.caracteristica.precioCompra, 0, 'POINT', 2, 'POINT')}">0.00</span>
-                    </span>
-                    <span
-                      th:if="${producto.caracteristica == null || producto.caracteristica.precioCompra == null}">N/A</span>
-                  </td>
                   <td>
                     <span th:if="${producto.caracteristica != null && producto.caracteristica.precioVenta != null}">
                       $<span
@@ -727,8 +876,6 @@
                       th:if="${producto.caracteristica == null || producto.caracteristica.precioVenta == null}">N/A</span>
                   </td>
                   <td th:text="${producto.caracteristica != null ? producto.caracteristica.marca : 'N/A'}">N/A</td>
-                  <td th:text="${producto.ingreso != null ? producto.ingreso : 0}">0</td>
-                  <td th:text="${producto.salida != null ? producto.salida : 0}">0</td>
                   <td th:text="${producto.stock != null ? producto.stock : 0}">0</td>
                   <td>
                     <span th:if="${producto.estado != null && producto.estado}" class="estado-badge estado-activo">
@@ -753,7 +900,12 @@
                     </th:block>
                   </td>
                   <td>
-                    <div style="display: flex; gap: 8px;">
+                    <div style="display: flex; gap: 8px;" onclick="event.stopPropagation()">
+                      <button class="btn-accion btn-editar" th:data-producto-id="${producto.id}"
+                        onclick="verDetalleProducto(this.getAttribute('data-producto-id'))"
+                        style="padding: 6px 12px; background: #34495e; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">
+                        <i class='bx bx-show'></i> Ver
+                      </button>
                       <button class="btn-accion btn-editar" th:data-producto-id="${producto.id}"
                         onclick="editarProducto(this.getAttribute('data-producto-id'))"
                         style="padding: 6px 12px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">
@@ -786,7 +938,8 @@
         </div>
 
         <div id="tab-movimientos" class="tab-content">
-          <div class="table-container">
+          <div class="movimientos-grid">
+          <div class="table-container movimiento-card">
             <h3 style="margin-bottom: 15px;">Compras (Entradas)</h3>
             <table class="table-inventario" th:if="${comprasRecientes != null && !comprasRecientes.isEmpty()}">
               <thead>
@@ -809,7 +962,7 @@
             <p th:if="${comprasRecientes == null || comprasRecientes.isEmpty()}">No hay compras registradas.</p>
           </div>
 
-          <div class="table-container">
+          <div class="table-container movimiento-card">
             <h3 style="margin-bottom: 15px;">Ventas (Salidas)</h3>
             <table class="table-inventario" th:if="${ventasRecientes != null && !ventasRecientes.isEmpty()}">
               <thead>
@@ -828,6 +981,7 @@
               </tbody>
             </table>
             <p th:if="${ventasRecientes == null || ventasRecientes.isEmpty()}">No hay ventas registradas.</p>
+          </div>
           </div>
         </div>
 
@@ -1274,6 +1428,69 @@
     </div>
   </div>
 
+  <!-- Modal de detalle de producto -->
+  <div id="modalDetalleProducto" class="modal">
+    <div class="modal-content product-detail-modal">
+      <div class="modal-header">
+        <h3><i class='bx bx-detail'></i> Detalle Completo del Producto</h3>
+        <button class="close-modal" onclick="cerrarModalDetalleProducto()">&times;</button>
+      </div>
+      <div class="product-detail-layout">
+        <div class="product-image-panel">
+          <img id="detalleImagenPreview" class="product-image-preview" alt="Imagen del producto" />
+          <div id="detalleImagenFallback" class="product-image-fallback">
+            <i class='bx bx-image-alt'></i>
+            <span>Sin imagen disponible</span>
+          </div>
+          <div class="product-meta-badges">
+            <span id="detalleEstadoBadge" class="product-meta-badge">Estado</span>
+            <span id="detalleStockBadge" class="product-meta-badge">Stock</span>
+          </div>
+        </div>
+        <div>
+          <div class="detail-section">
+            <h4 class="detail-section-title"><i class='bx bx-info-circle'></i> Información general</h4>
+            <div class="detail-grid">
+              <div class="detail-item"><span class="detail-item-label">ID</span><span id="detalleProductoId" class="detail-item-value">-</span></div>
+              <div class="detail-item"><span class="detail-item-label">Código</span><span id="detalleCodigo" class="detail-item-value">-</span></div>
+              <div class="detail-item"><span class="detail-item-label">Nombre</span><span id="detalleNombre" class="detail-item-value">-</span></div>
+              <div class="detail-item"><span class="detail-item-label">Categoría</span><span id="detalleCategoria" class="detail-item-value">-</span></div>
+              <div class="detail-item"><span class="detail-item-label">Marca</span><span id="detalleMarca" class="detail-item-value">-</span></div>
+              <div class="detail-item"><span class="detail-item-label">Color</span><span id="detalleColor" class="detail-item-value">-</span></div>
+              <div class="detail-item"><span class="detail-item-label">Proveedor</span><span id="detalleProveedor" class="detail-item-value">-</span></div>
+              <div class="detail-item"><span class="detail-item-label">URL Imagen</span><a id="detalleImagenLink" class="detail-item-value detail-image-link" href="#" target="_blank" rel="noopener noreferrer">Ver imagen</a></div>
+            </div>
+          </div>
+          <div class="detail-section">
+            <h4 class="detail-section-title"><i class='bx bx-line-chart'></i> Inventario</h4>
+            <div class="detail-grid">
+              <div class="detail-item"><span class="detail-item-label">Ingreso</span><span id="detalleIngreso" class="detail-item-value">-</span></div>
+              <div class="detail-item"><span class="detail-item-label">Salida</span><span id="detalleSalida" class="detail-item-value">-</span></div>
+              <div class="detail-item"><span class="detail-item-label">Stock</span><span id="detalleStock" class="detail-item-value">-</span></div>
+              <div class="detail-item"><span class="detail-item-label">Estado</span><span id="detalleEstado" class="detail-item-value">-</span></div>
+            </div>
+          </div>
+          <div class="detail-section">
+            <h4 class="detail-section-title"><i class='bx bx-dollar-circle'></i> Precios</h4>
+            <div class="detail-grid">
+              <div class="detail-item"><span class="detail-item-label">Precio compra</span><span id="detallePrecioCompra" class="detail-item-value">-</span></div>
+              <div class="detail-item"><span class="detail-item-label">Precio venta</span><span id="detallePrecioVenta" class="detail-item-value">-</span></div>
+            </div>
+          </div>
+          <div class="detail-section">
+            <h4 class="detail-section-title"><i class='bx bx-file'></i> Descripción</h4>
+            <div id="detalleDescripcion" class="detail-description">Sin descripción</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="btn-modal btn-modal-secondary" onclick="cerrarModalDetalleProducto()">
+          <i class='bx bx-x'></i> Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+
   <footer>
     <p>&copy; 2025 Technova</p>
   </footer>
@@ -1507,6 +1724,82 @@
       }
     }
 
+    function verDetalleProducto(id) {
+      const productoId = parseInt(id, 10);
+      if (isNaN(productoId)) return;
+
+      fetch(`/api/productos/${productoId}`)
+        .then(response => {
+          if (!response.ok) throw new Error('No se pudo cargar el producto');
+          return response.json();
+        })
+        .then(producto => {
+          const precioCompra = producto.caracteristica?.precioCompra;
+          const precioVenta = producto.caracteristica?.precioVenta;
+          const estadoTexto = producto.estado ? 'Activo' : 'Inactivo';
+          const stockTexto = `${producto.stock ?? 0} unidades`;
+          const imagenUrl = (producto.imagen || '').trim();
+
+          document.getElementById('detalleProductoId').textContent = producto.id ?? '-';
+          document.getElementById('detalleCodigo').textContent = producto.codigo || 'N/A';
+          document.getElementById('detalleNombre').textContent = producto.nombre || 'N/A';
+          document.getElementById('detalleCategoria').textContent = producto.caracteristica?.categoria || 'N/A';
+          document.getElementById('detalleMarca').textContent = producto.caracteristica?.marca || 'N/A';
+          document.getElementById('detalleColor').textContent = producto.caracteristica?.color || 'N/A';
+          document.getElementById('detalleProveedor').textContent = producto.proveedor || 'N/A';
+          document.getElementById('detalleIngreso').textContent = producto.ingreso ?? 0;
+          document.getElementById('detalleSalida').textContent = producto.salida ?? 0;
+          document.getElementById('detalleStock').textContent = producto.stock ?? 0;
+          document.getElementById('detalleEstado').textContent = estadoTexto;
+          document.getElementById('detallePrecioCompra').textContent = precioCompra != null ? `$ ${Number(precioCompra).toLocaleString('es-CO')}` : 'N/A';
+          document.getElementById('detallePrecioVenta').textContent = precioVenta != null ? `$ ${Number(precioVenta).toLocaleString('es-CO')}` : 'N/A';
+          document.getElementById('detalleDescripcion').textContent = producto.caracteristica?.descripcion || 'Sin descripción';
+
+          const imagenPreview = document.getElementById('detalleImagenPreview');
+          const imagenFallback = document.getElementById('detalleImagenFallback');
+          const imagenLink = document.getElementById('detalleImagenLink');
+          if (imagenUrl) {
+            imagenPreview.onerror = function () {
+              imagenPreview.style.display = 'none';
+              imagenFallback.style.display = 'flex';
+            };
+            imagenPreview.onload = function () {
+              imagenPreview.style.display = 'block';
+              imagenFallback.style.display = 'none';
+            };
+            imagenPreview.src = imagenUrl;
+            imagenPreview.style.display = 'block';
+            imagenFallback.style.display = 'none';
+            imagenLink.href = imagenUrl;
+            imagenLink.textContent = 'Abrir imagen';
+          } else {
+            imagenPreview.removeAttribute('src');
+            imagenPreview.onerror = null;
+            imagenPreview.onload = null;
+            imagenPreview.style.display = 'none';
+            imagenFallback.style.display = 'flex';
+            imagenLink.removeAttribute('href');
+            imagenLink.textContent = 'Sin imagen';
+          }
+
+          document.getElementById('detalleEstadoBadge').textContent = estadoTexto;
+          document.getElementById('detalleStockBadge').textContent = stockTexto;
+          document.getElementById('modalDetalleProducto').classList.add('show');
+          document.body.style.overflow = 'hidden';
+        })
+        .catch(() => {
+          Swal.fire('Error', 'No se pudo cargar la información completa del producto', 'error');
+        });
+    }
+
+    function cerrarModalDetalleProducto() {
+      const modal = document.getElementById('modalDetalleProducto');
+      if (modal) {
+        modal.classList.remove('show');
+        document.body.style.overflow = 'auto';
+      }
+    }
+
     // Esperar a que el DOM esté completamente cargado para los event listeners
     document.addEventListener('DOMContentLoaded', function () {
       // Cerrar modal al hacer clic fuera de él
@@ -1525,6 +1818,15 @@
         modalEditar.addEventListener('click', function (e) {
           if (e.target === this) {
             cerrarModalEditar();
+          }
+        });
+      }
+
+      const modalDetalleProducto = document.getElementById('modalDetalleProducto');
+      if (modalDetalleProducto) {
+        modalDetalleProducto.addEventListener('click', function (e) {
+          if (e.target === this) {
+            cerrarModalDetalleProducto();
           }
         });
       }

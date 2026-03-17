@@ -13,11 +13,24 @@
   <link rel="stylesheet" th:href="@{/frontend/css/color-palette.css}">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
+    .dashboard-wrapper .main-content {
+      flex: 1;
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      padding: 24px 24px 24px 0;
+      overflow-x: visible;
+    }
+
     .usuarios-container {
       background: white;
-      border-radius: 16px;
+      border-radius: 20px;
       padding: 30px;
-      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 12px 30px rgba(24, 39, 75, 0.08);
+      border: 1px solid #e8edf7;
+      width: 100%;
+      max-width: none;
+      min-height: calc(100vh - 140px);
     }
 
     .filtros-section {
@@ -87,10 +100,14 @@
 
     .table-container {
       overflow-x: auto;
+      border: 1px solid #e8edf7;
+      border-radius: 14px;
+      background: #fff;
     }
 
     .table-usuarios {
       width: 100%;
+      min-width: 760px;
       border-collapse: collapse;
       background: white;
     }
@@ -115,7 +132,11 @@
     }
 
     .table-usuarios tbody tr:hover {
-      background: #f5f5f5;
+      background: #f7f9fc;
+    }
+
+    .table-usuarios tbody tr.row-clickable {
+      cursor: pointer;
     }
 
     .rol-tag {
@@ -485,6 +506,15 @@
     }
 
     @media (max-width: 768px) {
+      .dashboard-wrapper .main-content {
+        padding: 16px;
+      }
+
+      .usuarios-container {
+        padding: 20px;
+        border-radius: 16px;
+      }
+
       .form-row {
         grid-template-columns: 1fr;
       }
@@ -585,22 +615,20 @@
                 <th>Nombre</th>
                 <th>Email</th>
                 <th>Rol</th>
-                <th>Tipo Documento</th>
-                <th>Número Documento</th>
-                <th>Teléfono</th>
                 <th>Estado</th>
                 <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
-              <tr th:each="usuario : ${usuarios}" th:data-estado="${usuario.estado != null ? usuario.estado : true}">
+              <tr th:each="usuario : ${usuarios}"
+                th:data-estado="${usuario.estado != null ? usuario.estado : true}"
+                th:data-usuario-id="${usuario.id}"
+                class="row-clickable"
+                onclick="verInformacionUsuario(this.getAttribute('data-usuario-id'))">
                 <td th:text="${usuario.id}">-</td>
                 <td th:text="${usuario.name}">-</td>
                 <td th:text="${usuario.email}">-</td>
                 <td th:text="${usuario.role}">-</td>
-                <td th:text="${usuario.documentType ?: 'N/A'}">N/A</td>
-                <td th:text="${usuario.documentNumber ?: 'N/A'}">N/A</td>
-                <td th:text="${usuario.phone ?: 'N/A'}">N/A</td>
                 <td>
                   <span th:if="${usuario.estado != null && usuario.estado}" class="estado-badge estado-activo">
                     <i class='bx bx-check-circle'></i> Activo
@@ -610,7 +638,7 @@
                   </span>
                 </td>
                 <td>
-                  <div class="acciones-usuario">
+                  <div class="acciones-usuario" onclick="event.stopPropagation()">
                     <button class="btn-accion btn-editar" th:data-usuario-id="${usuario.id}"
                       onclick="verInformacionUsuario(this.getAttribute('data-usuario-id'))">
                       <i class='bx bx-info-circle'></i> Ver Información

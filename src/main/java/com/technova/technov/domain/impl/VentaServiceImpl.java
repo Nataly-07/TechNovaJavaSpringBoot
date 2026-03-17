@@ -103,8 +103,23 @@ public class VentaServiceImpl implements VentaService {
     @Override
     @Transactional
     public VentaDto crear(VentaRequestDto request) {
-        Usuario usuario = usuarioRepository.findByIdAndEstadoTrue(request.getUsuarioId())
-                .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + request.getUsuarioId()));
+        boolean esPuntoFisico = Boolean.TRUE.equals(request.getPuntoFisico());
+        Integer idUsuarioVenta = request.getUsuarioId();
+        Integer empleadoId = request.getEmpleadoId();
+        Usuario usuario;
+
+        if (esPuntoFisico) {
+            Integer idEmpleado = empleadoId != null ? empleadoId : idUsuarioVenta;
+            if (idEmpleado == null) {
+                throw new IllegalArgumentException("Empleado requerido para registrar venta en punto físico");
+            }
+            usuario = usuarioRepository.findByIdAndEstadoTrue(idEmpleado)
+                    .filter(u -> u.getRole() != null && "empleado".equalsIgnoreCase(u.getRole()))
+                    .orElseThrow(() -> new IllegalArgumentException("Empleado no encontrado para venta en punto físico"));
+        } else {
+            usuario = usuarioRepository.findByIdAndEstadoTrue(idUsuarioVenta)
+                    .orElseThrow(() -> new IllegalArgumentException("Usuario no encontrado: " + idUsuarioVenta));
+        }
 
         Venta venta = new Venta();
         venta.setUsuario(usuario);
@@ -144,35 +159,55 @@ public class VentaServiceImpl implements VentaService {
             detalle.setVenta(venta);
             detalle.setProducto(producto);
             detalle.setCantidad(String.valueOf(item.getCantidad()));
-            detalle.setPrecio(item.getPrecio() == null ? BigDecimal.ZERO : item.getPrecio());
+            BigDecimal precioLinea = item.getPrecio();
+            if (precioLinea == null && producto.getCaracteristica() != null && producto.getCaracteristica().getPrecioVenta() != null) {
+                precioLinea = producto.getCaracteristica().getPrecioVenta().multiply(BigDecimal.valueOf(item.getCantidad()));
+            }
+            detalle.setPrecio(precioLinea == null ? BigDecimal.ZERO : precioLinea);
             detalleVentaRepository.save(detalle);
         }
 
         VentaDto ventaDto = toDto(venta);
 
-        // Notificación de sistema
-        notificacionService.crearNotificacionSistema(
-                "Nuevo Pedido Registrado",
-                "Se ha realizado el pedido #" + venta.getId() + " por el usuario " + usuario.getEmail() + ". Total: $"
-                        + ventaDto.getTotal(),
-                "Pedidos",
-                "bx-shopping-bag");
+        if (esPuntoFisico) {
+            notificacionService.crearNotificacionSistema(
+                    "Venta en Punto Físico Registrada",
+                    "Venta #" + venta.getId() + " registrada por el empleado " + usuario.getName() + " por $"
+                            + ventaDto.getTotal(),
+                    "Pedidos",
+                    "bx-store");
 
-        // Notificación al Cliente
-        notificacionService.crear(
-                usuario,
-                "Pedido Realizado con Éxito",
-                "Has realizado el pedido #" + venta.getId() + " por un total de $" + ventaDto.getTotal(),
-                "Pedidos",
-                "bx-shopping-bag");
+            notificacionService.crearNotificacionRol(
+                    "EMPLEADO",
+                    "Nueva Venta en Punto Físico #" + venta.getId(),
+                    "El empleado " + usuario.getName() + " registró una venta presencial por $" + ventaDto.getTotal(),
+                    "Pedidos",
+                    "bx-store");
+        } else {
+            // Notificación de sistema
+            notificacionService.crearNotificacionSistema(
+                    "Nuevo Pedido Registrado",
+                    "Se ha realizado el pedido #" + venta.getId() + " por el usuario " + usuario.getEmail() + ". Total: $"
+                            + ventaDto.getTotal(),
+                    "Pedidos",
+                    "bx-shopping-bag");
 
-        // Notificación al Empleado (Pedidos)
-        notificacionService.crearNotificacionRol(
-                "EMPLEADO",
-                "Nuevo Pedido #" + venta.getId(),
-                "Cliente " + usuario.getEmail() + " realizó un pedido por $" + ventaDto.getTotal(),
-                "Pedidos",
-                "bx-shopping-bag");
+            // Notificación al Cliente
+            notificacionService.crear(
+                    usuario,
+                    "Pedido Realizado con Éxito",
+                    "Has realizado el pedido #" + venta.getId() + " por un total de $" + ventaDto.getTotal(),
+                    "Pedidos",
+                    "bx-shopping-bag");
+
+            // Notificación al Empleado (Pedidos)
+            notificacionService.crearNotificacionRol(
+                    "EMPLEADO",
+                    "Nuevo Pedido #" + venta.getId(),
+                    "Cliente " + usuario.getEmail() + " realizó un pedido por $" + ventaDto.getTotal(),
+                    "Pedidos",
+                    "bx-shopping-bag");
+        }
 
         return ventaDto;
     }
@@ -281,6 +316,15 @@ public class VentaServiceImpl implements VentaService {
         return VentaDto.builder()
                 .ventaId(v.getId())
                 .usuarioId(v.getUsuario().getId().intValue())
+                .empleadoId(v.getUsuario().getRole() != null && "empleado".equalsIgnoreCase(v.getUsuario().getRole())
+                        ? v.getUsuario().getId()
+                        : null)
+                .empleadoNombre(v.getUsuario().getRole() != null && "empleado".equalsIgnoreCase(v.getUsuario().getRole())
+                        ? v.getUsuario().getName()
+                        : null)
+                .tipoVenta(v.getUsuario().getRole() != null && "empleado".equalsIgnoreCase(v.getUsuario().getRole())
+                        ? "PUNTO_FISICO"
+                        : "ONLINE")
                 .fechaVenta(v.getFechaVenta())
                 .total(total)
                 .items(items)

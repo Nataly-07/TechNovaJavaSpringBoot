@@ -15,15 +15,25 @@
   <link rel="stylesheet" th:href="@{/frontend/css/color-palette.css}">
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
+    .dashboard-wrapper .main-content {
+      flex: 1;
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      padding: 24px 24px 24px 0;
+      overflow-x: visible;
+    }
+
     .ordenes-container {
       background: white;
-      border-radius: 16px;
+      border-radius: 20px;
       padding: 30px;
-      box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
-      max-width: 85%;
-      width: 85%;
-      margin: 0 auto;
-      /* Centering */
+      box-shadow: 0 12px 30px rgba(24, 39, 75, 0.08);
+      border: 1px solid #e8edf7;
+      width: 100%;
+      max-width: none;
+      margin: 0;
+      min-height: calc(100vh - 140px);
     }
 
     .ordenes-header {
@@ -63,10 +73,14 @@
 
     .table-container {
       overflow-x: auto;
+      border: 1px solid #e8edf7;
+      border-radius: 14px;
+      background: #fff;
     }
 
     .table-ordenes {
       width: 100%;
+      min-width: 760px;
       border-collapse: collapse;
       background: white;
     }
@@ -88,6 +102,10 @@
       text-transform: uppercase;
       font-size: 0.85rem;
       letter-spacing: 0.5px;
+    }
+
+    .table-ordenes tbody tr:hover {
+      background: #f7f9fc;
     }
 
     .badge-estado {
@@ -145,6 +163,201 @@
       color: #721c24;
       border: 1px solid #f5c6cb;
     }
+
+    .modal-detalle-orden {
+      display: none;
+      position: fixed;
+      z-index: 1200;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.55);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .modal-detalle-content {
+      background: #fff;
+      border-radius: 18px;
+      width: min(980px, 100%);
+      max-height: 90vh;
+      overflow-y: auto;
+      border: 1px solid #e5edf8;
+      box-shadow: 0 20px 45px rgba(15, 23, 42, 0.2);
+      animation: fadeIn 0.2s ease;
+    }
+
+    .modal-detalle-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 22px;
+      border-bottom: 1px solid #e9eef7;
+    }
+
+    .modal-detalle-header h3 {
+      margin: 0;
+      color: #2c3e50;
+      font-size: 1.25rem;
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .modal-close-btn {
+      border: none;
+      background: #eef3fb;
+      color: #43556f;
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.2rem;
+    }
+
+    .modal-detalle-body {
+      padding: 18px 22px 22px;
+    }
+
+    .orden-resumen-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .resumen-card {
+      background: #f8fbff;
+      border: 1px solid #e5edf8;
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+
+    .resumen-label {
+      display: block;
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      color: #60738e;
+      margin-bottom: 4px;
+    }
+
+    .resumen-value {
+      font-weight: 700;
+      color: #24374f;
+    }
+
+    .modal-estado-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border-radius: 999px;
+      padding: 5px 10px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .modal-estado-pendiente {
+      background: #fff3cd;
+      color: #856404;
+      border: 1px solid #f7e09f;
+    }
+
+    .modal-estado-recibida {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #bde2c6;
+    }
+
+    .detalle-productos-title {
+      margin: 0 0 10px;
+      color: #32445f;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .detalle-productos-table {
+      width: 100%;
+      border-collapse: collapse;
+      border: 1px solid #e6edf8;
+      border-radius: 12px;
+      overflow: hidden;
+    }
+
+    .detalle-productos-table th {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: #fff;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      padding: 10px;
+      text-align: left;
+    }
+
+    .detalle-productos-table td {
+      padding: 10px;
+      border-bottom: 1px solid #edf2fb;
+      color: #2e3f59;
+    }
+
+    .detalle-productos-table tbody tr:nth-child(even) {
+      background: #f9fbff;
+    }
+
+    .modal-detalle-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      margin-top: 16px;
+    }
+
+    .btn-modal-action {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 16px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-factura {
+      background: #17a2b8;
+      color: #fff;
+    }
+
+    .btn-cerrar-modal {
+      background: #6c757d;
+      color: #fff;
+    }
+
+    @media (max-width: 768px) {
+      .dashboard-wrapper .main-content {
+        padding: 16px;
+      }
+
+      .ordenes-container {
+        padding: 20px;
+        border-radius: 16px;
+      }
+
+      .orden-resumen-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-6px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
   </style>
 </head>
 
@@ -171,7 +384,7 @@
   <div class="dashboard-wrapper">
     <div th:replace="~{frontend/layouts/sidebar-admin :: sidebar}"></div>
 
-    <main class="main-content" style="width: 100%; max-width: none; padding: 20px;">
+    <main class="main-content">
       <div class="ordenes-container">
         <div class="ordenes-header">
           <h2><i class='bx bx-cart'></i> Gestión de Órdenes de Compra</h2>
@@ -197,10 +410,8 @@
               <tr>
                 <th>ID</th>
                 <th>Proveedor</th>
-                <th>Productos</th>
                 <th>Fecha</th>
                 <th>Total</th>
-                <th>Cantidad</th>
                 <th>Estado</th>
                 <th>Acciones</th>
               </tr>
@@ -210,12 +421,8 @@
                 style="cursor: pointer; transition: background-color 0.2s;">
                 <td th:text="${orden.id}">-</td>
                 <td th:text="${orden.proveedorNombre}">-</td>
-                <td
-                  th:text="${orden.detalles != null ? #strings.listJoin(orden.detalles.![productoNombre], ', ') : '-'}">
-                  -</td>
                 <td th:text="${#dates.format(orden.fecha, 'dd/MM/yyyy')}">-</td>
                 <td th:text="${'$ ' + #numbers.formatDecimal(orden.total, 0, 'COMMA', 2, 'POINT')}">-</td>
-                <td th:text="${orden.detalles != null ? #aggregates.sum(orden.detalles.![cantidad]) : 0}">-</td>
                 <td>
                   <span th:if="${orden.estado == 'PENDIENTE'}" class="badge-estado badge-pendiente">Pendiente</span>
                   <span th:if="${orden.estado == 'RECIBIDA'}" class="badge-estado badge-recibida">Recibida</span>
@@ -248,47 +455,53 @@
   </div>
 
   <!-- Modal Detalle Orden -->
-  <div id="modalDetalle" class="modal"
-    style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.5); align-items: center; justify-content: center;">
-    <div class="modal-content"
-      style="background: white; border-radius: 12px; padding: 25px; max-width: 700px; width: 90%; max-height: 90vh; overflow-y: auto; position: relative; animation: fadeIn 0.3s ease;">
-      <div
-        style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f0f0f0; padding-bottom: 15px; margin-bottom: 20px;">
-        <h3 style="margin: 0; color: #2c3e50;"><i class='bx bx-file'></i> Detalle de Orden #<span id="modalId"></span>
-        </h3>
-        <button onclick="cerrarModal()"
-          style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #7f8c8d;">&times;</button>
+  <div id="modalDetalle" class="modal-detalle-orden">
+    <div class="modal-detalle-content">
+      <div class="modal-detalle-header">
+        <h3><i class='bx bx-file'></i> Detalle de Orden #<span id="modalId"></span></h3>
+        <button class="modal-close-btn" onclick="cerrarModal()">&times;</button>
       </div>
+      <div class="modal-detalle-body">
+        <div class="orden-resumen-grid">
+          <div class="resumen-card">
+            <span class="resumen-label">Proveedor</span>
+            <span class="resumen-value" id="modalProveedor">-</span>
+          </div>
+          <div class="resumen-card">
+            <span class="resumen-label">Fecha</span>
+            <span class="resumen-value" id="modalFecha">-</span>
+          </div>
+          <div class="resumen-card">
+            <span class="resumen-label">Estado</span>
+            <span id="modalEstado" class="modal-estado-badge">-</span>
+          </div>
+          <div class="resumen-card">
+            <span class="resumen-label">Total</span>
+            <span class="resumen-value" id="modalTotal">-</span>
+          </div>
+        </div>
 
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
-        <div><strong>Proveedor:</strong> <span id="modalProveedor"></span></div>
-        <div><strong>Fecha:</strong> <span id="modalFecha"></span></div>
-        <div><strong>Estado:</strong> <span id="modalEstado"></span></div>
-        <div><strong>Total:</strong> <span id="modalTotal" style="font-weight: bold; color: #28a745;"></span></div>
-      </div>
+        <h4 class="detalle-productos-title">Productos de la orden</h4>
+        <table class="detalle-productos-table">
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th style="text-align:center;">Cant.</th>
+              <th style="text-align:right;">Precio Unit.</th>
+              <th style="text-align:right;">Subtotal</th>
+            </tr>
+          </thead>
+          <tbody id="modalTablaCuerpo"></tbody>
+        </table>
 
-      <h4 style="margin-bottom: 10px; color: #495057;">Productos</h4>
-      <table style="width: 100%; border-collapse: collapse;">
-        <thead style="background: #f8f9fa;">
-          <tr>
-            <th style="padding: 10px; text-align: left; border-bottom: 2px solid #dee2e6;">Producto</th>
-            <th style="padding: 10px; text-align: center; border-bottom: 2px solid #dee2e6;">Cant.</th>
-            <th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6;">Precio Unit.</th>
-            <th style="padding: 10px; text-align: right; border-bottom: 2px solid #dee2e6;">Subtotal</th>
-          </tr>
-        </thead>
-        <tbody id="modalTablaCuerpo">
-          <!-- JS populate -->
-        </tbody>
-      </table>
-
-      <div style="margin-top: 25px; text-align: right;">
-        <button onclick="imprimirFactura()"
-          style="background: #17a2b8; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; display: inline-flex;">
-          <i class='bx bx-printer'></i> Factura
-        </button>
-        <button onclick="cerrarModal()"
-          style="background: #6c757d; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;">Cerrar</button>
+        <div class="modal-detalle-actions">
+          <button onclick="imprimirFactura()" class="btn-modal-action btn-factura">
+            <i class='bx bx-printer'></i> Factura
+          </button>
+          <button onclick="cerrarModal()" class="btn-modal-action btn-cerrar-modal">
+            <i class='bx bx-x'></i> Cerrar
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -315,6 +528,10 @@
       })
     }
 
+    function formatCurrency(value) {
+      return '$ ' + Number(value || 0).toLocaleString('es-CO');
+    }
+
     function verDetalleOrden(id) {
       // Mostrar loading
       Swal.fire({
@@ -337,11 +554,12 @@
           // Llenar datos
           document.getElementById('modalId').textContent = orden.id;
           document.getElementById('modalProveedor').textContent = orden.proveedorNombre;
-          // Formatear fecha simple (asumiendo string ISO o timestamp en JSON)
           const fecha = new Date(orden.fecha);
-          document.getElementById('modalFecha').textContent = fecha.toLocaleDateString();
-          document.getElementById('modalEstado').textContent = orden.estado;
-          document.getElementById('modalTotal').textContent = '$ ' + orden.total.toLocaleString('es-CO', { minimumFractionDigits: 0 });
+          document.getElementById('modalFecha').textContent = fecha.toLocaleDateString('es-CO');
+          const estadoEl = document.getElementById('modalEstado');
+          estadoEl.textContent = orden.estado;
+          estadoEl.className = 'modal-estado-badge ' + (orden.estado === 'RECIBIDA' ? 'modal-estado-recibida' : 'modal-estado-pendiente');
+          document.getElementById('modalTotal').textContent = formatCurrency(orden.total);
 
           // Llenar tabla
           const tbody = document.getElementById('modalTablaCuerpo');
@@ -350,10 +568,10 @@
           orden.detalles.forEach(d => {
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                        <td style="padding: 10px; border-bottom: 1px solid #e0e0e0;">${d.productoNombre}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; text-align: center;">${d.cantidad}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; text-align: right;">$ ${d.precioUnitario.toLocaleString('es-CO')}</td>
-                        <td style="padding: 10px; border-bottom: 1px solid #e0e0e0; text-align: right;">$ ${d.subtotal.toLocaleString('es-CO')}</td>
+                        <td>${d.productoNombre}</td>
+                        <td style="text-align: center;">${d.cantidad}</td>
+                        <td style="text-align: right;">${formatCurrency(d.precioUnitario)}</td>
+                        <td style="text-align: right;">${formatCurrency(d.subtotal)}</td>
                     `;
             tbody.appendChild(tr);
           });

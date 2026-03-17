@@ -15,6 +15,8 @@ import java.util.List;
 @Builder
 public class VentaRequestDto {
     private Integer usuarioId;        // usuario (tabla usuario)
+    private Integer empleadoId;
+    private Boolean puntoFisico;
     private List<VentaRequestItemDto> items;
 }
 
