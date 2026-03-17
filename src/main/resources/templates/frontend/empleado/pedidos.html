@@ -389,11 +389,19 @@
                 <h3><i class='bx bx-receipt'></i> Pedido #<span th:text="${pedido.ventaId}">0</span></h3>
                 <div class="pedido-info">
                   <span><i class='bx bx-calendar'></i> <span th:text="${pedido.fechaVenta != null ? pedido.fechaVenta : 'N/A'}">Fecha</span></span>
+                  <span th:if="${pedido.tipoVenta != null && #strings.equals(pedido.tipoVenta, 'PUNTO_FISICO')}"
+                        style="background:#e0f2fe;color:#075985;padding:4px 10px;border-radius:999px;font-weight:700;">
+                    <i class='bx bx-store'></i> Punto Físico
+                  </span>
                   <span><i class='bx bx-user'></i> Usuario: 
                     <span th:if="${pedido.usuarioId != null and nombresUsuarios != null and nombresUsuarios.containsKey(pedido.usuarioId)}" 
                           th:text="${nombresUsuarios.get(pedido.usuarioId)}">Nombre Usuario</span>
                     <span th:if="${pedido.usuarioId == null or nombresUsuarios == null or !nombresUsuarios.containsKey(pedido.usuarioId)}" 
                           th:text="${pedido.usuarioId != null ? 'ID: ' + pedido.usuarioId : 'N/A'}">N/A</span>
+                  </span>
+                  <span th:if="${pedido.tipoVenta != null && #strings.equals(pedido.tipoVenta, 'PUNTO_FISICO')}">
+                    <i class='bx bx-id-card'></i> Empleado:
+                    <strong th:text="${pedido.empleadoNombre != null ? pedido.empleadoNombre : 'N/A'}">N/A</strong>
                   </span>
                 </div>
               </div>

@@ -181,6 +181,81 @@ public class PerfilController {
         return "frontend/empleado/notificaciones";
     }
 
+    @GetMapping("/empleado/ventas/punto-fisico")
+    public String ventaPuntoFisico(Model model) {
+        UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
+
+        if (usuario == null || !"empleado".equalsIgnoreCase(usuario.getRole())) {
+            return "redirect:/login";
+        }
+
+        List<com.technova.technov.domain.dto.ProductoDto> productosDisponibles = productoService.listarProductos().stream()
+                .filter(p -> p.getEstado() == null || p.getEstado())
+                .filter(p -> p.getStock() != null && p.getStock() > 0)
+                .collect(java.util.stream.Collectors.toList());
+
+        model.addAttribute("usuario", usuario);
+        model.addAttribute("productos", productosDisponibles);
+        return "frontend/empleado/ventas-punto-fisico";
+    }
+
+    @PostMapping("/empleado/ventas/punto-fisico/registrar")
+    public String registrarVentaPuntoFisico(
+            @RequestParam(value = "productoId", required = false) List<Integer> productoIds,
+            @RequestParam(value = "cantidad", required = false) List<Integer> cantidades,
+            RedirectAttributes redirectAttributes) {
+        UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);
+
+        if (usuario == null || !"empleado".equalsIgnoreCase(usuario.getRole())) {
+            return "redirect:/login";
+        }
+
+        try {
+            if (productoIds == null || cantidades == null || productoIds.isEmpty() || cantidades.isEmpty()) {
+                redirectAttributes.addFlashAttribute("tipoMensaje", "error");
+                redirectAttributes.addFlashAttribute("mensaje", "Debes agregar al menos un producto para registrar la venta.");
+                return "redirect:/empleado/ventas/punto-fisico";
+            }
+
+            List<com.technova.technov.domain.dto.VentaRequestItemDto> itemsValidos = new java.util.ArrayList<>();
+            int size = Math.min(productoIds.size(), cantidades.size());
+            for (int i = 0; i < size; i++) {
+                Integer productoId = productoIds.get(i);
+                Integer cantidad = cantidades.get(i);
+                if (productoId != null && cantidad != null && cantidad > 0) {
+                    itemsValidos.add(com.technova.technov.domain.dto.VentaRequestItemDto.builder()
+                            .productoId(productoId)
+                            .cantidad(cantidad)
+                            .precio(null)
+                            .build());
+                }
+            }
+
+            if (itemsValidos.isEmpty()) {
+                redirectAttributes.addFlashAttribute("tipoMensaje", "error");
+                redirectAttributes.addFlashAttribute("mensaje", "No hay items válidos para registrar la venta.");
+                return "redirect:/empleado/ventas/punto-fisico";
+            }
+
+            com.technova.technov.domain.dto.VentaRequestDto request = com.technova.technov.domain.dto.VentaRequestDto.builder()
+                    .items(itemsValidos)
+                    .puntoFisico(true)
+                    .empleadoId(usuario.getId())
+                    .usuarioId(usuario.getId())
+                    .build();
+
+            com.technova.technov.domain.dto.VentaDto venta = ventaService.crear(request);
+            redirectAttributes.addFlashAttribute("tipoMensaje", "success");
+            redirectAttributes.addFlashAttribute("mensaje",
+                    "Venta en punto físico #" + venta.getVentaId() + " registrada correctamente por " + usuario.getName() + ".");
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("tipoMensaje", "error");
+            redirectAttributes.addFlashAttribute("mensaje", "No se pudo registrar la venta: " + e.getMessage());
+        }
+
+        return "redirect:/empleado/ventas/punto-fisico";
+    }
+
     @GetMapping("/admin/perfil")
     public String perfilAdmin(Model model) {
         UsuarioDto usuario = securityUtil.getUsuarioAutenticado().orElse(null);

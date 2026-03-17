@@ -16,6 +16,9 @@ import java.util.List;
 public class VentaDto {
     private Integer ventaId;
     private Integer usuarioId;
+    private Integer empleadoId;
+    private String empleadoNombre;
+    private String tipoVenta;
     private LocalDate fechaVenta;
     private BigDecimal total;
     private List<VentaItemDto> items;
