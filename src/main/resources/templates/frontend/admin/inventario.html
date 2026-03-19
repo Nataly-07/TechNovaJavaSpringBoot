@@ -37,71 +37,17 @@
       min-height: calc(100vh - 140px);
     }
 
-    /* Estilos personalizados para barras de desplazamiento */
-    .top-scrollbar,
-    .table-container {
-      scrollbar-width: thin;
-      scrollbar-color: #667eea #f0f0f0;
-    }
-
     .table-container {
       overflow-x: auto;
-      /* Asegurar scroll nativo */
-    }
-
-    /* Contenedor superior de scroll - debe ser más estrecho para mostrar la manija */
-    #topScrollContainer {
-      max-width: 100%;
-      width: 100%;
-    }
-
-    .top-scrollbar {
-      overflow-x: scroll;
-      /* Forzar que el riel de scroll sea visible siempre */
       overflow-y: hidden;
-      margin-bottom: 5px;
-      min-height: 18px;
-      /* Altura mínima garantizada */
-      height: 18px;
-      width: 100%;
-      background-color: transparent;
-      display: block;
-      /* Siempre visible en el DOM */
+      scrollbar-width: none;
+      -ms-overflow-style: none;
     }
 
-    /* Estilos WebKit (Chrome, Edge, Safari) */
-    .top-scrollbar::-webkit-scrollbar,
     .table-container::-webkit-scrollbar {
-      height: 12px;
-      width: 12px;
-      background-color: #f8f9fa;
-      border-radius: 6px;
-    }
-
-    .top-scrollbar::-webkit-scrollbar-track,
-    .table-container::-webkit-scrollbar-track {
-      background-color: #f8f9fa;
-      border-radius: 6px;
-    }
-
-    .top-scrollbar::-webkit-scrollbar-thumb,
-    .table-container::-webkit-scrollbar-thumb {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border-radius: 6px;
-      border: 3px solid #f8f9fa;
-      /* Efecto flotante */
-    }
-
-    .top-scrollbar::-webkit-scrollbar-thumb:hover,
-    .table-container::-webkit-scrollbar-thumb:hover {
-      background: linear-gradient(135deg, #5a6fd6 0%, #6a4291 100%);
-    }
-
-    .top-scrollbar-content {
-      height: 1px;
-      display: block;
-      width: 1px;
-      /* Fallback inicial */
+      width: 0;
+      height: 0;
+      display: none;
     }
 
     .filtros-section {
@@ -215,7 +161,7 @@
 
     .table-inventario {
       width: 100%;
-      min-width: 880px;
+      min-width: 900px;
       border-collapse: collapse;
       background: white;
     }
@@ -245,6 +191,66 @@
 
     .table-inventario tbody tr.row-clickable {
       cursor: pointer;
+    }
+
+    .acciones-cell {
+      min-width: 240px;
+    }
+
+    .acciones-botones {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(72px, 1fr));
+      gap: 6px;
+      align-items: stretch;
+    }
+
+    .acciones-botones .btn-accion {
+      white-space: nowrap;
+      min-width: 72px;
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
+      padding: 6px 8px;
+      border: none;
+      border-radius: 9px;
+      cursor: pointer;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.1px;
+      transition: all 0.22s ease;
+      box-shadow: 0 4px 12px rgba(31, 53, 82, 0.14);
+    }
+
+    .acciones-botones .btn-accion i {
+      font-size: 0.92rem;
+      line-height: 1;
+    }
+
+    .acciones-botones .btn-accion:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 16px rgba(31, 53, 82, 0.2);
+    }
+
+    .acciones-botones .btn-ver {
+      background: linear-gradient(135deg, #2f4b68 0%, #1f3552 100%);
+      color: #fff;
+    }
+
+    .acciones-botones .btn-editar {
+      background: linear-gradient(135deg, #6f88ff 0%, #5a73eb 100%);
+      color: #fff;
+    }
+
+    .acciones-botones .btn-desactivar {
+      background: linear-gradient(135deg, #f26a6a 0%, #d64949 100%);
+      color: #fff;
+    }
+
+    .acciones-botones .btn-activar {
+      background: linear-gradient(135deg, #3fcb7a 0%, #25a85d 100%);
+      color: #fff;
     }
 
     .movimientos-grid {
@@ -335,26 +341,30 @@
 
     .tabs {
       display: flex;
-      gap: 10px;
+      gap: 8px;
       margin-bottom: 25px;
-      border-bottom: 2px solid #e0e0e0;
+      border-bottom: 1px solid #dfe7f6;
+      padding-bottom: 8px;
+      flex-wrap: wrap;
     }
 
     .tab {
-      padding: 12px 24px;
-      background: none;
-      border: none;
+      padding: 10px 18px;
+      background: #f4f8ff;
+      border: 1px solid #dbe5f7;
+      border-radius: 10px;
       font-size: 1rem;
       font-weight: 600;
-      color: #7f8c8d;
+      color: #4a5f82;
       cursor: pointer;
-      border-bottom: 3px solid transparent;
       transition: all 0.3s ease;
     }
 
     .tab.active {
-      color: #667eea;
-      border-bottom-color: #667eea;
+      color: #ffffff;
+      border-color: #667eea;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.25);
     }
 
     .tab-content {
@@ -433,6 +443,14 @@
       overflow-y: auto;
       animation: slideDown 0.3s ease;
       box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .modal-content::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+      display: none;
     }
 
     .modal-header {
@@ -559,6 +577,14 @@
     .product-detail-modal {
       max-width: 920px;
       width: 95%;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    .product-detail-modal::-webkit-scrollbar {
+      width: 0;
+      height: 0;
+      display: none;
     }
 
     .product-detail-layout {
@@ -834,14 +860,10 @@
           <button class="tab active" onclick="mostrarTab('productos')">Productos</button>
           <button class="tab" onclick="mostrarTab('movimientos')">Movimientos</button>
           <button class="tab" onclick="mostrarTab('marcas-categorias')">Marcas y Categorías</button>
+          <button class="tab" onclick="mostrarTab('productos-recientes')">Productos más recientes</button>
         </div>
 
         <div id="tab-productos" class="tab-content active">
-          <!-- Barra de desplazamiento superior duplicada -->
-          <div class="table-container" id="topScrollContainer"
-            style="overflow-x: scroll; overflow-y: hidden; margin-bottom: 5px; height: 18px;">
-            <div id="topScrollContent" style="height: 1px; display: block; min-width: 100%;"></div>
-          </div>
           <div class="table-container" id="tableContainer">
             <table class="table-inventario" th:if="${productos != null && !productos.isEmpty()}">
               <thead>
@@ -849,7 +871,6 @@
                   <th>ID</th>
                   <th>Código</th>
                   <th>Nombre</th>
-                  <th>Categoría</th>
                   <th>Precio Venta</th>
                   <th>Marca</th>
                   <th>Stock</th>
@@ -866,7 +887,6 @@
                   <td th:text="${producto.id}">-</td>
                   <td th:text="${producto.codigo}">-</td>
                   <td th:text="${producto.nombre}">-</td>
-                  <td th:text="${producto.caracteristica != null ? producto.caracteristica.categoria : 'N/A'}">N/A</td>
                   <td>
                     <span th:if="${producto.caracteristica != null && producto.caracteristica.precioVenta != null}">
                       $<span
@@ -899,16 +919,16 @@
                       </th:block>
                     </th:block>
                   </td>
-                  <td>
-                    <div style="display: flex; gap: 8px;" onclick="event.stopPropagation()">
-                      <button class="btn-accion btn-editar" th:data-producto-id="${producto.id}"
+                  <td class="acciones-cell">
+                    <div class="acciones-botones" onclick="event.stopPropagation()">
+                      <button class="btn-accion btn-ver" th:data-producto-id="${producto.id}"
                         onclick="verDetalleProducto(this.getAttribute('data-producto-id'))"
-                        style="padding: 6px 12px; background: #34495e; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">
+                        >
                         <i class='bx bx-show'></i> Ver
                       </button>
                       <button class="btn-accion btn-editar" th:data-producto-id="${producto.id}"
                         onclick="editarProducto(this.getAttribute('data-producto-id'))"
-                        style="padding: 6px 12px; background: #667eea; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem;">
+                        >
                         <i class='bx bx-edit'></i> Editar
                       </button>
                       <button class="btn-accion"
@@ -916,8 +936,7 @@
                         th:data-producto-id="${producto.id}"
                         th:data-producto-estado="${producto.estado != null ? producto.estado : true}"
                         onclick="activarDesactivarProducto(this.getAttribute('data-producto-id'), this.getAttribute('data-producto-estado') === 'true')"
-                        style="padding: 6px 12px; border: none; border-radius: 6px; cursor: pointer; font-size: 0.85rem;"
-                        th:style="${producto.estado != null && producto.estado} ? 'background: #e74c3c; color: white;' : 'background: #27ae60; color: white;'">
+                        >
                         <i
                           th:class="${producto.estado != null && producto.estado ? 'bx bx-x-circle' : 'bx bx-check-circle'}"></i>
                         <span
@@ -933,6 +952,31 @@
               <i class='bx bx-package'></i>
               <h3>No se encontraron productos</h3>
               <p>No hay productos que coincidan con los filtros seleccionados.</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="tab-productos-recientes" class="tab-content">
+          <div class="table-container">
+            <table class="table-inventario">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Código</th>
+                  <th>Nombre</th>
+                  <th>Precio Venta</th>
+                  <th>Marca</th>
+                  <th>Stock</th>
+                  <th>Estado</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="recentProductsBody"></tbody>
+            </table>
+            <div id="recentProductsEmpty" class="empty-state" style="display:none;">
+              <i class='bx bx-package'></i>
+              <h3>No hay productos recientes</h3>
+              <p>Aún no hay productos para mostrar.</p>
             </div>
           </div>
         </div>
@@ -1507,6 +1551,8 @@
           }
         });
       }
+
+      renderProductosRecientes();
     });
 
     function aplicarFiltros() {
@@ -1542,6 +1588,32 @@
           btn.classList.add('active');
         }
       });
+
+      if (tabName === 'productos-recientes') {
+        renderProductosRecientes();
+      }
+    }
+
+    function renderProductosRecientes() {
+      const body = document.getElementById('recentProductsBody');
+      const empty = document.getElementById('recentProductsEmpty');
+      if (!body || !empty) return;
+
+      body.innerHTML = '';
+      const rows = Array.from(document.querySelectorAll('#tab-productos tbody tr[data-producto-id]'));
+      if (rows.length === 0) {
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+
+      rows
+        .sort((a, b) => Number(b.getAttribute('data-producto-id') || 0) - Number(a.getAttribute('data-producto-id') || 0))
+        .forEach(row => {
+          const clone = row.cloneNode(true);
+          clone.classList.add('row-clickable');
+          body.appendChild(clone);
+        });
     }
 
     // Funciones para eliminar categorías y marcas
@@ -2293,54 +2365,6 @@
         editSalida.addEventListener('input', calcularStockEditar);
       }
 
-      // Re-implementación simplificada de scroll superior
-      const topScrollContainer = document.getElementById('topScrollContainer');
-      const topScrollContent = document.getElementById('topScrollContent');
-      const tableContainer = document.getElementById('tableContainer');
-
-      if (topScrollContainer && topScrollContent && tableContainer) {
-
-        function syncWidths() {
-          const table = tableContainer.querySelector('table');
-          if (!table) {
-            topScrollContent.style.width = '1px';
-            return;
-          }
-
-          // Simplemente copiamos el scrollWidth del contenedor de la tabla
-          // Esto garantiza que ambas barras tengan exactamente el mismo comportamiento
-          topScrollContent.style.width = tableContainer.scrollWidth + 'px';
-          topScrollContent.style.minWidth = tableContainer.scrollWidth + 'px';
-
-          console.log('Synced width:', tableContainer.scrollWidth + 'px');
-        }
-
-        // Sincronización de eventos scroll
-        topScrollContainer.addEventListener('scroll', () => {
-          if (Math.abs(tableContainer.scrollLeft - topScrollContainer.scrollLeft) > 1) {
-            tableContainer.scrollLeft = topScrollContainer.scrollLeft;
-          }
-        });
-
-        tableContainer.addEventListener('scroll', () => {
-          if (Math.abs(topScrollContainer.scrollLeft - tableContainer.scrollLeft) > 1) {
-            topScrollContainer.scrollLeft = tableContainer.scrollLeft;
-          }
-        });
-
-        // Actualización de ancho
-        syncWidths();
-        window.addEventListener('resize', syncWidths);
-
-        // Observer para cambios en la tabla
-        new MutationObserver(syncWidths).observe(tableContainer, {
-          childList: true, subtree: true, attributes: true
-        });
-
-        // Disparadores temporales por si acaso
-        setTimeout(syncWidths, 500);
-        setTimeout(syncWidths, 1000);
-      }
     });
 
   </script>
